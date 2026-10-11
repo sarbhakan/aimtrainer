@@ -38,7 +38,7 @@ func test_navigation(app: Node) -> void:
 		for page in app.home.pages:
 			visible_pages += 1 if page.visible else 0
 		expect(visible_pages == 1 and app.home.selected_page == page_index, "La navigation doit n’afficher qu’une page.")
-		expect(app.home.save_button.visible == (page_index == 5), "Enregistrer reste accessible dans l’en-tête des réglages.")
+		expect(app.home.save_button.visible == (page_index in [2, 5]), "Enregistrer reste accessible dans l’en-tête de sensibilité et des réglages.")
 	app.home.show_page(2)
 	expect(not app.home.distance_input.is_visible_in_tree() and not app.home.fov_input.is_visible_in_tree(), "La calibration doit cacher les unités physiques et le FOV.")
 	app.home.show_page(5)

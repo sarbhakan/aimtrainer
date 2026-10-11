@@ -5,6 +5,8 @@
 [resource]
 script=ExtResource("1")
 scenario_id="T02"
+revision=2
+distance_m=4.0
 title="Suivi vertical"
 instructions="Suivre la cible en hauteur, sans cliquer. Contrôler les corrections verticales."
 family="tracking"

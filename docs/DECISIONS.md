@@ -69,3 +69,25 @@ Le cloud permet désormais 29 captures OpenGL Compatibility avec Mesa logiciel e
 Ces rendus ont permis de corriger les fonds, les retours à la ligne et les boutons enfouis dans les petites fenêtres. Ils ne certifient pas une expérience utilisateur réussie, les sons entendus, les FPS matériels, le scaling Windows ou les souris à haute fréquence. L’export isolé vérifie les armes/sons embarqués ; l’écoute et l’exécution native Windows restent à réceptionner.
 
 Le thème est appliqué aux scènes d’interface, pas chargé comme thème global du projet avant l’import des SVG. Ce chargement anticipé provoquait des erreurs au premier import sans cache. Le build vérifie désormais aussi les journaux d’import et d’export, pas seulement leur code de sortie.
+
+## D13 — Import physique et sensibilité visible, 0.3.0
+
+La valeur AIM/LOCAL est editable dans Ma sensibilité, hors réglages avancés. Importer un profil tiers sépare DPI source et DPI actuels : on conserve la distance calculée, les DPI actuels restent ceux déclarés pour la souris. Une modification du DPI logiciel ne reconfigure jamais le matériel. Le réimport restaure le profil source historique, pas un mélange avec la sensibilité locale calibrée. Les valeurs canoniques ne sont pas relues dans des champs arrondis.
+
+CS2/Valorant utilisent des coefficients documentaires ; CS2 propose un `m_yaw` personnalisé. Aucun yaw universel CoD n’est supposé : titre/version et tour complet mesuré à la règle sont obligatoires. La provenance est qualifiée et ne constitue pas une certification de la mesure. Zoom/ADS et FOV ne sont pas automatiquement équivalents.
+
+## D14 — Calibration par blocs, protocole 2
+
+Chaque exercice possède trois familiarisations puis trois séries A/B/C mesurées. Les positions des candidats tournent ; l’ordre des exercices reste fixe et le parcours n’est pas aveugle. Le joueur voit la sensibilité active et les comparaisons médianes par exercice, peut refaire après le repos minimal et valide explicitement le passage. Les utilités, pondérations et garde-fous de score 1 sont conservés. Ce protocole expérimental produit un compromis dans la plage testée, pas une découverte causale d’un optimum.
+
+Un ancien checkpoint protocole 1 reconnu est archivé avant une nouvelle comparaison. Il ne peut pas être repris sous protocole 2/révision 2. Un fichier incohérent, un protocole inconnu ou une archive contradictoire bloque le remplacement pour protéger les données.
+
+## D15 — Géométrie versionnée, pas de difficulté cachée
+
+Les exercices passent en révision 2 : profondeur 4 m, origine caméra réelle, silhouette et collision cohérentes, contrôle de toute la sphère aux bords du frustum. C02 passe explicitement de 0,65° à 1,2° pour une micro-précision d’entrée utilisable ; C05/T09 restent plus exigeants. C07 n’est plus masqué par le sol. S02 dispose de couloirs séparés, T03 normalise sa vitesse diagonale et T05 retourne en 120 ms à accélération finie. Les anciennes séances restent conservées, sans mélanger leurs records avec les nouvelles empreintes.
+
+## D16 — Inspiration et audit indépendant
+
+Quatre agents ont travaillé sur armes, géométrie, recherche/QA et aperçus, avec périmètres disjoints et tests de régression. L’audit adversarial a identifié des réimports réinterprétés, une confusion DPI et une migration bloquée ; ces cas doivent rester couverts avant publication. Les bots exécutent des scénarios logiciels : ils ne remplacent ni un utilisateur ni une souris physique.
+
+Les conventions publiques des aim trainers servent de référence ; aucun algorithme, score ou asset propriétaire d’Aimlabs n’est annoncé comme reproduit. Les sites officiels indisponibles dans cette session restent non vérifiés, selon `docs/REFERENCE_TASKS.md`. Démonstrations originales, bulles au survol/focus/clic, panneaux répartis sur la largeur disponible et retour HUD vers le viseur remplacent une interface centrée et une arme statique. Ces effets restent cosmétiques.

@@ -5,6 +5,8 @@
 [resource]
 script=ExtResource("1")
 scenario_id="C01"
+revision=2
+distance_m=4.0
 title="Static Single"
 instructions="Acquérir la sphère puis cliquer une fois. Privilégier des gestes propres."
 family="click"

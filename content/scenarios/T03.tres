@@ -5,6 +5,8 @@
 [resource]
 script=ExtResource("1")
 scenario_id="T03"
+revision=2
+distance_m=4.0
 title="Suivi diagonal"
 instructions="Coordonner les deux axes sur une trajectoire régulière, sans cliquer."
 family="tracking"

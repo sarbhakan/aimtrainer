@@ -5,6 +5,8 @@
 [resource]
 script=ExtResource("1")
 scenario_id="C04"
+revision=2
+distance_m=4.0
 title="Grands flicks"
 instructions="Acquérir des cibles éloignées. Mesurer ensemble vitesse, précision et régularité."
 family="click"

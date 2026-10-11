@@ -112,6 +112,8 @@ func spawn_target(target_index: int, time_s: float) -> void:
 		if definition.motion != "static":
 			candidate_yaw_deg *= 0.45
 			candidate_pitch_deg *= 0.45
+		if definition.layout == "lanes":
+			candidate_pitch_deg = lerpf(-definition.pitch_extent_deg, definition.pitch_extent_deg, (float(target_index) + 0.5) / definition.active_targets)
 		var candidate := AimGeometry.direction(candidate_yaw_deg, candidate_pitch_deg)
 		if definition.family != "tracking" and AimGeometry.angular_error_deg(candidate, old_direction) < definition.min_transition_deg:
 			continue
@@ -147,6 +149,10 @@ func target_direction(target_index: int, time_s: float) -> Vector3:
 	var amplitude_yaw_deg := definition.yaw_extent_deg * (0.9 if definition.family == "tracking" else 0.45)
 	var amplitude_pitch_deg := definition.pitch_extent_deg * (0.9 if definition.family == "tracking" else 0.45)
 	var amplitude_deg := amplitude_pitch_deg if definition.motion == "vertical" else amplitude_yaw_deg
+	if definition.motion == "diagonal":
+		amplitude_deg = sqrt(amplitude_yaw_deg * amplitude_yaw_deg + amplitude_pitch_deg * amplitude_pitch_deg)
+	elif definition.motion == "circle":
+		amplitude_deg = maxf(amplitude_yaw_deg, amplitude_pitch_deg)
 	var phase_rad := float(target.phase_rad) + definition.speed_deg_s / amplitude_deg * time_s
 	if definition.family == "tracking":
 		yaw_deg = 0.0
@@ -161,9 +167,25 @@ func target_direction(target_index: int, time_s: float) -> Vector3:
 			yaw_deg += amplitude_yaw_deg * cos(phase_rad)
 			pitch_deg += amplitude_pitch_deg * sin(phase_rad)
 		"strafe":
-			phase_rad = float(target.phase_rad) + definition.speed_deg_s * PI / (2.0 * amplitude_yaw_deg) * time_s
-			yaw_deg += amplitude_yaw_deg * 2.0 / PI * asin(sin(phase_rad))
+			yaw_deg += strafe_offset_deg(time_s, float(target.phase_rad), amplitude_yaw_deg)
 	return AimGeometry.direction(yaw_deg, pitch_deg)
+
+
+func strafe_offset_deg(time_s: float, phase_rad: float, amplitude_deg: float) -> float:
+	var turn_s: float = definition.turn_duration_s
+	var half_period_s: float = 2.0 * amplitude_deg / definition.speed_deg_s + turn_s * 0.5
+	var cycle_s: float = fposmod(time_s + phase_rad / TAU * half_period_s * 2.0, half_period_s * 2.0)
+	var second_half: bool = cycle_s >= half_period_s
+	var local_s: float = cycle_s - half_period_s if second_half else cycle_s
+	var offset_deg: float
+	if local_s < turn_s * 0.5:
+		offset_deg = -amplitude_deg + definition.speed_deg_s / turn_s * local_s * local_s
+	elif local_s <= half_period_s - turn_s * 0.5:
+		offset_deg = -amplitude_deg + definition.speed_deg_s * (local_s - turn_s * 0.25)
+	else:
+		var remaining_s: float = half_period_s - local_s
+		offset_deg = amplitude_deg - definition.speed_deg_s / turn_s * remaining_s * remaining_s
+	return -offset_deg if second_half else offset_deg
 
 
 func radius_m() -> float:

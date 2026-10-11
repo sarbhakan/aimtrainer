@@ -2,7 +2,7 @@
 
 Aim trainer 3D hors ligne pour Windows, en **Godot 4.7.2 stable + GDScript**.
 
-La **0.2.0** conserve les 16 exercices, la calibration et les mesures de la V1, avec une interface entièrement revue et trois profils d’arme visuels et sonores. La [spécification originale](docs/SPECIFICATION.md) reste la cible complète : les 55 exercices, le déplacement du joueur, l’ADS et les routines personnalisées ne sont pas encore implémentés.
+La **0.3.0** rend la sensibilité directement modifiable, importe les réglages d’autres jeux et compare trois sensibilités exercice par exercice. Les 16 exercices disposent de cibles mieux cadrées, d’aperçus au survol et d’un retour de tir animé. La [spécification originale](docs/SPECIFICATION.md) reste la cible complète : les 55 exercices, le déplacement du joueur, l’ADS et les routines personnalisées ne sont pas encore implémentés.
 
 Priorités : fidélité des mouvements de souris, pertinence des exercices, mesure réelle de la progression.
 
@@ -12,16 +12,16 @@ Priorités : fidélité des mouvements de souris, pertinence des exercices, mesu
 
 ## Ouvrir sous Windows
 
-Télécharger [AimLocal-0.2.0-windows-x64.zip](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.2.0-windows-x64.zip), puis extraire **tout** le dossier et lancer `AimLocal.exe` : **aucune installation de Godot nécessaire**. Vérification facultative : [somme SHA-256](downloads/AimLocal-0.2.0-windows-x64.zip.sha256), ou `Get-FileHash .\AimLocal-0.2.0-windows-x64.zip -Algorithm SHA256` sous PowerShell.
+Télécharger [AimLocal-0.3.0-windows-x64.zip](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.3.0-windows-x64.zip), puis extraire **tout** le dossier et lancer `AimLocal.exe` : **aucune installation de Godot nécessaire**. Vérification facultative : [somme SHA-256](downloads/AimLocal-0.3.0-windows-x64.zip.sha256), ou `Get-FileHash .\AimLocal-0.3.0-windows-x64.zip -Algorithm SHA256` sous PowerShell. Seule la dernière distribution est conservée dans `downloads/`.
 
 Pour ouvrir les sources, installer l'édition standard de Godot **4.7.2 stable** et ses export templates de la même version depuis les [releases officielles](https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable). Importer `project.godot`, puis lancer le projet avec F6 depuis `Main.tscn`, ou F5.
 
 - **Accueil** : accès rapide à l’entraînement ou à la recherche de sensibilité.
-- **Ma sensibilité** : recopier les DPI configurés sur la souris, choisir un départ confortable et laisser le test comparer les réglages. Les distances physiques et formules sont dans les détails, pas dans le formulaire débutant.
-- Le parcours compare trois réglages sur **micro-précision, grands flicks, switching, suivi fluide et strafes** : 15 familiarisations non notées puis 45 passages mesurés, ordre alterné, graines communes et confort déclaré. Prévoir environ **16 minutes minimum** ; l'interruption est reprenable.
+- **Ma sensibilité** : entrer les DPI actuels de la souris et modifier la valeur AIM/LOCAL, ou importer la sensibilité et les DPI du jeu source. CS2 et Valorant proposent leurs coefficients documentaires ; CoD et les autres jeux nécessitent le titre/version et une mesure à la règle. L’import conserve les DPI actuels et la distance physique calculée ; il ne reconfigure pas la souris.
+- Le parcours compare trois réglages sur **micro-précision, grands flicks, switching, suivi fluide et strafes** : chaque exercice commence par trois familiarisations, suivies de neuf essais mesurés. Total : 15 familiarisations et 45 mesures, positions A/B/C équilibrées, graines communes et confort déclaré. Prévoir environ **16 minutes minimum** ; l'interruption est reprenable. Le bilan détaille les trois médianes de chaque exercice.
 - Le bilan explique les scores et la dispersion. Un avantage net autorise une application explicite ; une égalité propose une plage, un manque de données ou un mauvais confort interdit l'application. On peut revoir le bilan ou affiner la plage.
-- **Entraînement** : cartes, filtres, recherche et aperçu animé ; 16 exercices de 15/30/60 secondes, avec consigne courte et bouton de lancement toujours accessible.
-- **Convertir** : CS2, Valorant ou coefficient yaw manuel ; valeurs à saisir dans le jeu, sans modification de fichiers ni interaction avec ses processus.
+- **Entraînement** : cartes, filtres, recherche et bulle de démonstration au survol, au focus ou au clic ; 16 exercices de 15/30/60 secondes, avec consigne courte et bouton de lancement toujours accessible.
+- **Conversion** : traduire le réglage actuel vers CS2, Valorant ou le profil mesuré de CoD/autre jeu ; choisir aussi les DPI destination. Valeurs à saisir dans le jeu, sans modification de fichiers ni interaction avec ses processus. L’ADS et le ressenti à FOV différent ne sont pas équivalents automatiquement.
 - **Progression** : courbes des 20 dernières séances comparables, score habituel (médiane récente), record, tendance après 10 séances et export CSV/JSON. Aucun résultat de démonstration n’est ajouté à vos données.
 - **Réglages** : Pulse, Vector ou Classic, sons et volume, arme masquée ou visible, animations réduites. Cliquer produit un tir ; en suivi, maintenir le clic joue un son continu facultatif **sans modifier le score**. Enregistrer pour conserver ces préférences.
 - **Test souris**, dans les réglages avancés : repère 3D sans score. **Échap** et perte de focus suspendent le jeu et arrêtent les sons ; la reprise reste explicite.
@@ -29,6 +29,8 @@ Pour ouvrir les sources, installer l'édition standard de Godot **4.7.2 stable**
 Défaut : **800 DPI, 35 cm/360°, FOV vertical 75°**, soit `914,4 / (800 × 35)` degré par count. Aucun lissage, accélération ni facteur de delta temporel n'est ajouté à la souris. Les DPI ne sont pas détectés matériellement. La calibration conseille un réglage dans la plage testée, **pas un optimum universel garanti** : relire le [protocole et les formules](docs/CALIBRATION.md), retester un autre jour et mesurer la distance réelle à la règle.
 
 Les données sont dans `user://aim_local`, soit **`%APPDATA%\AIM_LOCAL\aim_local` sous Windows**. Séances et bilans sont immuables ; profil et checkpoint utilisent un remplacement atomique avec backup. Un fichier corrompu est conservé et signalé, jamais écrasé silencieusement.
+
+Les exercices passent en révision 2 et la calibration en protocole 2 : les anciennes séances restent présentes, sans être mélangées aux nouveaux records. Un ancien checkpoint reconnu est archivé avant une nouvelle comparaison, pas repris avec des cibles différentes.
 
 ## Développer dans le cloud Linux
 
@@ -58,8 +60,8 @@ bash tools/export_windows.sh
 Ce script importe, exécute les tests, exporte en release, ouvre le pack avec le moteur Linux dans un dossier isolé, vérifie le format PE x86-64 et le PCK embarqué, puis crée :
 
 - `dist/AimLocal.exe`
-- `dist/AimLocal-0.2.0-windows-x64.zip`, avec l’exécutable, les instructions et les notices Godot/tiers.
-- `dist/AimLocal-0.2.0-windows-x64.zip.sha256`
+- `dist/AimLocal-0.3.0-windows-x64.zip`, avec l’exécutable, les instructions et les notices Godot/tiers.
+- `dist/AimLocal-0.3.0-windows-x64.zip.sha256`
 
 Sous Windows, depuis PowerShell :
 

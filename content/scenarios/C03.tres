@@ -5,6 +5,8 @@
 [resource]
 script=ExtResource("1")
 scenario_id="C03"
+revision=2
+distance_m=4.0
 title="Grid Targets"
 instructions="Six cibles réparties sans chevauchement. Choisir la suivante et garder sa précision."
 family="click"

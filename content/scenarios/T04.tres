@@ -5,6 +5,8 @@
 [resource]
 script=ExtResource("1")
 scenario_id="T04"
+revision=2
+distance_m=4.0
 title="Circle Track"
 instructions="Suivre une orbite elliptique continue. Chercher la stabilité sur les deux axes."
 family="tracking"

@@ -24,6 +24,7 @@ func _ready() -> void:
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(title_label)
 	metric_label = AimUI.label("", 16, AimUI.ACCENT)
+	metric_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	top.add_child(metric_label)
 	var space := Control.new()
 	space.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -40,12 +41,10 @@ func _ready() -> void:
 	countdown_label = AimUI.label("", 68, AimUI.ACCENT)
 	center.add_child(countdown_label)
 	weapon_feedback = WeaponFeedback.new()
-	weapon_feedback.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	weapon_feedback.offset_left = -255.0
-	weapon_feedback.offset_top = -165.0
-	weapon_feedback.offset_right = -12.0
-	weapon_feedback.offset_bottom = -22.0
+	weapon_feedback.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	weapon_feedback.set_hud_mode(true)
 	add_child(weapon_feedback)
+	move_child(weapon_feedback, 0)
 	ignore_mouse(self)
 	set_process(false)
 
@@ -69,6 +68,15 @@ func hit() -> void:
 	hit_remaining_s = 0.09
 	queue_redraw()
 	set_process(true)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or (what == NOTIFICATION_VISIBILITY_CHANGED and not is_visible_in_tree()):
+		hit_remaining_s = 0.0
+		set_process(false)
+		if weapon_feedback != null:
+			weapon_feedback.stop()
+		queue_redraw()
 
 
 func _process(delta_s: float) -> void:

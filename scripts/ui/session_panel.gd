@@ -28,6 +28,9 @@ var retry_button: Button
 var apply_button: Button
 var refine_button: Button
 var details_toggle: Button
+var result_grid: GridContainer
+var context: VBoxContainer
+var context_root: PanelContainer
 
 
 func _ready() -> void:
@@ -48,13 +51,12 @@ func _ready() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	layout.add_child(scroll)
-	var center := CenterContainer.new()
-	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.add_child(center)
-	var content := AimUI.column(center, 14)
-	content.custom_minimum_size.x = 600.0
-	content.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	result_grid = GridContainer.new()
+	result_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	result_grid.add_theme_constant_override("h_separation", 26)
+	result_grid.add_theme_constant_override("v_separation", 22)
+	scroll.add_child(result_grid)
+	var content := AimUI.column(result_grid, 14)
 	badge_label = AimUI.label("", 11, AimUI.ACCENT)
 	content.add_child(badge_label)
 	title_label = AimUI.label("", 28)
@@ -125,6 +127,22 @@ func _ready() -> void:
 	body_label.fit_content = true
 	body_label.custom_minimum_size.y = 170.0
 	details.add_child(body_label)
+	context = AimUI.card(result_grid, 20)
+	context_root = context.get_parent()
+	resized.connect(update_layout)
+	update_layout()
+
+
+func update_layout() -> void:
+	if result_grid != null:
+		result_grid.columns = 2 if size.x >= 1100.0 else 1
+
+
+func clear_context() -> void:
+	for child in context.get_children():
+		context.remove_child(child)
+		child.queue_free()
+	context_root.hide()
 
 
 func select_comfort(value: int) -> void:
@@ -135,6 +153,7 @@ func select_comfort(value: int) -> void:
 
 
 func present(title: String, body: String, calibration_step: bool = false) -> void:
+	clear_context()
 	title_label.text = title
 	body_label.text = body
 	subtitle_label.text = ""
@@ -146,6 +165,8 @@ func present(title: String, body: String, calibration_step: bool = false) -> voi
 	next_button.visible = calibration_step
 	next_button.disabled = calibration_step
 	retry_button.visible = not calibration_step
+	retry_button.text = "Rejouer  →"
+	retry_button.disabled = false
 	apply_button.hide()
 	refine_button.hide()
 	notice_label.hide()
@@ -180,6 +201,37 @@ func present_result(report: Dictionary, details: String, calibration_step: bool,
 		set_notice("Séance interrompue : elle n’entre pas dans vos records.")
 	elif not ScoringService.has_activity(report):
 		set_notice("Pas assez d’activité pour comparer ce passage. Bougez le viseur et réessayez.")
+	if not calibration_step:
+		context_root.show()
+		context.add_child(AimUI.label("Rejouer avec un objectif clair", 20))
+		var exercise_preview := ScenarioPreview.new()
+		exercise_preview.custom_minimum_size.y = 230.0
+		context.add_child(exercise_preview)
+		exercise_preview.configure(definition, true)
+		context.add_child(AimUI.label(ScenarioCopy.description(definition), 15, AimUI.MUTED))
+		context.add_child(AimUI.label(ScenarioCopy.measure(definition), 14, AimUI.ACCENT))
+		context.add_child(AimUI.label("Gardez les mêmes réglages et la même durée pour mesurer votre progression.", 13, AimUI.MUTED))
+
+
+func present_calibration_context(calibration: CalibrationService, pending: Dictionary) -> void:
+	clear_context()
+	context_root.show()
+	var stage := calibration.current_stage()
+	var block_index: int = int(stage.block_index)
+	badge_label.text = "COMPARAISON · EXERCICE %d / 5" % (block_index + 1)
+	var phase := "Échauffement %d / 3" % (calibration.current_index % 12 + 1) if not stage.scored else "Série %d / 3 · passage %d / 3" % [int(stage.repetition) + 1, (calibration.current_index % 12 - 3) % 3 + 1]
+	progress_label.text = "%s · passage %d / 60" % [phase, calibration.current_index + 1]
+	subtitle_label.text = "Réglage %s · sensibilité AIM/LOCAL %s. Indiquez votre confort, puis continuez." % [["A", "B", "C"][int(stage.candidate_index)], AimUI.number(SensitivityService.game_sensitivity(calibration.baseline.dpi, calibration.candidate_profile(int(stage.candidate_index)).cm_per_360, SensitivityService.APP_YAW_DEG), 4)]
+	context.add_child(AimUI.label("Même exercice, trois réglages", 21))
+	context.add_child(AimUI.label(ScenarioCopy.description(ScenarioCatalog.find(stage.scenario_id)), 14, AimUI.MUTED))
+	for candidate in calibration.scenario_scores(stage.scenario_id, pending):
+		var row := AimUI.card(context, 14)
+		row.add_child(AimUI.label(candidate.label + "  ·  " + AimUI.number(candidate.sensitivity, 4), 16, AimUI.ACCENT if int(candidate.candidate_index) == int(stage.candidate_index) else AimUI.TEXT))
+		row.add_child(AimUI.label("%d / 3 passages notés · score médian %s" % [candidate.samples, "—" if candidate.median_score == null else "%.0f" % candidate.median_score], 13, AimUI.MUTED))
+	context.add_child(AimUI.label("Les échauffements ne comptent pas. Le conseil final combine les cinq exercices et votre confort.", 13, AimUI.MUTED))
+	retry_button.text = "Refaire ce passage"
+	retry_button.show()
+	retry_button.disabled = true
 
 
 func present_recommendation(recommendation: Dictionary, dpi: float, details: String) -> void:
@@ -212,6 +264,18 @@ func present_recommendation(recommendation: Dictionary, dpi: float, details: Str
 		set_stat(2, "Réglages testés", "3")
 	if recommendation.boundary_best and status in ["indicative", "uncertain"]:
 		set_notice("Le meilleur essai est au bord de la plage. Affiner permet d’explorer les réglages voisins.")
+	var summaries: Array = recommendation.get("scenario_results", [])
+	if not summaries.is_empty():
+		context_root.show()
+		context.add_child(AimUI.label("Vos résultats par exercice", 21))
+		context.add_child(AimUI.label("Scores médians de trois passages, sans les échauffements. Comparez les réglages sur une même ligne, pas les exercices entre eux.", 13, AimUI.MUTED))
+		for summary in summaries:
+			var card := AimUI.card(context, 14)
+			card.add_child(AimUI.label(ScenarioCopy.title(ScenarioCatalog.find(summary.scenario_id)), 16))
+			var results := AimUI.row(card)
+			for candidate in summary.candidates:
+				var candidate_index := int(candidate.candidate_index)
+				AimUI.stat(results, "%s · %s" % [["A", "B", "C"][candidate_index], AimUI.number(float(candidate.sensitivity), 4)], "—" if candidate.median_score == null else "%.0f" % candidate.median_score)
 
 
 func set_stat(index: int, caption: String, value: String) -> void:

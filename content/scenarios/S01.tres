@@ -5,6 +5,8 @@
 [resource]
 script=ExtResource("1")
 scenario_id="S01"
+revision=2
+distance_m=4.0
 title="Target switching"
 instructions="Toucher une sphère puis changer de cible. Chaque clic compte, les ratés aussi."
 family="switching"

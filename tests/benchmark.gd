@@ -11,6 +11,8 @@ func _initialize() -> void:
 
 func benchmark() -> void:
 	var camera := CameraScript.new()
+	camera.name = "AimCamera"
+	camera.position.y = 1.6
 	root.add_child(camera)
 	var engine := EngineScript.new()
 	engine.start(ScenarioCatalog.find("T05"), 42, 30.0)

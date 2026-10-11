@@ -1,7 +1,7 @@
 class_name CalibrationService
 extends RefCounted
 
-const PROTOCOL_VERSION: int = 1
+const PROTOCOL_VERSION: int = 2
 const SCENARIOS: Array[String] = ["C02", "C04", "S01", "T01", "T05"]
 const FACTORS: Array[float] = [0.9, 1.0, 1.1]
 const WEIGHTS: Dictionary = {"balanced": [0.2, 0.2, 0.2, 0.2, 0.2],
@@ -41,9 +41,7 @@ func begin(profile: Dictionary, viewport_aspect: float, seed_value: int, identif
 	for scenario_index in SCENARIOS.size():
 		for candidate_index in FACTORS.size():
 			plan.append(stage(scenario_index, candidate_index, -1))
-	for repetition in 3:
-		for scenario_offset in SCENARIOS.size():
-			var scenario_index := (scenario_offset + repetition) % SCENARIOS.size()
+		for repetition in 3:
 			for order_index in FACTORS.size():
 				var candidate_index := (repetition + scenario_index + order_index) % FACTORS.size()
 				plan.append(stage(scenario_index, candidate_index, repetition))
@@ -53,7 +51,7 @@ func begin(profile: Dictionary, viewport_aspect: float, seed_value: int, identif
 func stage(scenario_index: int, candidate_index: int, repetition: int) -> Dictionary:
 	return {"scenario_id": SCENARIOS[scenario_index], "candidate_index": candidate_index,
 		"repetition": repetition, "scored": repetition >= 0, "duration_s": 12.0 if repetition >= 0 else 8.0,
-		"seed": calibration_seed + scenario_index * 7919 + (repetition + 1) * 1009}
+		"block_index": scenario_index, "seed": calibration_seed + scenario_index * 7919 + (repetition + 1) * 1009}
 
 
 func candidate_profile(candidate_index: int) -> Dictionary:
@@ -120,7 +118,7 @@ func checkpoint() -> Dictionary:
 
 func restore(data: Dictionary) -> bool:
 	if data.get("schema_version", 0) != 1 or data.get("protocol_version", -1) != PROTOCOL_VERSION or not data.get("baseline", null) is Dictionary or not data.get("trials", null) is Array:
-		error = "Checkpoint de calibration incompatible."
+		error = "Ce test provient d’une autre version ou est invalide. Il reste conservé ; démarrez une nouvelle comparaison."
 		return false
 	for field in ["aspect", "seed", "current_index"]:
 		if not ScoringService.number(data.get(field, null)):
@@ -224,4 +222,28 @@ func recommendation() -> Dictionary:
 		"best_tested_cm_per_360": best.cm_per_360, "recommended_cm_per_360": best.cm_per_360 if status == "indicative" else baseline.cm_per_360,
 		"range_cm_per_360": [accepted_cm.front(), accepted_cm.back()], "apply_allowed": status == "indicative",
 		"boundary_best": int(best.index) != 1, "trials_completed": current_index, "trials_expected": plan.size(),
-		"baseline": baseline.duplicate(true), "trials": trials.duplicate(true)}
+		"baseline": baseline.duplicate(true), "trials": trials.duplicate(true), "scenario_results": all_scenario_scores()}
+
+
+func scenario_scores(scenario_id: String, pending_report: Dictionary = {}) -> Array[Dictionary]:
+	var results: Array[Dictionary] = []
+	var stage_data := current_stage()
+	for candidate_index in FACTORS.size():
+		var scores: Array[float] = []
+		for trial in trials:
+			if trial.scored and trial.scenario_id == scenario_id and int(trial.candidate_index) == candidate_index:
+				scores.append(float(trial.score))
+		if not pending_report.is_empty() and not stage_data.is_empty() and stage_data.scored and stage_data.scenario_id == scenario_id and int(stage_data.candidate_index) == candidate_index:
+			if pending_report.get("completed", false) and pending_report.get("valid", false) and ScoringService.calibration_quality_error(pending_report).is_empty():
+				scores.append(float(pending_report.score))
+		results.append({"candidate_index": candidate_index, "label": ["A · plus lent", "B · départ", "C · plus rapide"][candidate_index],
+			"sensitivity": SensitivityService.game_sensitivity(float(baseline.dpi), float(candidate_profile(candidate_index).cm_per_360), SensitivityService.APP_YAW_DEG),
+			"samples": scores.size(), "median_score": ScoringService.median(scores) if not scores.is_empty() else null})
+	return results
+
+
+func all_scenario_scores() -> Array[Dictionary]:
+	var summaries: Array[Dictionary] = []
+	for scenario_id in SCENARIOS:
+		summaries.append({"scenario_id": scenario_id, "candidates": scenario_scores(scenario_id)})
+	return summaries

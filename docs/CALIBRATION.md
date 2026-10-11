@@ -1,4 +1,4 @@
-# Sensibilité repère et exercices — protocole V1
+# Sensibilité repère et exercices — protocole 2, application 0.3.0
 
 ## Ce que signifie la recommandation
 
@@ -21,12 +21,12 @@ Ces contraintes se complètent. Un réglage favorisant uniquement les gros flick
 ## Parcours répété
 
 - Trois vitesses angulaires : **A = 0,90 × référence**, **B = référence**, **C = 1,10 × référence**. En distance, les candidats sont `cm_ref / facteur` : 38,889 / 35 / 31,818 cm/360° pour un départ à 35.
-- Cinq exercices × trois réglages : **15 familiarisations de 8 s**, exclues du classement et de la progression.
-- Ensuite cinq exercices × trois réglages × trois répétitions : **45 passages mesurés de 12 s**.
+- **Cinq blocs de douze passages**, dans l’ordre C02 → C04 → S01 → T01 → T05. Dans chaque bloc : A/B/C en familiarisation de 8 s, puis trois séries de trois essais mesurés de 12 s. On termine les comparaisons d’un exercice avant le suivant.
+- Total : **15 familiarisations**, exclues du classement et de la progression, et **45 mesures** ; trois observations par cellule exercice/réglage.
 - Compte à rebours de 2 s et repos minimal de 3 s par passage, confort de 1 à 5. Minimum total proche de 16 min ; augmenter le repos librement et interrompre en cas de douleur/fatigue.
-- L'ordre des exercices tourne à chaque répétition ; chaque candidat occupe une fois chaque position dans chaque exercice. Les trois candidats partagent la même graine pour un exercice/répétition. Familiarisations et répétitions ont des graines distinctes.
-- L'écran de jeu et le bilan de passage utilisent A/B/C, sans montrer les valeurs numériques avant le bilan final. Cela limite certains biais sans constituer une étude en double aveugle.
-- Le checkpoint conserve les passages acceptés et les paramètres. Abandonner un passage ne l'accepte pas : la reprise refait ce seul passage. Une nouvelle calibration archive le checkpoint précédent.
+- Chaque candidat occupe une fois chaque position dans les trois séries d’un exercice, avec un décalage supplémentaire par exercice. Les trois candidats partagent une graine par série ; familiarisations et séries ont des graines distinctes. L’ordre des exercices est fixe : les effets de fatigue entre blocs ne sont pas entièrement contrebalancés. Les remplacements déclenchés par un impact ne surviennent pas nécessairement au même instant pour deux joueurs.
+- Le HUD indique l’exercice, A/B/C et la série. Le bilan de passage montre la sensibilité actuelle et les médianes A/B/C disponibles, avec le nombre de mesures. Ce parcours explicite n’est pas une étude en aveugle.
+- Le checkpoint conserve les passages acceptés et les paramètres. Abandonner ou refaire ne valide rien : le même candidat/graine recommence. Un passage valide est aussi refaisable après le repos minimal, avant de choisir Continuer. Une nouvelle calibration archive le checkpoint précédent. Un protocole 1 reconnu est archivé, jamais interprété selon le nouvel ordre ; un fichier incohérent ou inconnu reste protégé.
 
 Le départ doit être entre 5,5 et 135 cm/360° afin de produire trois candidats distincts dans les limites 5–150 cm/360°. Le FOV doit contenir les cinq scénarios.
 
@@ -76,16 +76,16 @@ Tirs, touches, ratés, expirations, précision premier tir, touches/minute, temp
 7. Si le candidat gagnant a un confort médian ≤ 2/5, empêcher l'application. Ne pas masquer les douleurs derrière un score plus élevé.
 8. Sinon, autoriser **Appliquer**, sans action automatique. La distance appliquée est arrondie à 0,001 cm et enregistrée dans le profil. Si le meilleur testé est au bord, proposer une nouvelle calibration centrée sur lui ; même protocole, sans extrapolation vers un optimum non testé.
 
-Le bilan sauvegarde tous les passages, médianes par exercice, poids, dispersions, plage, statut, paramètres et versions. Après fermeture, **Revoir le dernier bilan** permet de retrouver la décision. Un changement d'algorithme doit changer sa version et ne doit pas réécrire les séances passées.
+Le bilan sauvegarde tous les passages, médianes par exercice, poids, dispersions, plage, statut, paramètres et versions. L’interface présente aussi les cinq comparaisons A/B/C de scores médians bruts : ce sont des résultats explicatifs, pas des points additionnés entre tâches. Après fermeture, **Revoir le dernier bilan** permet de retrouver la décision. Un changement d'algorithme doit changer sa version et ne doit pas réécrire les séances passées.
 
 ## Bibliothèque exécutable
 
-Tous les scénarios ont une difficulté fixe, des trajectoires/générations déterministes par graine, des cibles à 8 m et les mêmes protections de pause/focus. Le diamètre est angulaire, pas dépendant de la résolution. Six sphères suffisent au pool.
+Tous les scénarios ont une difficulté fixe, des trajectoires/générations déterministes par graine, une profondeur nominale de 4 m et les mêmes protections de pause/focus. Le pool positionne les cibles depuis l’origine réelle de la caméra. Le diamètre est angulaire, pas automatiquement adapté à la résolution. Six sphères suffisent au pool. Les ressources sont en révision 2 : leur empreinte interdit de mélanger les anciens scores ou de reprendre une ancienne calibration avec cette géométrie.
 
 | ID | Exercice | Cibles | Diamètre | Particularité / référence clic |
 |---|---|---:|---:|---|
 | C01 | Static Single | 1 | 1,5° | Cible statique ; 2 touches/s |
-| C02 | Micro-précision | 1 | 0,65° | Zone étroite ; 1,6/s |
+| C02 | Micro-précision | 1 | 1,2° | Zone étroite ; 1,6/s ; environ 9,83 px à 720p/FOV 75° |
 | C03 | Grid Targets | 6 | 1,2° | Cellules libres d'une grille 3×3 ; 3/s |
 | C04 | Grands flicks | 1 | 1,4° | Écart minimal 14° ; 1,8/s |
 | C05 | Sixshot précis | 6 | 0,7° | Petites cibles dispersées ; 2,4/s |
@@ -96,12 +96,12 @@ Tous les scénarios ont une difficulté fixe, des trajectoires/générations dé
 | T02 | Suivi vertical | 1 | 2° | Sinusoïde verticale |
 | T03 | Suivi diagonal | 1 | 2° | Yaw et pitch couplés |
 | T04 | Circle Track | 1 | 2° | Boucle elliptique yaw/pitch |
-| T05 | Suivi de strafes | 1 | 1,8° | Trajet triangulaire, inversions nettes |
+| T05 | Suivi de strafes | 1 | 1,8° | Déplacements latéraux, retournements continus de 120 ms |
 | T09 | Far Small | 1 | 0,9° | Suivi de petite cible, vitesse réduite |
 | S01 | Target switching | 4 | 1,3° | Transitions entre touches ; 2,8/s |
-| S02 | Moving Switch | 4 | 1,8° | Cibles mobiles ; 2,4/s |
+| S02 | Moving Switch | 4 | 1,8° | Couloirs séparés ; 2,4/s |
 
-Les paramètres complets résident dans les `.tres`. `speed_deg_s` règle la vitesse d'un axe de la trajectoire, pas une vitesse 3D constante pour une ellipse/diagonale. Les cibles ne se chevauchent pas à leur génération ; des trajectoires mobiles peuvent ensuite se croiser, auquel cas le rayon touche la sphère la plus proche. Pas d'adaptation automatique pendant un passage ni de difficulté cachée.
+Les paramètres complets résident dans les `.tres`. T03 normalise désormais les amplitudes couplées pour respecter la vitesse angulaire totale annoncée ; l’ellipse a une vitesse variable bornée. S02 utilise des couloirs distants d’au moins 5° pour éviter le chevauchement de ses cibles mobiles. La totalité de la sphère, y compris aux coins du champ, doit rester dans le viewport et au-dessus du sol. Rendu et collision partagent le même rayon. C05/T09 conservent volontairement leurs petites cibles avancées. Pas d’adaptation automatique pendant un passage ni de difficulté cachée.
 
 ## Conversion et progression
 
@@ -109,7 +109,11 @@ Les paramètres complets résident dans les `.tres`. `speed_deg_s` règle la vit
 
 `sensibilité_jeu = 914,4 / (DPI_destination × cm360 × yaw_jeu)`.
 
-À 800 DPI et 35 cm/360° : AIM/LOCAL et CS2 avec yaw 0,022 donnent environ **1,484416**, Valorant avec yaw documentaire 0,07 environ **0,466531**. CS2 permet de modifier `m_yaw` : le coefficient est éditable. Les autres titres/ADS exigent un coefficient connu, jamais une équivalence inventée. Le convertisseur affiche aussi le cm/360 obtenu après arrondi à six décimales. La distance physique est conservée, pas une sensation identique à FOV/zoom différents.
+À 800 DPI et 35 cm/360° : AIM/LOCAL et CS2 avec yaw 0,022 donnent environ **1,484416**, Valorant avec yaw documentaire 0,07 environ **0,466531**. CS2 permet de modifier `m_yaw`. Le formulaire accepte sensibilité/DPI source tout en conservant les DPI actuellement déclarés dans l’application. Il n’effectue aucune modification du DPI matériel.
+
+CoD et les jeux personnalisés exigent un titre/version, les DPI et la sensibilité source, puis une distance de tour complet réellement mesurée sans zoom. Le coefficient est dérivé de ce profil précis : `914,4 / (DPI_source × sensibilité_source × cm_mesurés)`. Aucune constante CoD universelle n’est livrée. La provenance historique reste enregistrée même après calibration ; rouvrir le formulaire ne réinterprète pas une nouvelle distance AIM/LOCAL comme une nouvelle mesure dans le jeu tiers.
+
+Distance physique et coefficient source restent en précision complète dans le modèle, séparés des valeurs d’affichage arrondies. Le convertisseur utilise les DPI destination et signale la provenance documentaire/personnalisée/mesurée ; copier arrondit à six décimales. Sans profil connu, CoD/autre ne fournit aucune valeur copiable. La distance physique est conservée, pas une sensation identique à FOV/zoom différents ni une équivalence ADS.
 
 L'historique compare seulement des séances terminées, valides, actives, non-échauffement, de **même empreinte de scénario, durée, version de score, DPI, cm360, FOV vertical, format, inversion Y, accumulation, limite FPS, moteur et renderer**. L'objectif de calibration n'altère pas le score d'entraînement. Après dix séances comparables : médiane des cinq dernières vs cinq premières, sans chevauchement ; un départ à zéro n'affiche pas de pourcentage trompeur. Record et évolution de la médiane restent distincts. Consulter également les mesures brutes pour distinguer progrès de cadence, précision et régularité.
 

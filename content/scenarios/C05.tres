@@ -5,6 +5,8 @@
 [resource]
 script=ExtResource("1")
 scenario_id="C05"
+revision=2
+distance_m=4.0
 title="Sixshot précis"
 instructions="Six petites sphères : un clic précis, puis une transition contrôlée."
 family="click"

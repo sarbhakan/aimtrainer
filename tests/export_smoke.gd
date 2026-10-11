@@ -17,7 +17,23 @@ func smoke() -> void:
 	app.store = LocalStore.new("user://tests/export-" + LocalStore.new().identifier())
 	root.add_child(app)
 	await process_frame
-	if ResourceLoader.exists("res://tests/run_tests.gd") or ResourceLoader.exists("res://tests/domain_tests.gd") or ResourceLoader.exists("res://tests/ui_tests.gd"):
+	for test_path in ["run_tests", "domain_tests", "ui_tests", "sensitivity_import_tests", "geometry_regression_tests", "browser_preview_tests", "weapon_animation_tests", "calibration_block_tests", "checkpoint_migration_tests"]:
+		if ResourceLoader.exists("res://tests/" + test_path + ".gd"):
+			failures += 1
+	for game_id in ["cs2", "valorant", "cod"]:
+		var profile: Dictionary = app.home.read_profile()
+		profile.dpi = 1600.0
+		var source_value: float = 0.35 if game_id == "valorant" else 5.0 if game_id == "cod" else 1.5
+		var imported := GameProfileService.import_profile(profile, game_id, 800.0, source_value, "Modern Warfare III (2023)", 34.123456)
+		if not imported.error.is_empty():
+			failures += 1
+			continue
+		app.import_reference_profile(imported.profile)
+		app.home.destination_dpi.value = 800.0
+		if app.home.read_profile().dpi != 1600.0 or not is_equal_approx(app.aim_camera.degrees_per_count, SensitivityService.degrees_per_count(1600.0, imported.profile.cm_per_360)) or not is_equal_approx(app.home.conversion_value, source_value):
+			failures += 1
+	var calibration := CalibrationService.new()
+	if not calibration.begin(app.home.read_profile(), 16.0 / 9.0, 42, "export-protocol") or CalibrationService.PROTOCOL_VERSION != 2 or calibration.plan.size() != 60:
 		failures += 1
 	for definition in WeaponCatalog.DEFINITIONS:
 		if not definition.validate().is_empty() or definition.sprite.get_width() <= 0 or definition.shot_sound.data.is_empty() or definition.continuous_sound.data.is_empty():
@@ -28,6 +44,8 @@ func smoke() -> void:
 		if app.hud.weapon_feedback.continuous_player.stream.loop_mode != AudioStreamWAV.LOOP_FORWARD:
 			failures += 1
 	for definition in ScenarioCatalog.DEFINITIONS:
+		if definition.revision != 2 or definition.distance_m != 4.0:
+			failures += 1
 		app.start_practice(definition.scenario_id, 1.0)
 		app.begin_training(Time.get_ticks_usec())
 		app.engine.record_aim(0.01, 1, 0)
@@ -45,4 +63,5 @@ func smoke() -> void:
 	await process_frame
 	print("EXPORT SMOKE : 16 exercices embarqués, %d échecs." % failures)
 	print("EXPORT ASSETS : 3 profils d’arme embarqués, %d échecs." % failures)
+	print("EXPORT PROFILES : 3 imports et protocole 2 embarqués, %d échecs." % failures)
 	quit(0 if failures == 0 else 1)

@@ -5,6 +5,9 @@
 [resource]
 script=ExtResource("1")
 scenario_id="S02"
+revision=2
+distance_m=4.0
+layout="lanes"
 title="Moving Switch"
 instructions="Alterner entre quatre sphères mobiles. Mesurer précision et temps de transition."
 family="switching"

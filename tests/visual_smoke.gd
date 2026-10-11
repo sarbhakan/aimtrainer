@@ -29,6 +29,10 @@ func settle() -> void:
 
 func capture(caption: String) -> void:
 	await settle()
+	write_capture(caption)
+
+
+func write_capture(caption: String) -> void:
 	var path := screenshot_dir.path_join(caption + ".png")
 	expect(root.get_texture().get_image().save_png(path) == OK, "Capture inaccessible : " + path)
 	capture_count += 1
@@ -63,6 +67,15 @@ func run() -> void:
 			app.home.show_page(page_index)
 			await capture("%d-%02d-%s" % [dimensions.x, page_index, ["accueil", "exercices", "sensibilite", "conversion", "progression", "reglages"][page_index]])
 			validate_scrolls(app.home)
+	for dimensions in [Vector2i(1280, 720), Vector2i(800, 450)]:
+		root.size = dimensions
+		app.home.show_page(0)
+		await settle()
+		var starter: Control = app.home.home_grid.get_child(0)
+		app.home.show_home_preview(ScenarioCatalog.find("C03"), starter)
+		await capture("%d-23-accueil-survol" % dimensions.x)
+		expect(app.home.home_preview_popup.visible and root.get_visible_rect().encloses(app.home.home_preview_popup.get_global_rect()), "La bulle de l’accueil doit rester dans la fenêtre.")
+		app.home.dismiss_home_preview()
 	root.size = Vector2i(1280, 720)
 	await settle()
 	app.home.show_page(1)
@@ -70,6 +83,41 @@ func run() -> void:
 	await capture("1280-12-durees")
 	expect(app.home.duration_input.get_popup().visible, "Le choix de durée doit ouvrir son menu.")
 	app.home.duration_input.get_popup().hide()
+	for dimensions in [Vector2i(1280, 720), Vector2i(800, 450)]:
+		root.size = dimensions
+		await settle()
+		app.home.browser.show_card_preview(ScenarioCatalog.find("C02"))
+		await capture("%d-16-survol" % dimensions.x)
+		var popup: Control = app.home.browser.preview_popup
+		expect(popup.visible and root.get_visible_rect().encloses(popup.get_global_rect()), "La bulle doit rester lisible et entièrement dans la fenêtre.")
+		app.home.browser.dismiss_card_preview()
+	root.size = Vector2i(1280, 720)
+	app.home.show_page(2)
+	var importer: SensitivityImport = app.home.reference_import
+	importer.game_input.select(1)
+	importer.select_game()
+	importer.dpi_input.value = 800
+	importer.value_input.value = 0.35
+	importer.apply_button.pressed.emit()
+	await capture("1280-17-import-valorant")
+	root.size = Vector2i(800, 450)
+	await capture("800-17-import-valorant")
+	validate_scrolls(app.home)
+	root.size = Vector2i(1280, 720)
+	expect(is_equal_approx(app.aim_camera.degrees_per_count, 0.0245), "Le réglage importé doit réellement changer la caméra.")
+	app.home.show_page(3)
+	await capture("1280-18-conversion-valorant")
+	app.home.show_page(2)
+	importer.game_input.select(2)
+	importer.select_game()
+	importer.title_input.text = "Modern Warfare III (2023) · exemple mesuré"
+	importer.value_input.value = 5.0
+	importer.measurement_input.value = 34.123456
+	importer.apply_button.pressed.emit()
+	await capture("1280-19-import-cod")
+	app.home.show_page(3)
+	await capture("1280-20-conversion-cod")
+	expect(is_equal_approx(app.home.conversion_value, 5.0), "Le coefficient mesuré doit permettre la conversion inverse exacte.")
 	app.home.show_page(3)
 	app.home.game_input.show_popup()
 	await capture("1280-13-jeux")
@@ -84,6 +132,12 @@ func run() -> void:
 	await capture("1280-06-depart")
 	app.begin_training(Time.get_ticks_usec())
 	await capture("1280-07-entrainement")
+	app.hud.weapon_feedback.play_shot()
+	await RenderingServer.frame_post_draw
+	write_capture("1280-21-tir")
+	await create_timer(0.1).timeout
+	await RenderingServer.frame_post_draw
+	write_capture("1280-22-recul")
 	app.pause_test()
 	await capture("1280-08-pause")
 	app.resume_test()
@@ -96,9 +150,16 @@ func run() -> void:
 	var example_trial: Dictionary = calibration.trials[0].duplicate(true)
 	example_trial.warmup = not bool(example_trial.scored)
 	app.session_panel.present_result(example_trial, "Données synthétiques de test, sans effet sur le profil utilisateur.", true, 1, 60)
+	var comparison := CalibrationService.new()
+	comparison.begin(SensitivityService.default_profile(), 16.0 / 9.0, 42, "visual-comparison")
+	app.session_panel.present_calibration_context(comparison, example_trial)
 	app.session_panel.update_rest(2.0, false)
 	await capture("1280-15-repos")
 	expect(app.session_panel.stat_values[1].text == "90", "Le nombre de cibles doit rester entier après lecture JSON.")
+	root.size = Vector2i(800, 450)
+	await capture("800-15-repos")
+	validate_scrolls(app.session_panel)
+	root.size = Vector2i(1280, 720)
 	app.session_panel.present_recommendation(calibration.recommendation(), 800.0, "Données synthétiques de test, sans effet sur le profil utilisateur.")
 	await capture("1280-10-bilan")
 	root.size = Vector2i(800, 450)

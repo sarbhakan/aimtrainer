@@ -3,6 +3,9 @@ extends VBoxContainer
 
 signal training_requested(scenario_id: String, duration_s: float)
 
+const PreviewPopupScript := preload("res://scripts/ui/exercise_preview_popup.gd")
+const PREVIEW_DELAY_S: float = 0.18
+
 var selected_definition: ScenarioDefinition = ScenarioCatalog.DEFINITIONS[0]
 var selected_family: String = "all"
 var search_input: LineEdit
@@ -18,6 +21,12 @@ var family_label: Label
 var measure_label: Label
 var start_button: Button
 var empty_label: Label
+var detail_column: VBoxContainer
+var catalog_scroll: ScrollContainer
+var preview_popup: PreviewPopupScript
+var preview_timer: Timer
+var pending_definition: ScenarioDefinition
+var pending_anchor: Control
 
 
 func _ready() -> void:
@@ -42,25 +51,31 @@ func _ready() -> void:
 	layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var catalog := AimUI.column(layout)
 	catalog.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var scroll := ScrollContainer.new()
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	catalog.add_child(scroll)
+	catalog_scroll = ScrollContainer.new()
+	catalog_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	catalog_scroll.follow_focus = true
+	catalog_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	catalog.add_child(catalog_scroll)
 	grid = GridContainer.new()
 	grid.columns = 2
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid.add_theme_constant_override("h_separation", 12)
 	grid.add_theme_constant_override("v_separation", 12)
-	scroll.add_child(grid)
+	catalog_scroll.add_child(grid)
 	for definition in ScenarioCatalog.DEFINITIONS:
 		var control := scenario_card(definition, func() -> void: select_definition(definition))
 		grid.add_child(control)
 		cards[definition.scenario_id] = control
+		control.mouse_entered.connect(func() -> void: schedule_card_preview(definition, control))
+		control.focus_entered.connect(func() -> void: schedule_card_preview(definition, control))
+		control.mouse_exited.connect(func() -> void: dismiss_card_preview(control))
+		control.focus_exited.connect(func() -> void: dismiss_card_preview(control))
+		control.pressed.connect(func() -> void: show_card_preview(definition, control))
 	empty_label = AimUI.label("Aucun exercice trouvé. Essayez un autre mot.", 14, AimUI.MUTED)
 	empty_label.hide()
 	catalog.add_child(empty_label)
-	var detail_column := AimUI.column(layout, 10)
-	detail_column.custom_minimum_size.x = 278.0
+	detail_column = AimUI.column(layout, 10)
+	detail_column.custom_minimum_size.x = 228.0
 	detail_column.size_flags_horizontal = Control.SIZE_FILL
 	detail_column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail_scroll = ScrollContainer.new()
@@ -91,6 +106,18 @@ func _ready() -> void:
 	start_button = AimUI.button("Lancer l’exercice  →", func() -> void:
 		training_requested.emit(selected_definition.scenario_id, [30.0, 60.0, 15.0][duration_input.selected]), true)
 	detail_column.add_child(start_button)
+	var preview_host := Node.new()
+	add_child(preview_host)
+	preview_popup = PreviewPopupScript.new()
+	preview_host.add_child(preview_popup)
+	preview_popup.visibility_changed.connect(refresh_preview_animation)
+	preview_timer = Timer.new()
+	preview_timer.one_shot = true
+	preview_timer.wait_time = PREVIEW_DELAY_S
+	preview_timer.timeout.connect(show_pending_preview)
+	add_child(preview_timer)
+	catalog_scroll.get_v_scroll_bar().value_changed.connect(func(_value: float) -> void: dismiss_card_preview())
+	visibility_changed.connect(browser_visibility_changed)
 	resized.connect(update_layout)
 	filter_catalog()
 	update_layout.call_deferred()
@@ -98,7 +125,7 @@ func _ready() -> void:
 
 static func scenario_card(definition: ScenarioDefinition, action: Callable) -> Button:
 	var control := AimUI.button("", action)
-	control.tooltip_text = ScenarioCopy.description(definition)
+	control.set_meta("scenario_id", definition.scenario_id)
 	control.custom_minimum_size = Vector2(176, 180)
 	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	control.add_theme_stylebox_override("normal", AimUI.style(AimUI.PANEL, 0.0))
@@ -126,7 +153,7 @@ func select_definition(definition: ScenarioDefinition) -> void:
 	title_label.text = ScenarioCopy.title(definition)
 	description_label.text = ScenarioCopy.description(definition)
 	measure_label.text = "Score · temps sur cible" if definition.family == "tracking" else "Score · précision et vitesse"
-	preview.configure(definition, true)
+	preview.configure(definition, not preview_popup.visible if preview_popup != null else true)
 	if detail_scroll != null:
 		detail_scroll.scroll_vertical = 0
 	for scenario_id in cards:
@@ -136,6 +163,7 @@ func select_definition(definition: ScenarioDefinition) -> void:
 
 
 func filter_catalog() -> void:
+	dismiss_card_preview()
 	var matches: Array[ScenarioDefinition] = []
 	var query := search_input.text.strip_edges().to_lower()
 	for definition in ScenarioCatalog.DEFINITIONS:
@@ -153,5 +181,72 @@ func filter_catalog() -> void:
 
 func update_layout() -> void:
 	if grid != null:
-		grid.columns = 2 if size.x >= 790.0 else 1
+		detail_column.custom_minimum_size.x = maxf(228.0, size.x * 0.30)
+		var catalog_width_px := size.x - detail_column.custom_minimum_size.x - 18.0 - catalog_scroll.get_v_scroll_bar().get_combined_minimum_size().x
+		grid.columns = clampi(floori((catalog_width_px + 12.0) / 188.0), 1, 4)
 		preview.visible = size.y >= 420.0
+		if preview_popup != null and preview_popup.visible:
+			preview_popup.place_in_viewport.call_deferred()
+
+
+func schedule_card_preview(definition: ScenarioDefinition, anchor: Control) -> void:
+	if not is_visible_in_tree() or not anchor.is_visible_in_tree():
+		return
+	dismiss_card_preview()
+	if anchor.has_focus() and grid.is_ancestor_of(anchor):
+		catalog_scroll.ensure_control_visible(anchor)
+	pending_definition = definition
+	pending_anchor = anchor
+	preview_timer.start()
+
+
+func show_pending_preview() -> void:
+	if pending_definition != null and is_instance_valid(pending_anchor):
+		show_card_preview(pending_definition, pending_anchor)
+
+
+func show_card_preview(definition: ScenarioDefinition, anchor: Control = null) -> void:
+	if definition == null:
+		dismiss_card_preview()
+		return
+	preview_timer.stop()
+	pending_definition = null
+	pending_anchor = null
+	var source: Control = anchor if is_instance_valid(anchor) else cards.get(definition.scenario_id)
+	if not is_visible_in_tree() or not is_instance_valid(source) or not source.is_visible_in_tree():
+		dismiss_card_preview()
+		return
+	preview.animated = false
+	preview.set_process(false)
+	preview_popup.present(definition, source)
+
+
+func dismiss_card_preview(anchor: Control = null) -> void:
+	if preview_popup == null or preview_timer == null:
+		return
+	if anchor != null and anchor != pending_anchor and anchor != preview_popup.anchor:
+		return
+	preview_timer.stop()
+	pending_definition = null
+	pending_anchor = null
+	preview_popup.dismiss()
+	refresh_preview_animation()
+
+
+func refresh_preview_animation() -> void:
+	if preview == null:
+		return
+	preview.animated = preview_popup == null or not preview_popup.visible
+	preview.set_process(preview.animated and preview.is_visible_in_tree() and AimUI.motion_enabled)
+
+
+func browser_visibility_changed() -> void:
+	if not is_visible_in_tree():
+		dismiss_card_preview()
+	refresh_preview_animation()
+
+
+func _input(event: InputEvent) -> void:
+	if is_visible_in_tree() and event.is_action_pressed("ui_cancel") and (preview_popup.visible or not preview_timer.is_stopped()):
+		dismiss_card_preview()
+		get_viewport().set_input_as_handled()

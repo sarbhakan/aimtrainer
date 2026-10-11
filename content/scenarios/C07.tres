@@ -5,6 +5,8 @@
 [resource]
 script=ExtResource("1")
 scenario_id="C07"
+revision=2
+distance_m=4.0
 title="Flicks verticaux"
 instructions="Corriger le pitch sur des cibles étagées. La même sensibilité s'applique aux deux axes."
 family="click"

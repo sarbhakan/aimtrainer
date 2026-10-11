@@ -5,6 +5,8 @@
 [resource]
 script=ExtResource("1")
 scenario_id="T01"
+revision=2
+distance_m=4.0
 title="Suivi horizontal fluide"
 instructions="Garder le viseur sur la sphère, sans cliquer. Mesure du temps sur cible et de l'erreur angulaire."
 family="tracking"

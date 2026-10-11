@@ -5,6 +5,11 @@ const AppScript = preload("res://scripts/core/main.gd")
 const MainScene = preload("res://scenes/app/Main.tscn")
 const DomainTests = preload("res://tests/domain_tests.gd")
 const UiTests = preload("res://tests/ui_tests.gd")
+const SensitivityImportTests = preload("res://tests/sensitivity_import_tests.gd")
+const WeaponAnimationTests = preload("res://tests/weapon_animation_tests.gd")
+const CalibrationBlockTests = preload("res://tests/calibration_block_tests.gd")
+const BrowserPreviewTests = preload("res://tests/browser_preview_tests.gd")
+const CheckpointMigrationTests = preload("res://tests/checkpoint_migration_tests.gd")
 
 var assertion_count: int = 0
 var failure_count: int = 0
@@ -31,6 +36,11 @@ func run_tests() -> void:
 	await test_application_flow()
 	await test_training_flow()
 	check(await UiTests.new().run(self, check), "La suite d’interface et d’équipement doit se terminer.")
+	check(await SensitivityImportTests.new().run(self, check), "La strate d’import et de conversion doit se terminer.")
+	await WeaponAnimationTests.run_suite(self, check)
+	check(await CalibrationBlockTests.new().run(self, check), "La strate de calibration par blocs doit se terminer.")
+	check(await BrowserPreviewTests.new().run(self, check), "La strate d’aperçus au survol et au clic doit se terminer.")
+	check(await CheckpointMigrationTests.new().run(self, check), "Les anciens checkpoints doivent être archivés sans perte ni écrasement incohérent.")
 	print("AIM/LOCAL : %d assertions, %d échecs, %d contrôles non exécutés." % [assertion_count, failure_count, skipped_count])
 	quit(0 if failure_count == 0 else 1)
 

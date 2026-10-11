@@ -1,5 +1,54 @@
 # Plan de validation
 
+## Itération 0.3.0 — 11–12 octobre 2026, Europe/Paris
+
+Godot `4.7.2.stable.official.ed1daf0bf`, Linux. Validation finale après intégration des quatre agents ; les résultats précédents restent historiques.
+
+| Contrôle | Résultat |
+|---|---|
+| Suite intégrée : domaine, UI, import, armes, blocs, bulles, migration | **2 186 assertions, 0 échec**, 1 contrôle de capture réelle non exécuté en headless |
+| Régressions géométriques lancées par `tools/test.sh` | **1 560 assertions, 0 échec** ; projections, rayons, sol, séparation, vitesse et taille C02 |
+| Import vierge sans `.godot/`, puis démarrage dans une copie isolée | Codes 0, aucune erreur de script/ressource ; sources et scénarios identiques au checkout final |
+| Rendu Mesa llvmpipe avec Xorg dummy | **41 captures, 0 échec** : six pages en 800×450/1280×720/1920×1080, bulles d’accueil/catalogue, imports/conversions, tir/recul, repos et bilan |
+| Export Windows 0.3.0 et ouverture du pack hors checkout | Code 0, aucune erreur de script/ressource |
+| Harness externe sur le pack exporté | **16 exercices révision 2, 3 armes, 3 imports et protocole 2**, 0 échec ; ressources de tests absentes du pack |
+| Archive Windows | PE x86-64/PCK embarqué, ZIP intègre et SHA-256 vérifié ; EXE et notices, aucun ancien exécutable dans le ZIP |
+| Benchmark logiciel corrigé pour l’origine caméra réelle | 200 000 événements en **165,67 ms**, 0,828 µs/événement ; tampon max 183/32 768 et 6 nœuds |
+| Windows natif, écoute, souris physique, essais humains et jeux tiers | **Non exécutés**, nécessaires à la réception ; aucun polling matériel, gain joueur ni FPS Windows revendiqué |
+
+`tools/test.sh` exige la fin effective de chacun des deux runners avec un nombre d’assertions positif, rejette les erreurs de script/ressource et les fuites signalées, même avec code Godot nul. L’export réexécute cette suite puis impose les trois marqueurs du harness isolé. Le benchmark n’est qu’une observation dans cette instance, pas un seuil CI ou une preuve de performance matérielle.
+
+### Vérifications réparties entre agents
+
+- **Arme/HUD** : recoil 220 ms, flash 65 ms, trace 45 ms vers le viseur ; aucun effet sur caméra/score. Voix audio bornées, silence, maintien, pause, focus et animation réduite. Les tests isolés de l’agent couvraient aussi 27 captures ; la validation finale intégrée est comptée ci-dessus.
+- **Géométrie** : C07 auparavant sous le sol, S02 se chevauchant, vitesse diagonale T03 et inversion T05. C02 atteint 9,826 px à 720p/FOV 75° et 6,142 px à 450p, sans agrandir une hitbox cachée. Le runner graphique de l’agent a effectué 1 581 assertions et sept captures, distinct du runner headless final.
+- **Aperçus** : survol/focus temporisé, clic explicite, sélection inchangée au survol, filtres/recherche/défilement/Échap, animations masquées arrêtées. Une bulle anormalement haute dans un conteneur a été reproduite puis corrigée ; le test vérifie les limites après allocation réelle des frames, pas seulement la taille initiale.
+- **Recherche/QA adversariale** : séparation DPI source/actuels, rebind CS2 `m_yaw` personnalisé, mesure CoD historique intacte après calibration, valeurs extrêmes, écritures refusées et handler sans référence. Les constats initiaux et leurs retests sont conservés dans `docs/QA_REVIEW.md` ; les limites documentaires dans `docs/REFERENCE_TASKS.md`.
+- **Intégration parent** : protocole 2 en cinq blocs contigus 3+9, graines/positions équilibrées, warm-up exclu, retry après repos sans avancer le checkpoint, cinq comparaisons avec les vraies valeurs A/B/C. Migration proto1 vide/partielle/complète, archivage octet pour octet, collisions/corruption/protocole inconnu refusés, sans altérer les anciens scores.
+
+Les fixtures utilisent des dossiers uniques sous `user://tests/`. Les exemples de CoD, repos, bilan et courbe sont synthétiques : aucun résultat de joueur ni mesure réellement faite dans CoD n’est annoncé. Les screenshots de navigation publiés ne présentent pas de scores de démonstration. Une attente de fermeture de 100 ms laisse le mixer traiter les commandes d’arrêt du fixture de tir ; le runner ne masque pas une fuite.
+
+```bash
+bash tools/godot.sh --headless --editor --import
+bash tools/test.sh
+bash tools/visual_smoke.sh
+bash tools/export_windows.sh
+cd downloads
+sha256sum --check AimLocal-0.3.0-windows-x64.zip.sha256
+unzip -t AimLocal-0.3.0-windows-x64.zip
+```
+
+### Réception Windows de cette version
+
+1. Extraire tout le ZIP dans un dossier vierge ; vérifier fenêtres minimale/large, scaling Windows, accès visible à la sensibilité et bulles au survol, au clavier et au clic.
+2. À **1 600 DPI actuels**, importer VALORANT **0,35 à 800 DPI source** sans changer la souris : conversion vers 800 DPI = 0,35, vers 1 600 = 0,175 ; mesurer la même distance de tour complet dans les deux jeux, sans zoom. Vérifier aussi CS2 avec `m_yaw` personnalisé et les réimports sans modification.
+3. Pour CoD, inscrire titre/version/mode et une mesure réellement faite à la règle. Vérifier source → AIM/LOCAL → source, puis changer la sensibilité locale et rouvrir : la référence historique ne doit pas devenir une nouvelle mesure fictive. Sans mesure, le bouton doit rester désactivé.
+4. Jouer les cinq blocs de calibration ; refaire un passage avant validation, vérifier pause/reprise/redémarrage, confort, graines et médianes. Confirmer le conseil un autre jour ; ne pas extrapoler une garantie à tous les jeux ou au-delà de la plage testée.
+5. Parcourir les 16 exercices : cibles sans occlusion par le sol, sphères/hitboxes cohérentes, mouvements séparés et inversions continues. C05/T09 sont volontairement avancés, sans adaptation de difficulté cachée.
+6. Écouter les trois armes, tester clic/maintien, volume zéro, arme masquée, animations réduites et Alt+Tab ; aucune reprise de tir automatique ni rotation de caméra cosmétique. Réceptionner ensuite les mesures physiques 2–8 kHz, latence et frametimes décrites plus bas.
+
+## Historique — interface 0.2.0
+
 ## Refonte 0.2.0 — 11 octobre 2026
 
 Godot `4.7.2.stable.official.ed1daf0bf`, Linux ; les résultats 0.1.0 sont conservés plus bas comme historique, pas comme mesures de cette refonte.

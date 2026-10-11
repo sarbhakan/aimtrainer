@@ -51,6 +51,7 @@ func _ready() -> void:
 	home.test_requested.connect(start_test)
 	home.quit_requested.connect(quit_application)
 	home.profile_save_requested.connect(save_profile)
+	home.reference_import_requested.connect(import_reference_profile)
 	home.training_requested.connect(start_practice)
 	home.calibration_requested.connect(start_calibration)
 	home.calibration_resume_requested.connect(resume_calibration)
@@ -112,6 +113,7 @@ func _process(delta_s: float) -> void:
 	var now_us := Time.get_ticks_usec()
 	if screen == Screen.REST:
 		session_panel.next_button.disabled = now_us < rest_until_us or not window_has_focus
+		session_panel.retry_button.disabled = session_panel.next_button.disabled
 		session_panel.update_rest(maxf(float(rest_until_us - now_us) / 1000000.0, 0.0), calibration.current_index + 1 == calibration.plan.size())
 		return
 	if finish_queued:
@@ -213,7 +215,26 @@ func return_to_menu() -> void:
 
 func save_profile() -> void:
 	var profile := home.read_profile()
-	home.set_status("Profil enregistré localement." if store.save_profile(profile) else store.last_error)
+	if store.save_profile(profile):
+		apply_profile(profile)
+		home.set_status("Sensibilité et préférences enregistrées. Ce réglage est actif dans les exercices.")
+	else:
+		home.set_status(store.last_error)
+
+
+func import_reference_profile(profile: Dictionary) -> void:
+	if screen != Screen.HOME:
+		return
+	var reference_error := GameProfileService.validate_reference(profile.get("reference_game", null))
+	if not reference_error.is_empty():
+		home.set_status(reference_error)
+		return
+	if not store.save_profile(profile):
+		home.set_status(store.last_error)
+		return
+	home.bind_profile(profile)
+	apply_profile(profile)
+	home.set_status("Réglage de %s appliqué dans AIM/LOCAL. Retrouvez la conversion dans Conversion." % profile.reference_game.title)
 
 
 func start_practice(scenario_id: String, duration_s: float) -> void:
@@ -313,6 +334,7 @@ func finish_training(finished: bool, show_result: bool = true) -> void:
 		screen = Screen.REST
 		rest_until_us = Time.get_ticks_usec() + 3000000
 		session_panel.present_result(last_report, body, true, calibration.current_index + 1, calibration.plan.size())
+		session_panel.present_calibration_context(calibration, pending_trial)
 		session_panel.update_rest(3.0, calibration.current_index + 1 == calibration.plan.size())
 	else:
 		screen = Screen.RESULTS
@@ -464,7 +486,9 @@ func refine_calibration() -> void:
 
 
 func retry_training() -> void:
-	if screen != Screen.RESULTS:
+	if screen not in [Screen.RESULTS, Screen.REST] or not window_has_focus:
+		return
+	if screen == Screen.REST and Time.get_ticks_usec() < rest_until_us:
 		return
 	if is_calibrating:
 		start_calibration_stage()
@@ -502,7 +526,7 @@ func update_telemetry() -> void:
 	var prefix := ""
 	if is_calibrating:
 		var stage := calibration.current_stage()
-		prefix = "%d/%d · %s · " % [calibration.current_index + 1, calibration.plan.size(), "Test" if stage.scored else "Échauffement"]
+		prefix = "Exercice %d/5 · réglage %s · %s · " % [int(stage.block_index) + 1, ["A", "B", "C"][int(stage.candidate_index)], "Série %d/3" % (int(stage.repetition) + 1) if stage.scored else "Échauffement"]
 	hud_title.text = prefix + ScenarioCopy.title(selected_definition)
 	hud.countdown_label.visible = screen == Screen.COUNTDOWN
 	hud.progress.visible = screen == Screen.TRAINING

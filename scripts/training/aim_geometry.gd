@@ -12,8 +12,24 @@ static func angular_error_deg(aim_direction: Vector3, target_direction: Vector3)
 	return rad_to_deg(atan2(aim_direction.cross(target_direction).length(), aim_direction.dot(target_direction)))
 
 
+static func sphere_fits_view(center_direction: Vector3, angular_diameter_deg: float, vertical_fov_deg: float, aspect: float) -> bool:
+	if not center_direction.is_finite() or center_direction.is_zero_approx():
+		return false
+	if not is_finite(angular_diameter_deg) or angular_diameter_deg <= 0.0 or angular_diameter_deg >= 180.0:
+		return false
+	if not is_finite(vertical_fov_deg) or vertical_fov_deg <= 0.0 or vertical_fov_deg >= 180.0 or not is_finite(aspect) or aspect <= 0.0:
+		return false
+	var direction: Vector3 = center_direction.normalized()
+	var vertical_half_rad: float = deg_to_rad(vertical_fov_deg * 0.5)
+	var horizontal_half_rad: float = atan(tan(vertical_half_rad) * aspect)
+	var radius_ratio: float = sin(deg_to_rad(angular_diameter_deg * 0.5))
+	var horizontal_margin: float = -direction.z * sin(horizontal_half_rad) - absf(direction.x) * cos(horizontal_half_rad)
+	var vertical_margin: float = -direction.z * sin(vertical_half_rad) - absf(direction.y) * cos(vertical_half_rad)
+	return direction.z < 0.0 and horizontal_margin >= radius_ratio and vertical_margin >= radius_ratio
+
+
 static func ray_sphere_distance(aim_direction: Vector3, center: Vector3, radius_m: float) -> float:
-	if radius_m <= 0.0 or not is_finite(radius_m) or aim_direction.is_zero_approx():
+	if radius_m <= 0.0 or not is_finite(radius_m) or not aim_direction.is_finite() or not center.is_finite() or aim_direction.is_zero_approx():
 		return INF
 	var direction := aim_direction.normalized()
 	var projected_m := center.dot(direction)

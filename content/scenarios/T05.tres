@@ -5,6 +5,9 @@
 [resource]
 script=ExtResource("1")
 scenario_id="T05"
+revision=2
+distance_m=4.0
+turn_duration_s=0.12
 title="Suivi de strafes"
 instructions="Suivre les allers-retours et réacquérir après chaque changement de direction."
 family="tracking"

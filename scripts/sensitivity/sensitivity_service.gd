@@ -56,6 +56,10 @@ static func validate_profile(profile: Dictionary) -> String:
 	var sound_volume: Variant = profile.get("sound_volume", 45.0)
 	if not (sound_volume is int or sound_volume is float) or not is_finite(float(sound_volume)) or float(sound_volume) < 0.0 or float(sound_volume) > 100.0:
 		return "Volume des tirs invalide."
+	if profile.has("reference_game"):
+		var reference_error := GameProfileService.validate_reference(profile.reference_game)
+		if not reference_error.is_empty():
+			return reference_error
 	return ""
 
 

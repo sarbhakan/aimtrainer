@@ -5,6 +5,8 @@
 [resource]
 script=ExtResource("1")
 scenario_id="D01"
+revision=2
+distance_m=4.0
 title="Pop-up"
 instructions="Toucher avant la disparition après une seconde. Les cibles expirées sont comptées."
 family="click"

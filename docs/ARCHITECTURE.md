@@ -1,4 +1,4 @@
-# Architecture — 0.2.0
+# Architecture — 0.3.0
 
 ## Responsabilités
 
@@ -14,11 +14,12 @@
 | `scripts/training/aim_geometry.gd` | Directions, erreur angulaire stable près de zéro, rayons/sphères |
 | `scripts/training/target_pool.gd` | Six instances de sphères, mesh/matériau partagés |
 | `scripts/sensitivity/` | Unités physiques, conversions, plan expérimental et recommandation |
+| `scripts/sensitivity/game_profile_service.gd`, `scripts/ui/sensitivity_import.gd` | Validation des profils source, provenance et import sans confusion DPI source/actuels |
 | `scripts/statistics/` | Score versionné, contexte comparable, progression |
 | `scripts/persistence/local_store.gd` | JSON local, validation, backups, checkpoint, archives, CSV |
 | `scripts/ui/` | Tableau de bord et bilan ; aucun calcul de scoring caché dans l'interface |
 | `scripts/ui/aim_ui.gd`, `scenario_copy.gd` | Composants communs et textes de présentation séparés des définitions versionnées |
-| `scripts/ui/training_browser.gd`, `scenario_preview.gd` | Cartes filtrables et illustrations statiques/animées, RNG local distinct des séances |
+| `scripts/ui/training_browser.gd`, `scenario_preview.gd`, `exercise_preview_popup.gd` | Cartes filtrables et bulles au survol/focus/clic, RNG local distinct des séances |
 | `scripts/ui/training_hud.gd`, `session_panel.gd`, `score_chart.gd` | HUD discret, résultats progressifs et courbes des scores comparables |
 | `scripts/presentation/`, `content/weapons/` | Profils d’arme et retour audiovisuel cosmétique, sans effet sur les mesures |
 | `scenes/`, `assets/` | Assemblage de l'arène, caméra à hauteur 1,6 m, HUD, pause, thème |
@@ -42,7 +43,9 @@ Les événements peuvent être regroupés par Godot : l'horodatage reflète la r
 
 ## Présentation indépendante
 
-Les 16 ressources d’exercice et leurs empreintes restent inchangées. `ScenarioCopy` fournit seulement leurs noms et consignes dans l’interface. Les aperçus utilisent une instance distincte de `ScenarioEngine` ; leur cadrage illustratif ne sert jamais au scoring. Les miniatures sont statiques, l’aperçu animé visible est limité à 30 Hz et les pages masquées ne le traitent plus.
+Les 16 ressources d’exercice passent en révision 2 avec une profondeur de 4 m depuis l’origine réelle de la caméra. C02 a un diamètre de 1,2°, C07 reste entièrement au-dessus du sol, S02 conserve des couloirs séparés, T03 respecte sa vitesse totale et T05 inverse continûment sa vitesse en 120 ms. La sphère complète doit tenir dans le frustum ; son rayon rendu est celui utilisé pour la collision. Les empreintes changent et protègent les anciens résultats de toute comparaison trompeuse.
+
+`ScenarioCopy` fournit les noms et consignes. Les aperçus utilisent une instance distincte de `ScenarioEngine` ; leur cadrage illustratif ne sert jamais au scoring. Les miniatures sont statiques, la bulle apparaît après 180 ms au survol/focus ou immédiatement au clic ; un seul aperçu est animé à 30 Hz par écran. La fermeture, le changement de page, la recherche ou le défilement coupent la bulle et les traitements masqués.
 
 `WeaponFeedback` préalloue quatre lecteurs de tir et un lecteur continu. Il reçoit un profil au lancement de la séance, hors du chemin souris, puis réutilise ses ressources. La boucle PCM est dupliquée avant configuration pour ne pas modifier la ressource partagée ; sa fin est exprimée en frames (`durée × fréquence`). L’import des six WAV désactive la compression QOA par défaut. La transformation de recul affecte uniquement le sprite HUD, jamais la caméra. Le clic maintenu en tracking n’appelle pas `ScenarioEngine.shoot` et n’ajoute aucune contrainte de score.
 
@@ -52,7 +55,11 @@ L’interface responsive conserve les boutons de lancement et d’enregistrement
 
 `user://` est fixé au dossier applicatif `AIM_LOCAL`. Toutes les données produit vont dans `aim_local/` : `profile.json`, `sessions/<id>.json`, `calibration_checkpoint.json`, `calibrations/<id>.json`, `archives/`, `exports/`. Les tests injectent un autre dossier aléatoire sous `user://tests/` et ne touchent pas aux données réelles.
 
-Schéma JSON 1, score 1, protocole 1. Sauvegarde en précision complète, temporaire + flush + backup + rename, sans enlever l'original avant le remplacement. Les JSON invalides ou d'un schéma inconnu ne sont pas écrasés. Les rapports de séances/bilans sont immuables ; revoir un bilan identique est idempotent. Les identifiants ne peuvent pas être des chemins. Le chargement d'historique porte sur les 2 000 fichiers les plus récents ; les fichiers plus anciens restent sur disque.
+Schéma JSON 1, score 1, protocole 2. Cinq blocs de trois familiarisations puis neuf mesures chacun ; les positions A/B/C tournent au sein des séries. Les comparaisons médianes brutes par exercice sont séparées de l’utilité normalisée utilisée pour la recommandation. Refaire un passage conserve le candidat, la graine et le checkpoint jusqu’à validation explicite.
+
+Sauvegarde en précision complète, temporaire + flush + backup + rename, sans enlever l'original avant le remplacement. Un ancien protocole 1 reconnu est archivé avant une nouvelle comparaison ; aucun replay n’est tenté avec la nouvelle géométrie. Les JSON incohérents ou inconnus ne sont pas écrasés. Les rapports de séances/bilans sont immuables ; revoir un bilan identique est idempotent. Les identifiants ne peuvent pas être des chemins. Le chargement d'historique porte sur les 2 000 fichiers les plus récents ; les fichiers plus anciens restent sur disque.
+
+Le modèle distingue `current_distance_cm`/`destination_yaw_deg` des SpinBox arrondis. `reference_game` conserve les DPI, la sensibilité, le coefficient, la distance et la provenance **historiques**, indépendamment des ajustements AIM/LOCAL ultérieurs. L’import conserve les DPI actifs, n’agit pas sur le matériel et sauvegarde avant d’appliquer à la caméra. CoD/autre exigent une mesure par titre/version ; sans référence connue, la copie d’une conversion est désactivée. Ces métadonnées ne modifient pas la clé mécanique de comparaison.
 
 Le profil accepte en plus les champs optionnels `weapon_id`, `sound_enabled`, `sound_volume`, `show_weapon` et `reduced_motion`. Un profil 0.1.0 sans ces champs reste valide et reçoit les valeurs par défaut dans l’interface. Leur validation refuse les types et valeurs invalides ; ces préférences ne font pas partie de la clé de comparaison mécanique. `ProgressService` expose les 20 derniers scores déjà filtrés sans modifier la médiane ni la tendance. La version applicative des nouveaux rapports vient de `project.godot`.
 

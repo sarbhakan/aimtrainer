@@ -33,14 +33,16 @@ GODOT_PROJECT_PATH="$export_validation_dir" bash tools/godot.sh \
     --script "$project_root/tests/export_smoke.gd" --log-file "$export_validation_dir/exercises.log"
 smoke_completed=false
 assets_completed=false
+profiles_completed=false
 while IFS= read -r log_line; do
     case "$log_line" in
         ERROR:*|"SCRIPT ERROR:"*) printf 'Erreur dans les exercices exportés : %s\n' "$log_line" >&2; exit 1 ;;
         "EXPORT SMOKE : 16 exercices embarqués, 0 échecs.") smoke_completed=true ;;
         "EXPORT ASSETS : 3 profils d’arme embarqués, 0 échecs.") assets_completed=true ;;
+        "EXPORT PROFILES : 3 imports et protocole 2 embarqués, 0 échecs.") profiles_completed=true ;;
     esac
 done < "$export_validation_dir/exercises.log"
-if [ "$smoke_completed" != true ] || [ "$assets_completed" != true ]; then
+if [ "$smoke_completed" != true ] || [ "$assets_completed" != true ] || [ "$profiles_completed" != true ]; then
     printf 'Les exercices exportés n’ont pas terminé leur contrôle.\n' >&2
     exit 1
 fi

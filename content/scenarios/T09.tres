@@ -5,6 +5,8 @@
 [resource]
 script=ExtResource("1")
 scenario_id="T09"
+revision=2
+distance_m=4.0
 title="Far Small"
 instructions="Petite cible lente : mesurer les micro-ajustements et les pertes de suivi."
 family="tracking"
