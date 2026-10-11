@@ -11,7 +11,7 @@ func _ready() -> void:
 	mesh.radial_segments = 24
 	mesh.rings = 12
 	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(1.0, 0.36, 0.17)
+	material.albedo_color = Color("64e6d9")
 	material.roughness = 1.0
 	mesh.material = material
 	for target_index in 6:

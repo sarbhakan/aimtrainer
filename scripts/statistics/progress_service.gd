@@ -16,7 +16,7 @@ static func summarize(results: Array[Dictionary], comparison_key: String) -> Dic
 		latest.append(values[value_index])
 	var summary := {"count": values.size(), "latest_median": ScoringService.median(latest),
 		"best": values.max() if not values.is_empty() else 0.0, "trend_available": values.size() >= 10,
-		"change_pct": null}
+		"change_pct": null, "recent_scores": values.slice(maxi(0, values.size() - 20))}
 	if values.size() >= 10:
 		var first: Array[float] = []
 		for value_index in 5:

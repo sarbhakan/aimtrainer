@@ -1,4 +1,4 @@
-# Architecture de la V1 0.1.0
+# Architecture — 0.2.0
 
 ## Responsabilités
 
@@ -17,6 +17,10 @@
 | `scripts/statistics/` | Score versionné, contexte comparable, progression |
 | `scripts/persistence/local_store.gd` | JSON local, validation, backups, checkpoint, archives, CSV |
 | `scripts/ui/` | Tableau de bord et bilan ; aucun calcul de scoring caché dans l'interface |
+| `scripts/ui/aim_ui.gd`, `scenario_copy.gd` | Composants communs et textes de présentation séparés des définitions versionnées |
+| `scripts/ui/training_browser.gd`, `scenario_preview.gd` | Cartes filtrables et illustrations statiques/animées, RNG local distinct des séances |
+| `scripts/ui/training_hud.gd`, `session_panel.gd`, `score_chart.gd` | HUD discret, résultats progressifs et courbes des scores comparables |
+| `scripts/presentation/`, `content/weapons/` | Profils d’arme et retour audiovisuel cosmétique, sans effet sur les mesures |
 | `scenes/`, `assets/` | Assemblage de l'arène, caméra à hauteur 1,6 m, HUD, pause, thème |
 | `tests/`, `tools/` | Tests synthétiques, benchmark, export vérifié et installation épinglée |
 
@@ -36,14 +40,24 @@ Le clic et le dernier tick peuvent demander simultanément la fin : un drapeau e
 
 Les événements peuvent être regroupés par Godot : l'horodatage reflète la réception dans l'application, pas l'heure native de chaque paquet HID. L'intégration fixe rend un même replay logiciel comparable entre FPS, mais ne restitue pas les mouvements perdus ou fusionnés en amont. Une saturation invalide le résultat au lieu de masquer la perte. La métrique de frametime ignore le premier tick après départ/reprise pour ne pas compter une pause comme un freeze de jeu.
 
+## Présentation indépendante
+
+Les 16 ressources d’exercice et leurs empreintes restent inchangées. `ScenarioCopy` fournit seulement leurs noms et consignes dans l’interface. Les aperçus utilisent une instance distincte de `ScenarioEngine` ; leur cadrage illustratif ne sert jamais au scoring. Les miniatures sont statiques, l’aperçu animé visible est limité à 30 Hz et les pages masquées ne le traitent plus.
+
+`WeaponFeedback` préalloue quatre lecteurs de tir et un lecteur continu. Il reçoit un profil au lancement de la séance, hors du chemin souris, puis réutilise ses ressources. La boucle PCM est dupliquée avant configuration pour ne pas modifier la ressource partagée ; sa fin est exprimée en frames (`durée × fréquence`). L’import des six WAV désactive la compression QOA par défaut. La transformation de recul affecte uniquement le sprite HUD, jamais la caméra. Le clic maintenu en tracking n’appelle pas `ScenarioEngine.shoot` et n’ajoute aucune contrainte de score.
+
+L’interface responsive conserve les boutons de lancement et d’enregistrement hors des défilements. Les bilans affichent trois indicateurs utiles et replient les données techniques ; les erreurs de persistance restent visibles indépendamment de ce repli. Les choix UX et l’ajout d’équipements sont documentés dans `docs/UI_UX.md`.
+
 ## Persistance
 
 `user://` est fixé au dossier applicatif `AIM_LOCAL`. Toutes les données produit vont dans `aim_local/` : `profile.json`, `sessions/<id>.json`, `calibration_checkpoint.json`, `calibrations/<id>.json`, `archives/`, `exports/`. Les tests injectent un autre dossier aléatoire sous `user://tests/` et ne touchent pas aux données réelles.
 
 Schéma JSON 1, score 1, protocole 1. Sauvegarde en précision complète, temporaire + flush + backup + rename, sans enlever l'original avant le remplacement. Les JSON invalides ou d'un schéma inconnu ne sont pas écrasés. Les rapports de séances/bilans sont immuables ; revoir un bilan identique est idempotent. Les identifiants ne peuvent pas être des chemins. Le chargement d'historique porte sur les 2 000 fichiers les plus récents ; les fichiers plus anciens restent sur disque.
 
+Le profil accepte en plus les champs optionnels `weapon_id`, `sound_enabled`, `sound_volume`, `show_weapon` et `reduced_motion`. Un profil 0.1.0 sans ces champs reste valide et reçoit les valeurs par défaut dans l’interface. Leur validation refuse les types et valeurs invalides ; ces préférences ne font pas partie de la clé de comparaison mécanique. `ProgressService` expose les 20 derniers scores déjà filtrés sans modifier la médiane ni la tendance. La version applicative des nouveaux rapports vient de `project.godot`.
+
 Le backup n'est pas restauré automatiquement : préserver le fichier fautif, puis restaurer une copie valide selon le plan de tests. La résistance à une coupure d'alimentation au niveau filesystem n'est pas prouvée par les seuls tests de rename. Pas de réseau, de compte ou d'accès aux jeux tiers.
 
 ## Export
 
-Windows x86-64 release, PCK embarqué, ressources produit complètes. Le filtre `all_resources` inclut les services `class_name` et les scénarios, que le filtre limité aux scènes omettait malgré leur emploi dans les scripts. Tests, docs et outils sont exclus. L'export ouvre ensuite le pack avec Godot Linux dans un dossier vierge, puis lance un harness externe qui exerce les 16 scénarios embarqués. Aucune ressource du checkout ne doit servir de remplacement. Ce n'est pas une validation native Windows.
+Windows x86-64 release, PCK embarqué, ressources produit complètes. Le filtre `all_resources` inclut les services `class_name` et les scénarios, que le filtre limité aux scènes omettait malgré leur emploi dans les scripts. Tests, docs, outils, captures et anciens téléchargements sont exclus. L’export ouvre ensuite le pack avec Godot Linux dans un dossier vierge, puis lance un harness externe qui exerce les 16 scénarios et vérifie les trois profils d’arme embarqués. Aucune ressource du checkout ne doit servir de remplacement. Le nom du ZIP est dérivé de la version de `project.godot`. Ce n’est pas une validation native Windows.

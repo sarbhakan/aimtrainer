@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="200" viewBox="0 0 360 200">
+<defs><linearGradient id="slide" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8c98a6"/><stop offset=".4" stop-color="#445465"/><stop offset="1" stop-color="#1e2b3b"/></linearGradient></defs>
+<path d="m175 117 79 24 88 59h-86l-73-57z" fill="#19283b" stroke="#34475d" stroke-width="2"/>
+<path d="m70 30 24-10 139 64-25 37L60 56z" fill="url(#slide)" stroke="#192638" stroke-width="3"/>
+<path d="m77 31 16-6 133 62-8 9z" fill="#a7b2bb"/>
+<path d="m61 38 12-4 1 22-14 2z" fill="#131d2c"/>
+<path d="m165 88 30 13-27 71-33-16 9-27z" fill="#322d31" stroke="#63606a" stroke-width="2"/>
+<path d="m193 106 21 7-11 26-25-11" fill="none" stroke="#65717b" stroke-width="6"/>
+<path d="m190 113 5 12" stroke="#b7c0c8" stroke-width="3"/>
+<path d="m174 63-8 19m17-15-8 19m17-15-8 19m17-15-8 19" stroke="#152437" stroke-width="3"/>
+<path d="m81 24 4-9 15 7-1 9m105 41 5-9 17 8-3 9" fill="#20334b"/>
+<path d="m96 45 41 18" stroke="#dbba77" stroke-width="2"/>
+<path d="m148 134 18 8m-20-1 18 8m-20-1 18 8" stroke="#877467" stroke-width="3"/>
+<circle cx="196" cy="102" r="3" fill="#c6b08b"/>
+</svg>

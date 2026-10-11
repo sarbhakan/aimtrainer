@@ -1,74 +1,189 @@
-[gd_resource type="Theme" load_steps=6 format=3]
+[gd_resource type="Theme" load_steps=16 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/ui/switch_on.svg" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/switch_off.svg" id="2"]
 
 [sub_resource type="StyleBoxFlat" id="ButtonNormal"]
-content_margin_left=24.0
-content_margin_top=16.0
-content_margin_right=24.0
-content_margin_bottom=16.0
-bg_color=Color(0.09, 0.13, 0.18, 1)
-corner_radius_top_left=6
-corner_radius_top_right=6
-corner_radius_bottom_left=6
-corner_radius_bottom_right=6
+content_margin_left=16.0
+content_margin_top=11.0
+content_margin_right=16.0
+content_margin_bottom=11.0
+bg_color=Color(0.105, 0.14, 0.21, 1)
+corner_radius_top_left=8
+corner_radius_top_right=8
+corner_radius_bottom_left=8
+corner_radius_bottom_right=8
 
 [sub_resource type="StyleBoxFlat" id="ButtonHover"]
-content_margin_left=24.0
-content_margin_top=16.0
-content_margin_right=24.0
-content_margin_bottom=16.0
-bg_color=Color(0.14, 0.21, 0.28, 1)
-corner_radius_top_left=6
-corner_radius_top_right=6
-corner_radius_bottom_left=6
-corner_radius_bottom_right=6
+content_margin_left=16.0
+content_margin_top=11.0
+content_margin_right=16.0
+content_margin_bottom=11.0
+bg_color=Color(0.15, 0.2, 0.29, 1)
+corner_radius_top_left=8
+corner_radius_top_right=8
+corner_radius_bottom_left=8
+corner_radius_bottom_right=8
 
 [sub_resource type="StyleBoxFlat" id="ButtonPressed"]
-content_margin_left=24.0
-content_margin_top=16.0
-content_margin_right=24.0
-content_margin_bottom=16.0
-bg_color=Color(0.15, 0.36, 0.38, 1)
-corner_radius_top_left=6
-corner_radius_top_right=6
-corner_radius_bottom_left=6
-corner_radius_bottom_right=6
+content_margin_left=16.0
+content_margin_top=11.0
+content_margin_right=16.0
+content_margin_bottom=11.0
+bg_color=Color(0.12, 0.29, 0.32, 1)
+corner_radius_top_left=8
+corner_radius_top_right=8
+corner_radius_bottom_left=8
+corner_radius_bottom_right=8
 
-[sub_resource type="StyleBoxFlat" id="ButtonFocus"]
+[sub_resource type="StyleBoxFlat" id="Focus"]
 bg_color=Color(0, 0, 0, 0)
 border_width_left=2
 border_width_top=2
 border_width_right=2
 border_width_bottom=2
-border_color=Color(0.38, 0.87, 0.74, 1)
-corner_radius_top_left=6
-corner_radius_top_right=6
-corner_radius_bottom_left=6
-corner_radius_bottom_right=6
+border_color=Color(0.39, 0.9, 0.85, 1)
+corner_radius_top_left=8
+corner_radius_top_right=8
+corner_radius_bottom_left=8
+corner_radius_bottom_right=8
 
 [sub_resource type="StyleBoxFlat" id="Card"]
-content_margin_left=36.0
-content_margin_top=32.0
-content_margin_right=36.0
-content_margin_bottom=32.0
-bg_color=Color(0.055, 0.08, 0.115, 1)
+content_margin_left=24.0
+content_margin_top=22.0
+content_margin_right=24.0
+content_margin_bottom=22.0
+bg_color=Color(0.071, 0.094, 0.15, 1)
 border_width_left=1
 border_width_top=1
 border_width_right=1
 border_width_bottom=1
-border_color=Color(0.13, 0.19, 0.24, 1)
-corner_radius_top_left=12
-corner_radius_top_right=12
-corner_radius_bottom_left=12
-corner_radius_bottom_right=12
+border_color=Color(0.13, 0.17, 0.25, 1)
+corner_radius_top_left=14
+corner_radius_top_right=14
+corner_radius_bottom_left=14
+corner_radius_bottom_right=14
+
+[sub_resource type="StyleBoxFlat" id="Field"]
+content_margin_left=12.0
+content_margin_top=10.0
+content_margin_right=12.0
+content_margin_bottom=10.0
+bg_color=Color(0.04, 0.06, 0.105, 1)
+border_width_left=1
+border_width_top=1
+border_width_right=1
+border_width_bottom=1
+border_color=Color(0.17, 0.22, 0.31, 1)
+corner_radius_top_left=7
+corner_radius_top_right=7
+corner_radius_bottom_left=7
+corner_radius_bottom_right=7
+
+[sub_resource type="StyleBoxFlat" id="Empty"]
+bg_color=Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="Toggle"]
+content_margin_top=6.0
+content_margin_bottom=6.0
+bg_color=Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="Scroll"]
+content_margin_left=3.0
+content_margin_right=3.0
+bg_color=Color(0.055, 0.075, 0.12, 1)
+corner_radius_top_left=3
+corner_radius_top_right=3
+corner_radius_bottom_left=3
+corner_radius_bottom_right=3
+
+[sub_resource type="StyleBoxFlat" id="Grabber"]
+content_margin_left=3.0
+content_margin_right=3.0
+bg_color=Color(0.23, 0.3, 0.4, 1)
+corner_radius_top_left=3
+corner_radius_top_right=3
+corner_radius_bottom_left=3
+corner_radius_bottom_right=3
+
+[sub_resource type="StyleBoxFlat" id="Progress"]
+bg_color=Color(0.39, 0.9, 0.85, 1)
+corner_radius_top_left=3
+corner_radius_top_right=3
+corner_radius_bottom_left=3
+corner_radius_bottom_right=3
+
+[sub_resource type="StyleBoxFlat" id="Popup"]
+content_margin_left=8.0
+content_margin_top=8.0
+content_margin_right=8.0
+content_margin_bottom=8.0
+bg_color=Color(0.08, 0.11, 0.17, 1)
+border_width_left=1
+border_width_top=1
+border_width_right=1
+border_width_bottom=1
+border_color=Color(0.19, 0.25, 0.34, 1)
+corner_radius_top_left=9
+corner_radius_top_right=9
+corner_radius_bottom_left=9
+corner_radius_bottom_right=9
+
+[sub_resource type="StyleBoxFlat" id="PopupHover"]
+bg_color=Color(0.13, 0.27, 0.3, 1)
+corner_radius_top_left=5
+corner_radius_top_right=5
+corner_radius_bottom_left=5
+corner_radius_bottom_right=5
 
 [resource]
-default_font_size=20
-Button/colors/font_color=Color(0.9, 0.95, 0.98, 1)
+default_font_size=15
+Button/colors/font_color=Color(0.89, 0.93, 0.98, 1)
 Button/colors/font_hover_color=Color(1, 1, 1, 1)
-Button/colors/font_focus_color=Color(1, 1, 1, 1)
+Button/colors/font_pressed_color=Color(0.64, 1, 0.95, 1)
+Button/colors/font_disabled_color=Color(0.38, 0.44, 0.55, 1)
 Button/styles/normal=SubResource("ButtonNormal")
 Button/styles/hover=SubResource("ButtonHover")
 Button/styles/pressed=SubResource("ButtonPressed")
-Button/styles/focus=SubResource("ButtonFocus")
-Label/colors/font_color=Color(0.9, 0.95, 0.98, 1)
+Button/styles/disabled=SubResource("ButtonNormal")
+Button/styles/focus=SubResource("Focus")
+Button/constants/h_separation=12
+OptionButton/styles/normal=SubResource("ButtonNormal")
+OptionButton/styles/hover=SubResource("ButtonHover")
+OptionButton/styles/pressed=SubResource("ButtonPressed")
+OptionButton/styles/focus=SubResource("Focus")
+OptionButton/colors/font_color=Color(0.89, 0.93, 0.98, 1)
+OptionButton/constants/arrow_margin=12
+LineEdit/styles/normal=SubResource("Field")
+LineEdit/styles/focus=SubResource("Focus")
+LineEdit/colors/font_color=Color(0.89, 0.93, 0.98, 1)
+LineEdit/colors/font_placeholder_color=Color(0.43, 0.51, 0.65, 1)
+LineEdit/colors/caret_color=Color(0.39, 0.9, 0.85, 1)
+Label/colors/font_color=Color(0.89, 0.93, 0.98, 1)
+RichTextLabel/colors/default_color=Color(0.64, 0.71, 0.82, 1)
+RichTextLabel/font_sizes/normal_font_size=14
 PanelContainer/styles/panel=SubResource("Card")
+ScrollContainer/styles/panel=SubResource("Empty")
+VScrollBar/styles/scroll=SubResource("Scroll")
+VScrollBar/styles/grabber=SubResource("Grabber")
+VScrollBar/styles/grabber_highlight=SubResource("Progress")
+VScrollBar/styles/grabber_pressed=SubResource("Progress")
+VScrollBar/styles/increment=SubResource("Empty")
+VScrollBar/styles/decrement=SubResource("Empty")
+ProgressBar/styles/background=SubResource("Scroll")
+ProgressBar/styles/fill=SubResource("Progress")
+PopupMenu/styles/panel=SubResource("Popup")
+PopupMenu/styles/hover=SubResource("PopupHover")
+PopupMenu/colors/font_color=Color(0.89, 0.93, 0.98, 1)
+PopupMenu/constants/v_separation=14
+PopupMenu/constants/item_start_padding=8
+PopupMenu/constants/item_end_padding=8
+CheckButton/icons/checked=ExtResource("1")
+CheckButton/icons/unchecked=ExtResource("2")
+CheckButton/icons/checked_disabled=ExtResource("1")
+CheckButton/icons/unchecked_disabled=ExtResource("2")
+CheckButton/styles/normal=SubResource("Toggle")
+CheckButton/styles/hover=SubResource("Toggle")
+CheckButton/styles/pressed=SubResource("Toggle")
+CheckButton/styles/hover_pressed=SubResource("Toggle")
+CheckButton/styles/focus=SubResource("Focus")

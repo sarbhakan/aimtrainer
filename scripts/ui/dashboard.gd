@@ -10,14 +10,17 @@ signal export_requested
 signal test_requested
 signal quit_requested
 
+const PAGE_TITLES: Array[String] = ["Accueil", "Entraînement", "Ma sensibilité", "Conversion", "Progression", "Réglages"]
+const NAV_ICONS: Array[Texture2D] = [preload("res://assets/ui/home.svg"), preload("res://assets/ui/train.svg"), preload("res://assets/ui/sensitivity.svg"), preload("res://assets/ui/convert.svg"), preload("res://assets/ui/progress.svg"), preload("res://assets/ui/settings.svg")]
+
 var dpi_input: SpinBox
 var distance_input: SpinBox
+var sensitivity_input: SpinBox
 var fov_input: SpinBox
 var goal_input: OptionButton
 var fps_input: OptionButton
 var accumulated_input: CheckButton
 var inverted_input: CheckButton
-var scenario_input: OptionButton
 var duration_input: OptionButton
 var game_input: OptionButton
 var destination_dpi: SpinBox
@@ -27,204 +30,463 @@ var quit_button: Button
 var calibration_button: Button
 var resume_calibration_button: Button
 var status_label: Label
-var scenario_label: Label
 var conversion_label: Label
-var history_label: RichTextLabel
 var conversion_value: float = 0.0
+var browser: TrainingBrowser
+var pages: Array[Control] = []
+var nav_buttons: Array[Button] = []
+var selected_page: int = 0
+var sidebar: PanelContainer
+var content_margin: MarginContainer
+var brand_label: Label
+var local_label: Label
+var page_title: Label
+var profile_badge: Button
+var save_button: Button
+var page_host: VBoxContainer
+var home_grid: GridContainer
+var hero_preview: ScenarioPreview
+var settings_preview_grid: GridContainer
+var conversion_details: Label
+var history_content: VBoxContainer
+var history_summary: Label
+var preset_buttons: Array[Button] = []
+var start_help_label: Label
+var weapon_buttons: Array[Button] = []
+var weapon_id: String = "pulse"
+var weapon_preview: WeaponFeedback
+var weapon_title: Label
+var sound_input: CheckButton
+var weapon_visible_input: CheckButton
+var motion_input: CheckButton
+var volume_input: HSlider
+var syncing_sensitivity: bool = false
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var background := ColorRect.new()
-	background.color = Color(0.035, 0.05, 0.075)
-	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(background)
+	AimUI.backdrop(self)
+	var layout := HBoxContainer.new()
+	layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layout.add_theme_constant_override("separation", 0)
+	add_child(layout)
+	build_sidebar(layout)
 	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for edge in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + edge, 24)
-	add_child(margin)
-	var layout := VBoxContainer.new()
-	layout.add_theme_constant_override("separation", 12)
-	margin.add_child(layout)
-	var header := HBoxContainer.new()
-	layout.add_child(header)
-	var title := label("AIM/LOCAL", 32)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(title)
-	test_button = button("Test souris", func() -> void: test_requested.emit())
-	header.add_child(test_button)
-	quit_button = button("Quitter", func() -> void: quit_requested.emit())
-	header.add_child(quit_button)
-	layout.add_child(label("Votre DPI. Des exercices comparables. Une sensibilité conseillée, mesurée localement.", 17))
-	var tabs := TabContainer.new()
-	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	layout.add_child(tabs)
-	build_profile_tab(page(tabs, "Calibration"))
-	build_training_tab(page(tabs, "Exercices"))
-	build_conversion_tab(page(tabs, "Convertir"))
-	build_history_tab(page(tabs, "Progression"))
-	status_label = label("Hors ligne · Godot 4.7.2 · Données dans user://aim_local", 15)
-	layout.add_child(status_label)
-	bind_profile(SensitivityService.default_profile())
-
-
-func label(text: String, size: int = 18) -> Label:
-	var control := Label.new()
-	control.text = text
-	control.add_theme_font_size_override("font_size", size)
-	control.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	return control
-
-
-func button(text: String, action: Callable) -> Button:
-	var control := Button.new()
-	control.text = text
-	control.pressed.connect(action)
-	return control
-
-
-func page(tabs: TabContainer, title: String) -> VBoxContainer:
-	var scroll := ScrollContainer.new()
-	scroll.name = title
-	tabs.add_child(scroll)
-	var margin := MarginContainer.new()
+	content_margin = margin
 	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for edge in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + edge, 20)
-	scroll.add_child(margin)
-	var content := VBoxContainer.new()
-	content.add_theme_constant_override("separation", 12)
-	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	margin.add_child(content)
-	return content
+		margin.add_theme_constant_override("margin_" + edge, 26)
+	layout.add_child(margin)
+	var content := AimUI.column(margin, 20)
+	var header := AimUI.row(content)
+	var heading := AimUI.column(header, 4)
+	heading.add_child(AimUI.label("VOTRE ESPACE", 10, AimUI.MUTED))
+	page_title = AimUI.label("Accueil", 27)
+	heading.add_child(page_title)
+	save_button = AimUI.button("Enregistrer", func() -> void: profile_save_requested.emit(), true)
+	save_button.hide()
+	header.add_child(save_button)
+	profile_badge = AimUI.button("", func() -> void: show_page(2))
+	profile_badge.tooltip_text = "Votre souris et votre sensibilité"
+	header.add_child(profile_badge)
+	page_host = AimUI.column(content, 0)
+	page_host.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	build_home(page("Accueil"))
+	browser = TrainingBrowser.new()
+	page_host.add_child(browser)
+	pages.append(browser)
+	browser.training_requested.connect(func(scenario_id: String, seconds: float) -> void: training_requested.emit(scenario_id, seconds))
+	duration_input = browser.duration_input
+	build_calibration(page("Calibration"))
+	build_conversion(page("Conversion"))
+	build_history(page("Progression"))
+	build_settings(page("Réglages"))
+	status_label = AimUI.label("", 13, AimUI.ACCENT)
+	status_label.hide()
+	content.add_child(status_label)
+	dpi_input.value_changed.connect(func(_value: float) -> void: sync_sensitivity())
+	distance_input.value_changed.connect(func(_value: float) -> void: sync_sensitivity())
+	sensitivity_input.value_changed.connect(change_app_sensitivity)
+	bind_profile(SensitivityService.default_profile())
+	resized.connect(update_layout)
+	show_page(0)
+	update_layout.call_deferred()
 
 
-func numeric_row(parent: VBoxContainer, title: String, minimum: float, maximum: float, step: float) -> SpinBox:
-	var row := HBoxContainer.new()
-	parent.add_child(row)
-	var caption := label(title)
-	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(caption)
-	var input := SpinBox.new()
-	input.min_value = minimum
-	input.max_value = maximum
-	input.step = step
-	input.custom_minimum_size.x = 180.0
-	row.add_child(input)
-	return input
+func build_sidebar(parent: Node) -> void:
+	sidebar = PanelContainer.new()
+	sidebar.custom_minimum_size.x = 196.0
+	sidebar.add_theme_stylebox_override("panel", AimUI.style(Color("0c1120"), 16, Color("192336"), 0))
+	parent.add_child(sidebar)
+	var content := AimUI.column(sidebar, 8)
+	var brand := AimUI.row(content, 10)
+	var logo := TextureRect.new()
+	logo.texture = preload("res://assets/ui/logo.svg")
+	logo.custom_minimum_size = Vector2(32, 32)
+	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	brand.add_child(logo)
+	brand_label = AimUI.label("AIM/LOCAL", 17)
+	brand_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	brand.add_child(brand_label)
+	var gap := Control.new()
+	gap.custom_minimum_size.y = 34.0
+	content.add_child(gap)
+	for page_index in PAGE_TITLES.size():
+		var control := AimUI.button(PAGE_TITLES[page_index], func() -> void: show_page(page_index))
+		control.icon = NAV_ICONS[page_index]
+		control.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		control.tooltip_text = PAGE_TITLES[page_index]
+		control.toggle_mode = true
+		control.add_theme_stylebox_override("normal", AimUI.style(Color.TRANSPARENT, 10, Color.TRANSPARENT, 8))
+		control.add_theme_stylebox_override("pressed", AimUI.style(Color("173237"), 10, Color("245456"), 8))
+		nav_buttons.append(control)
+		content.add_child(control)
+	var space := Control.new()
+	space.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_child(space)
+	local_label = AimUI.label("●  LOCAL · HORS LIGNE", 10, AimUI.MUTED)
+	content.add_child(local_label)
+	quit_button = AimUI.button("Quitter", func() -> void: quit_requested.emit())
+	quit_button.tooltip_text = "Quitter AIM/LOCAL"
+	content.add_child(quit_button)
 
 
-func build_profile_tab(content: VBoxContainer) -> void:
-	content.add_child(label("Trouver votre sensibilité repère", 26))
-	content.add_child(label("Indiquez les DPI configurés sur votre souris et votre distance de départ. Si vous débutez, 35 cm/360° sert de point de départ à affiner.", 17))
-	dpi_input = numeric_row(content, "DPI déclarés (pas de détection automatique)", 1, 64000, 1)
-	distance_input = numeric_row(content, "Distance de départ · cm / 360°", 5, 150, 0.001)
-	fov_input = numeric_row(content, "Champ de vision vertical · degrés", 40, 110, 1)
+func page(caption: String) -> VBoxContainer:
+	var scroll := ScrollContainer.new()
+	scroll.name = caption
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	page_host.add_child(scroll)
+	pages.append(scroll)
+	return AimUI.column(scroll, 18)
+
+
+func show_page(page_index: int) -> void:
+	selected_page = page_index
+	page_title.text = PAGE_TITLES[page_index]
+	save_button.visible = page_index == 5
+	for index in pages.size():
+		pages[index].visible = index == page_index
+		nav_buttons[index].set_pressed_no_signal(index == page_index)
+	AimUI.fade_in(pages[page_index])
+	nav_buttons[page_index].grab_focus()
+	if page_index == 4:
+		history_requested.emit()
+
+
+func build_home(content: VBoxContainer) -> void:
+	var hero := AimUI.card(content, 28)
+	var layout := AimUI.row(hero, 24)
+	var introduction := AimUI.column(layout, 16)
+	introduction.add_child(AimUI.label("PRENEZ LE TEMPS DE PROGRESSER", 10, AimUI.ACCENT))
+	introduction.add_child(AimUI.label("Visez juste.\nProgressez vraiment.", 36))
+	introduction.add_child(AimUI.label("Votre souris. Votre rythme. Votre entraînement.", 15, AimUI.MUTED))
+	var actions := HFlowContainer.new()
+	actions.add_theme_constant_override("h_separation", 8)
+	actions.add_theme_constant_override("v_separation", 8)
+	introduction.add_child(actions)
+	actions.add_child(AimUI.button("S’entraîner  →", func() -> void: show_page(1), true))
+	actions.add_child(AimUI.button("Régler ma sensibilité", func() -> void: show_page(2)))
+	var preview := ScenarioPreview.new()
+	hero_preview = preview
+	preview.custom_minimum_size = Vector2(230, 210)
+	preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	layout.add_child(preview)
+	preview.configure(ScenarioCatalog.find("C03"), true)
+	content.add_child(AimUI.label("Pour commencer", 18))
+	home_grid = GridContainer.new()
+	home_grid.columns = 3
+	home_grid.add_theme_constant_override("h_separation", 14)
+	home_grid.add_theme_constant_override("v_separation", 14)
+	content.add_child(home_grid)
+	for scenario_id in ["C03", "T01", "C02"]:
+		var definition := ScenarioCatalog.find(scenario_id)
+		home_grid.add_child(TrainingBrowser.scenario_card(definition, func() -> void:
+			browser.selected_family = "all"
+			browser.search_input.clear()
+			browser.filter_catalog()
+			browser.select_definition(definition)
+			show_page(1)))
+	var reminder := AimUI.row(content)
+	var copy := AimUI.label("Une bonne sensibilité commence par un réglage confortable.", 14, AimUI.MUTED)
+	copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	reminder.add_child(copy)
+	reminder.add_child(AimUI.button("Trouver mon réglage", func() -> void: show_page(2)))
+
+
+func build_calibration(content: VBoxContainer) -> void:
+	content.add_child(AimUI.label("Trouvez votre rythme.", 30))
+	content.add_child(AimUI.label("Cinq exercices. Trois réglages. Un conseil adapté à votre façon de viser.", 15, AimUI.MUTED))
+	var steps := AimUI.row(content)
+	for step_index in 3:
+		steps.add_child(AimUI.label("0%d  %s" % [step_index + 1, ["Votre souris", "Les exercices", "Votre réglage"][step_index]], 13, AimUI.ACCENT))
+	var setup := AimUI.card(content)
+	setup.add_child(AimUI.label("Avant de commencer", 18))
+	dpi_input = AimUI.numeric(setup, "DPI de votre souris", 1, 64000, 1)
+	dpi_input.tooltip_text = "Recopiez les DPI indiqués dans le logiciel de votre souris. AIM/LOCAL ne les détecte pas."
+	setup.add_child(AimUI.label("Recopiez les DPI du logiciel de votre souris. Si vous ne les connaissez pas, vérifiez-les avant le test.", 13, AimUI.MUTED))
+	var goal_row := AimUI.row(setup)
+	var goal_label := AimUI.label("Votre priorité")
+	goal_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	goal_row.add_child(goal_label)
 	goal_input = OptionButton.new()
-	for title in ["Polyvalent · 20 % par test", "Précision · 30/25/20/15/10 %", "Tracking · 10/10/10/35/35 %"]:
-		goal_input.add_item(title)
-	content.add_child(goal_input)
-	fps_input = OptionButton.new()
-	for title in ["Limite 144 FPS", "Limite 240 FPS", "Limite 60 FPS", "FPS illimités"]:
-		fps_input.add_item(title)
-	content.add_child(fps_input)
-	accumulated_input = CheckButton.new()
-	accumulated_input.text = "Accumulation d'input Godot (défaut ; comparer par mesure)"
-	content.add_child(accumulated_input)
-	inverted_input = CheckButton.new()
-	inverted_input.text = "Inverser l'axe vertical"
-	content.add_child(inverted_input)
-	content.add_child(button("Enregistrer le profil", func() -> void: profile_save_requested.emit()))
-	content.add_child(label("Micro-précision → grands flicks → switching → suivi fluide → strafes. Trois réglages (−10 %, référence, +10 %), trois répétitions. 15 familiarisations non notées, puis 45 passages mesurés. Ordre alterné, graines communes, repos et confort déclarés. Environ 16 min minimum ; interrompre et reprendre reste possible.", 17))
-	calibration_button = button("DÉMARRER LA CALIBRATION", func() -> void: calibration_requested.emit())
-	content.add_child(calibration_button)
-	resume_calibration_button = button("Reprendre la calibration sauvegardée", func() -> void: calibration_resume_requested.emit())
+	for caption in ["Polyvalent", "Précision", "Suivi"]:
+		goal_input.add_item(caption)
+	goal_input.custom_minimum_size.x = 150.0
+	goal_row.add_child(goal_input)
+	setup.add_child(AimUI.label("Point de départ", 14))
+	var presets := AimUI.row(setup, 8)
+	for preset_index in 3:
+		var control := AimUI.button(["Plus lent", "Équilibré", "Plus rapide"][preset_index], func() -> void:
+			distance_input.value = [50.0, 35.0, 25.0][preset_index])
+		control.toggle_mode = true
+		control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		presets.add_child(control)
+		preset_buttons.append(control)
+	start_help_label = AimUI.label("Le test ajuste la sensibilité pour vous. Gardez les mêmes DPI.", 13, AimUI.MUTED)
+	setup.add_child(start_help_label)
+	var actions := AimUI.row(content, 12)
+	calibration_button = AimUI.button("Trouver ma sensibilité  →", func() -> void: calibration_requested.emit(), true)
+	actions.add_child(calibration_button)
+	resume_calibration_button = AimUI.button("Reprendre", func() -> void: calibration_resume_requested.emit())
 	resume_calibration_button.hide()
-	content.add_child(resume_calibration_button)
-	content.add_child(label("Le résultat décrit cette séance et cet objectif. Une plage est proposée si les écarts sont faibles ; un nouveau test à un autre jour permet de vérifier la stabilité.", 16))
+	actions.add_child(resume_calibration_button)
+	content.add_child(AimUI.label("Environ 16 min · pauses et reprise possibles · aucun réglage à changer à la main", 13, AimUI.MUTED))
+	var details := AimUI.foldout(content, "Comment le test fonctionne")
+	details.add_child(AimUI.label("Vous vous habituez d’abord aux exercices, sans note. Ensuite, chaque réglage est testé plusieurs fois sur la précision, les grands mouvements, les transitions et le suivi. Votre confort compte aussi.", 14, AimUI.MUTED))
+	details.add_child(AimUI.label("Le conseil concerne les réglages essayés, pas une sensibilité universellement parfaite. Refaites le test un autre jour pour le confirmer.", 14, AimUI.MUTED))
 
 
-func build_training_tab(content: VBoxContainer) -> void:
-	content.add_child(label("16 exercices · un moteur commun", 26))
-	scenario_input = OptionButton.new()
-	for definition in ScenarioCatalog.DEFINITIONS:
-		scenario_input.add_item(definition.scenario_id + " · " + definition.title)
-	content.add_child(scenario_input)
-	scenario_label = label("", 18)
-	content.add_child(scenario_label)
-	scenario_input.item_selected.connect(func(_index: int) -> void: update_scenario())
-	duration_input = OptionButton.new()
-	for seconds in [30, 60, 15]:
-		duration_input.add_item("Durée : %d secondes actives" % seconds)
-	content.add_child(duration_input)
-	content.add_child(button("LANCER L'EXERCICE", func() -> void:
-		training_requested.emit(ScenarioCatalog.DEFINITIONS[scenario_input.selected].scenario_id, [30.0, 60.0, 15.0][duration_input.selected])))
-	content.add_child(label("Les cibles, trajectoires et difficultés restent fixes. Les résultats affichent précision, cadence, acquisition, temps sur cible et erreurs en degrés. Un changement de réglage crée un autre contexte de progression.", 17))
-	update_scenario()
-
-
-func update_scenario() -> void:
-	var definition := ScenarioCatalog.DEFINITIONS[scenario_input.selected]
-	var rule := "Score : 1000 × proportion du temps sur cible." if definition.family == "tracking" else "Score : 1000 × cadence × précision² / cadence de référence, sans plafond artificiel."
-	scenario_label.text = "%s\nCible %.2f° · %d active(s) · %s\n%s" % [definition.instructions,
-		definition.angular_diameter_deg, definition.active_targets, definition.motion, rule]
-
-
-func build_conversion_tab(content: VBoxContainer) -> void:
-	content.add_child(label("Conserver la rotation physique", 26))
-	content.add_child(label("Conversion du profil actuel par cm/360°, en hipfire. Les FOV, zooms et courbes d'accélération peuvent modifier le ressenti.", 17))
+func build_conversion(content: VBoxContainer) -> void:
+	content.add_child(AimUI.label("Le même mouvement, dans votre jeu.", 29))
+	content.add_child(AimUI.label("Choisissez votre jeu, puis recopiez la valeur dans ses réglages de souris.", 15, AimUI.MUTED))
+	var setup := AimUI.card(content)
+	var game_row := AimUI.row(setup)
+	var caption := AimUI.label("Jeu")
+	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	game_row.add_child(caption)
 	game_input = OptionButton.new()
-	for title in ["CS2 · m_yaw par défaut 0,022", "Valorant · coefficient documentaire 0,07", "Jeu manuel · coefficient connu"]:
-		game_input.add_item(title)
-	content.add_child(game_input)
-	destination_dpi = numeric_row(content, "DPI dans le jeu de destination", 1, 64000, 1)
-	yaw_input = numeric_row(content, "Coefficient yaw · °/count/unité de sensibilité", 0.0001, 1.0, 0.0001)
-	conversion_label = label("", 20)
-	content.add_child(conversion_label)
-	content.add_child(button("Copier la sensibilité", func() -> void:
+	for game_name in ["Counter-Strike 2", "VALORANT", "Autre jeu"]:
+		game_input.add_item(game_name)
+	game_row.add_child(game_input)
+	destination_dpi = AimUI.numeric(setup, "DPI utilisés dans le jeu", 1, 64000, 1)
+	var result := AimUI.card(content, 28)
+	result.add_child(AimUI.label("SENSIBILITÉ À RECOPIER", 11, AimUI.ACCENT))
+	conversion_label = AimUI.label("", 42)
+	result.add_child(conversion_label)
+	result.add_child(AimUI.button("Copier la valeur", func() -> void:
 		if SensitivityService.positive(conversion_value):
 			DisplayServer.clipboard_set("%.6f" % conversion_value)
-			set_status("Sensibilité copiée. Renseignez-la manuellement dans le jeu.")))
+			set_status("Valeur copiée. Collez-la dans les réglages du jeu."), true))
+	content.add_child(AimUI.label("La conversion conserve la distance de rotation, sans zoom. Vérifiez le résultat dans le jeu ; le zoom et l’accélération peuvent changer le ressenti.", 14, AimUI.MUTED))
+	var advanced := AimUI.foldout(content, "Réglages du jeu et détails")
+	yaw_input = AimUI.numeric(advanced, "Coefficient de rotation du jeu", 0.0001, 1.0, 0.0001)
+	conversion_details = AimUI.label("", 13, AimUI.MUTED)
+	advanced.add_child(conversion_details)
 	game_input.item_selected.connect(func(index: int) -> void:
 		if index < 2:
 			yaw_input.value = [0.022, 0.07][index]
+		advanced.get_parent().get_child(0).button_pressed = index == 2
 		update_conversion())
-	for input in [destination_dpi, yaw_input, dpi_input, distance_input]:
+	for input in [destination_dpi, yaw_input]:
 		input.value_changed.connect(func(_value: float) -> void: update_conversion())
 	yaw_input.value = 0.022
 	destination_dpi.value = 800
 
 
+func build_history(content: VBoxContainer) -> void:
+	var actions := AimUI.row(content)
+	var introduction := AimUI.column(actions, 6)
+	introduction.add_child(AimUI.label("Vos progrès, pas seulement un record.", 27))
+	history_summary = AimUI.label("Vos séances apparaîtront ici.", 14, AimUI.MUTED)
+	introduction.add_child(history_summary)
+	actions.add_child(AimUI.button("Actualiser", func() -> void: history_requested.emit()))
+	content.add_child(AimUI.label("On compare uniquement les séances réalisées avec les mêmes réglages et la même durée.", 13, AimUI.MUTED))
+	history_content = AimUI.column(content, 12)
+	history_content.add_child(AimUI.label("Commencez par un exercice pour voir vos résultats.", 16, AimUI.MUTED))
+	content.add_child(AimUI.button("Exporter mes résultats", func() -> void: export_requested.emit()))
+
+
+func show_history(total: int, summaries: Array[Dictionary]) -> void:
+	history_summary.text = "%d séance%s enregistrée%s · exercices de %d s" % [total, "s" if total != 1 else "", "s" if total != 1 else "", [30, 60, 15][duration_input.selected]]
+	for child in history_content.get_children():
+		child.queue_free()
+	var displayed: int = 0
+	for summary in summaries:
+		if int(summary.count) == 0:
+			continue
+		displayed += 1
+		var card := AimUI.card(history_content, 18)
+		card.add_child(AimUI.label(summary.title, 17))
+		var values := AimUI.row(card)
+		AimUI.stat(values, "Score habituel", "%.0f" % summary.latest_median)
+		AimUI.stat(values, "Record", "%.0f" % summary.best)
+		AimUI.stat(values, "Séances comparables", str(summary.count))
+		var chart := ScoreChart.new()
+		chart.custom_minimum_size.y = 96.0
+		chart.score_values = summary.get("recent_scores", [])
+		card.add_child(chart)
+		card.add_child(AimUI.label("Scores des %d dernières séances comparables" % chart.score_values.size(), 11, AimUI.MUTED))
+		var trend := "Encore %d séances comparables avant la première tendance." % maxi(10 - int(summary.count), 0)
+		if summary.change_pct != null:
+			trend = ("+" if float(summary.change_pct) >= 0.0 else "") + AimUI.number(summary.change_pct, 1) + " % entre vos premières séances et les plus récentes."
+		elif int(summary.count) >= 10:
+			trend = "La tendance est indisponible : les premières séances n’ont pas de score positif."
+		card.add_child(AimUI.label(trend, 13, AimUI.MUTED))
+	if displayed == 0:
+		var empty := AimUI.card(history_content, 26)
+		empty.add_child(AimUI.label("Le premier pas, c’est une séance.", 22))
+		empty.add_child(AimUI.label("Aucun résultat comparable pour ces réglages. Choisissez un exercice et gardez la même durée pour suivre vos progrès.", 14, AimUI.MUTED))
+		empty.add_child(AimUI.button("Choisir un exercice  →", func() -> void: show_page(1), true))
+
+
+func build_settings(content: VBoxContainer) -> void:
+	var weapons := AimUI.card(content)
+	weapons.add_child(AimUI.label("Votre équipement", 20))
+	weapons.add_child(AimUI.label("Un look et un son, pas un avantage. Les armes ne changent ni la visée ni le score.", 13, AimUI.MUTED))
+	var choices := AimUI.row(weapons, 8)
+	for definition in WeaponCatalog.DEFINITIONS:
+		var control := AimUI.button(definition.title, func() -> void:
+			weapon_id = definition.weapon_id
+			update_weapon())
+		control.toggle_mode = true
+		control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		weapon_buttons.append(control)
+		choices.add_child(control)
+	var preview_row := GridContainer.new()
+	preview_row.columns = 2
+	preview_row.add_theme_constant_override("h_separation", 14)
+	preview_row.add_theme_constant_override("v_separation", 14)
+	weapons.add_child(preview_row)
+	settings_preview_grid = preview_row
+	weapon_preview = WeaponFeedback.new()
+	weapon_preview.custom_minimum_size = Vector2(250, 125)
+	preview_row.add_child(weapon_preview)
+	var presentation := AimUI.column(preview_row, 8)
+	weapon_title = AimUI.label("", 20)
+	presentation.add_child(weapon_title)
+	presentation.add_child(AimUI.label("Clic : un tir. En suivi, maintenez le clic pour un son continu facultatif.", 13, AimUI.MUTED))
+	var tests := HFlowContainer.new()
+	tests.add_theme_constant_override("h_separation", 8)
+	tests.add_theme_constant_override("v_separation", 8)
+	presentation.add_child(tests)
+	tests.add_child(AimUI.button("Écouter un tir", func() -> void: weapon_preview.play_shot()))
+	var continuous_test := Button.new()
+	continuous_test.text = "Maintenir pour écouter"
+	continuous_test.button_down.connect(func() -> void: weapon_preview.set_continuous(true))
+	continuous_test.button_up.connect(func() -> void: weapon_preview.set_continuous(false))
+	tests.add_child(continuous_test)
+	sound_input = CheckButton.new()
+	sound_input.text = "Sons des tirs"
+	weapons.add_child(sound_input)
+	var volume_row := AimUI.row(weapons)
+	var volume_label := AimUI.label("Volume", 14)
+	volume_label.size_flags_horizontal = Control.SIZE_FILL
+	volume_label.custom_minimum_size.x = 65.0
+	volume_row.add_child(volume_label)
+	volume_input = HSlider.new()
+	volume_input.max_value = 100.0
+	volume_input.step = 1.0
+	volume_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	volume_row.add_child(volume_input)
+	weapon_visible_input = CheckButton.new()
+	weapon_visible_input.text = "Afficher l’arme pendant les exercices"
+	weapons.add_child(weapon_visible_input)
+	var display := AimUI.card(content)
+	display.add_child(AimUI.label("Confort d’affichage", 20))
+	motion_input = CheckButton.new()
+	motion_input.text = "Réduire les animations"
+	display.add_child(motion_input)
+	var fps_row := AimUI.row(display)
+	var fps_label := AimUI.label("Limite d’images par seconde")
+	fps_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fps_row.add_child(fps_label)
+	fps_input = OptionButton.new()
+	for caption in ["144 FPS", "240 FPS", "60 FPS", "Illimitée"]:
+		fps_input.add_item(caption)
+	fps_row.add_child(fps_input)
+	var advanced := AimUI.foldout(content, "Souris et paramètres avancés")
+	sensitivity_input = AimUI.numeric(advanced, "Sensibilité AIM/LOCAL", 0.01, 1000.0, 0.0001)
+	sensitivity_input.tooltip_text = "Ce réglage contrôle la vitesse de rotation. Plus grand = plus rapide."
+	distance_input = AimUI.numeric(advanced, "Distance pour un tour complet (cm)", 5, 150, 0.001)
+	advanced.add_child(AimUI.label("C’est la distance réelle parcourue par votre souris pour faire un tour complet à l’écran. Plus elle est grande, plus la visée est lente.", 13, AimUI.MUTED))
+	fov_input = AimUI.numeric(advanced, "Champ de vision vertical (°)", 40, 110, 1)
+	accumulated_input = CheckButton.new()
+	accumulated_input.text = "Regrouper les événements souris"
+	advanced.add_child(accumulated_input)
+	accumulated_input.tooltip_text = "Option technique Godot : comparez les deux modes sur votre matériel. Aucun lissage n’est ajouté."
+	inverted_input = CheckButton.new()
+	inverted_input.text = "Inverser la visée verticale"
+	advanced.add_child(inverted_input)
+	test_button = AimUI.button("Vérifier le mouvement de ma souris", func() -> void: test_requested.emit())
+	advanced.add_child(test_button)
+	sound_input.toggled.connect(func(_enabled: bool) -> void: update_weapon())
+	volume_input.value_changed.connect(func(_value: float) -> void: update_weapon())
+	motion_input.toggled.connect(func(reduced: bool) -> void:
+		AimUI.motion_enabled = not reduced
+		refresh_previews(self)
+		update_weapon())
+
+
+func refresh_previews(parent: Node) -> void:
+	for child in parent.get_children():
+		if child is ScenarioPreview:
+			child.set_process(child.animated and child.is_visible_in_tree() and AimUI.motion_enabled)
+		refresh_previews(child)
+
+
+func update_weapon() -> void:
+	if sound_input == null or weapon_preview == null or volume_input == null:
+		return
+	var definition := WeaponCatalog.find(weapon_id)
+	weapon_title.text = definition.title
+	weapon_preview.configure(definition, sound_input.button_pressed, volume_input.value / 100.0, true, motion_input.button_pressed if motion_input != null else false)
+	for index in weapon_buttons.size():
+		weapon_buttons[index].set_pressed_no_signal(WeaponCatalog.DEFINITIONS[index].weapon_id == weapon_id)
+
+
+func sync_sensitivity() -> void:
+	if syncing_sensitivity or distance_input == null:
+		return
+	syncing_sensitivity = true
+	sensitivity_input.min_value = SensitivityService.game_sensitivity(dpi_input.value, 150.0, SensitivityService.APP_YAW_DEG)
+	sensitivity_input.max_value = SensitivityService.game_sensitivity(dpi_input.value, 5.0, SensitivityService.APP_YAW_DEG)
+	sensitivity_input.set_value_no_signal(SensitivityService.game_sensitivity(dpi_input.value, distance_input.value, SensitivityService.APP_YAW_DEG))
+	for index in preset_buttons.size():
+		preset_buttons[index].set_pressed_no_signal(is_equal_approx(distance_input.value, [50.0, 35.0, 25.0][index]))
+	var custom_start := not is_equal_approx(distance_input.value, 50.0) and not is_equal_approx(distance_input.value, 35.0) and not is_equal_approx(distance_input.value, 25.0)
+	start_help_label.text = "Votre réglage actuel est conservé. Le test l’ajustera pour vous." if custom_start else "Le test ajuste la sensibilité pour vous. Gardez les mêmes DPI."
+	profile_badge.text = "%d DPI  ·  %s" % [int(dpi_input.value), AimUI.number(sensitivity_input.value)]
+	syncing_sensitivity = false
+	update_conversion()
+
+
+func change_app_sensitivity(value: float) -> void:
+	if not syncing_sensitivity:
+		distance_input.value = SensitivityService.cm_per_360(dpi_input.value, value * SensitivityService.APP_YAW_DEG)
+
+
 func update_conversion() -> void:
-	if conversion_label == null:
+	if conversion_label == null or distance_input == null:
 		return
 	conversion_value = SensitivityService.game_sensitivity(destination_dpi.value, distance_input.value, yaw_input.value)
-	var rounded := snappedf(conversion_value, 0.000001)
-	var actual_cm := SensitivityService.cm_per_360(destination_dpi.value, rounded * yaw_input.value)
-	conversion_label.text = "Sensibilité : %.6f\nDistance demandée : %.2f cm/360° · après arrondi : %.4f cm/360°\nAIM/LOCAL : %.6f (une unité = 0,022°/count)\nFormule : 914,4 / (DPI destination × cm/360 × yaw)\nCS2 : m_yaw modifiable. Valorant : valeur documentaire, à vérifier en jeu.\nPour Call of Duty / ADS : utiliser un coefficient manuel validé pour le titre et la version." % [conversion_value, distance_input.value, actual_cm, SensitivityService.game_sensitivity(dpi_input.value, distance_input.value, SensitivityService.APP_YAW_DEG)]
-
-
-func build_history_tab(content: VBoxContainer) -> void:
-	content.add_child(label("Progression à conditions constantes", 26))
-	content.add_child(button("Actualiser les résultats comparables", func() -> void: history_requested.emit()))
-	content.add_child(button("Exporter les séances · CSV + JSON", func() -> void: export_requested.emit()))
-	history_label = RichTextLabel.new()
-	history_label.fit_content = true
-	history_label.custom_minimum_size.y = 180
-	history_label.text = "Aucune séance chargée. Les échauffements, abandons et conditions différentes sont exclus des comparaisons."
-	content.add_child(history_label)
-	content.add_child(label("La médiane des 5 dernières séances est comparée aux 5 premières après au moins 10 séances comparables. Le record et la régularité restent distincts. Une nouvelle sensibilité, durée ou difficulté ne peut pas gonfler artificiellement cette tendance.", 17))
+	conversion_label.text = AimUI.number(conversion_value, 6)
+	conversion_details.text = "Profil : %s cm pour un tour complet.\nCS2 : coefficient par défaut 0,022 ; adaptez-le si vous avez modifié m_yaw.\nVALORANT : coefficient documentaire 0,07, à vérifier en jeu.\nAutre jeu : renseignez son coefficient connu. Aucun coefficient universel pour le zoom ou Call of Duty." % AimUI.number(distance_input.value)
 
 
 func read_profile() -> Dictionary:
 	return {"schema_version": 1, "dpi": dpi_input.value, "cm_per_360": distance_input.value,
 		"vertical_fov_deg": fov_input.value, "goal": ["balanced", "precision", "tracking"][goal_input.selected],
 		"accumulated_input": accumulated_input.button_pressed, "invert_y": inverted_input.button_pressed,
-		"max_fps": [144, 240, 60, 0][fps_input.selected]}
+		"max_fps": [144, 240, 60, 0][fps_input.selected], "weapon_id": weapon_id,
+		"sound_enabled": sound_input.button_pressed, "sound_volume": volume_input.value,
+		"show_weapon": weapon_visible_input.button_pressed, "reduced_motion": motion_input.button_pressed}
 
 
 func bind_profile(profile: Dictionary) -> void:
+	syncing_sensitivity = true
 	dpi_input.value = float(profile.dpi)
 	distance_input.value = float(profile.cm_per_360)
 	fov_input.value = float(profile.vertical_fov_deg)
@@ -232,10 +494,36 @@ func bind_profile(profile: Dictionary) -> void:
 	fps_input.select(maxi(0, [144, 240, 60, 0].find(int(profile.get("max_fps", 144)))))
 	accumulated_input.button_pressed = bool(profile.get("accumulated_input", true))
 	inverted_input.button_pressed = bool(profile.get("invert_y", false))
-	if destination_dpi != null:
-		destination_dpi.value = float(profile.dpi)
-	update_conversion()
+	weapon_id = str(profile.get("weapon_id", "pulse"))
+	sound_input.set_pressed_no_signal(bool(profile.get("sound_enabled", true)))
+	volume_input.set_value_no_signal(float(profile.get("sound_volume", 45.0)))
+	weapon_visible_input.button_pressed = bool(profile.get("show_weapon", true))
+	motion_input.set_pressed_no_signal(bool(profile.get("reduced_motion", false)))
+	AimUI.motion_enabled = not motion_input.button_pressed
+	destination_dpi.value = float(profile.dpi)
+	syncing_sensitivity = false
+	sync_sensitivity()
+	update_weapon()
+	refresh_previews(self)
+
+
+func update_layout() -> void:
+	var compact := size.x < 1060.0
+	sidebar.custom_minimum_size.x = 68.0 if compact else 196.0
+	brand_label.visible = not compact
+	local_label.visible = not compact
+	for index in nav_buttons.size():
+		nav_buttons[index].text = "" if compact else PAGE_TITLES[index]
+		nav_buttons[index].alignment = HORIZONTAL_ALIGNMENT_CENTER if compact else HORIZONTAL_ALIGNMENT_LEFT
+	quit_button.text = "×" if compact else "Quitter"
+	var side_margin := maxi(26, int((size.x - sidebar.custom_minimum_size.x - 1200.0) * 0.5))
+	content_margin.add_theme_constant_override("margin_left", side_margin)
+	content_margin.add_theme_constant_override("margin_right", side_margin)
+	hero_preview.visible = size.x >= 1060.0
+	home_grid.columns = 3 if size.x >= 1180.0 else 2 if size.x >= 940.0 else 1
+	settings_preview_grid.columns = 2 if size.x >= 1060.0 else 1
 
 
 func set_status(message: String) -> void:
 	status_label.text = message
+	status_label.visible = not message.is_empty()

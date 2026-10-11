@@ -49,3 +49,23 @@ Génération seedée, grille réelle pour C03, intersections rayon/sphère analy
 ## D09 — Conversion limitée à des coefficients connus
 
 CS2 yaw 0,022 éditable ; Valorant yaw 0,07 documentaire, vérification en jeu obligatoire. Coefficient manuel pour d'autres titres/ADS, sans présumer un facteur générique Call of Duty. Conversion par cm/360°, pas par sensation de zoom. Aucun accès aux jeux tiers, injection, modification de configuration ou automatisation de saisie.
+
+## D10 — Interface progressive et identité originale
+
+La 0.2.0 remplace le formulaire dense par six destinations, des cartes filtrables et un aperçu. Les unités techniques restent dans les réglages et mesures repliés ; le parcours débutant commence par les DPI et un départ confortable. Le bilan présente une seule sensibilité repère, sans promesse de valeur parfaite. Le moteur, les 16 définitions, le protocole et le score restent inchangés.
+
+Navigation latérale, bleu nuit/turquoise, icônes et illustrations originales : inspiration des conventions des aim trainers modernes, sans copier les ressources d’Aim Labs. Les animations sont courtes et désactivables. Le stretch global est désactivé pour garder un texte lisible en petite fenêtre ; `screen_relative` et les conversions physiques restent inchangés. Les aperçus et le sprite n’entrent pas dans la caméra ni les calculs.
+
+## D11 — Armes et sons strictement cosmétiques
+
+Trois profils originaux associent sprite, tir court et boucle continue, avec volume/silence et arme masquable. Les sons sont synthétisés hors du jeu, importés en PCM mono 16 bits sans compression ; quatre voix de tir et une boucle sont préallouées. Les tests ont détecté l’import QOA par défaut et imposent le format PCM attendu. La fin de boucle compte des frames audio.
+
+Un clic reste un tir dans les exercices de clic/transitions, sans automatique ni modification du rythme mécanique. En tracking, maintenir le clic joue seulement un retour facultatif : le temps sur cible est mesuré sans tirer. Pause, focus, menu et résultats coupent le son, sans reprise automatique. Les préférences cosmétiques restent compatibles avec les anciens profils et n’altèrent pas les contextes de comparaison.
+
+## D12 — Validation graphique distincte des essais matériels
+
+Le cloud permet désormais 29 captures OpenGL Compatibility avec Mesa logiciel et affichage virtuel : six pages à trois tailles, listes déroulantes, réglages défilés, HUD et bilans. Le helper attend l’affichage et arrête uniquement son propre serveur. Les exemples de bilan et de courbe sont synthétiques, isolés des données produit et non publiés comme performances réelles.
+
+Ces rendus ont permis de corriger les fonds, les retours à la ligne et les boutons enfouis dans les petites fenêtres. Ils ne certifient pas une expérience utilisateur réussie, les sons entendus, les FPS matériels, le scaling Windows ou les souris à haute fréquence. L’export isolé vérifie les armes/sons embarqués ; l’écoute et l’exécution native Windows restent à réceptionner.
+
+Le thème est appliqué aux scènes d’interface, pas chargé comme thème global du projet avant l’import des SVG. Ce chargement anticipé provoquait des erreurs au premier import sans cache. Le build vérifie désormais aussi les journaux d’import et d’export, pas seulement leur code de sortie.

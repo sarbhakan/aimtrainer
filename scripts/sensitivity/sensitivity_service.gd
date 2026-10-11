@@ -45,15 +45,21 @@ static func validate_profile(profile: Dictionary) -> String:
 		return "Le FOV vertical doit être compris entre 40 et 110°."
 	if not profile.get("goal", "balanced") in ["balanced", "precision", "tracking"]:
 		return "Objectif de calibration inconnu."
-	for field in ["accumulated_input", "invert_y"]:
+	for field in ["accumulated_input", "invert_y", "sound_enabled", "show_weapon", "reduced_motion"]:
 		if profile.has(field) and not profile[field] is bool:
 			return "Option d'input invalide : " + field
 	var max_fps: Variant = profile.get("max_fps", 144)
 	if not (max_fps is int or max_fps is float) or not is_finite(float(max_fps)) or not float(max_fps) in [0.0, 60.0, 144.0, 240.0]:
 		return "Limite de FPS invalide."
+	if profile.has("weapon_id") and not profile.weapon_id in ["pulse", "vector", "classic"]:
+		return "Arme inconnue."
+	var sound_volume: Variant = profile.get("sound_volume", 45.0)
+	if not (sound_volume is int or sound_volume is float) or not is_finite(float(sound_volume)) or float(sound_volume) < 0.0 or float(sound_volume) > 100.0:
+		return "Volume des tirs invalide."
 	return ""
 
 
 static func default_profile() -> Dictionary:
 	return {"schema_version": 1, "dpi": 800.0, "cm_per_360": 35.0,
-		"vertical_fov_deg": 75.0, "goal": "balanced", "accumulated_input": true, "max_fps": 144}
+		"vertical_fov_deg": 75.0, "goal": "balanced", "accumulated_input": true, "max_fps": 144,
+		"weapon_id": "pulse", "sound_enabled": true, "sound_volume": 45.0, "show_weapon": true, "reduced_motion": false}

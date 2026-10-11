@@ -17,8 +17,16 @@ func smoke() -> void:
 	app.store = LocalStore.new("user://tests/export-" + LocalStore.new().identifier())
 	root.add_child(app)
 	await process_frame
-	if ResourceLoader.exists("res://tests/run_tests.gd") or ResourceLoader.exists("res://tests/domain_tests.gd"):
+	if ResourceLoader.exists("res://tests/run_tests.gd") or ResourceLoader.exists("res://tests/domain_tests.gd") or ResourceLoader.exists("res://tests/ui_tests.gd"):
 		failures += 1
+	for definition in WeaponCatalog.DEFINITIONS:
+		if not definition.validate().is_empty() or definition.sprite.get_width() <= 0 or definition.shot_sound.data.is_empty() or definition.continuous_sound.data.is_empty():
+			failures += 1
+		var profile: Dictionary = app.home.read_profile()
+		profile.weapon_id = definition.weapon_id
+		app.hud.configure(profile)
+		if app.hud.weapon_feedback.continuous_player.stream.loop_mode != AudioStreamWAV.LOOP_FORWARD:
+			failures += 1
 	for definition in ScenarioCatalog.DEFINITIONS:
 		app.start_practice(definition.scenario_id, 1.0)
 		app.begin_training(Time.get_ticks_usec())
@@ -36,4 +44,5 @@ func smoke() -> void:
 	app.queue_free()
 	await process_frame
 	print("EXPORT SMOKE : 16 exercices embarqués, %d échecs." % failures)
+	print("EXPORT ASSETS : 3 profils d’arme embarqués, %d échecs." % failures)
 	quit(0 if failures == 0 else 1)

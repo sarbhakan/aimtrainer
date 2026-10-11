@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponDefinition" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/presentation/weapon_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/weapons/vector.svg" id="2"]
+[ext_resource type="AudioStream" path="res://assets/audio/vector_shot.wav" id="3"]
+[ext_resource type="AudioStream" path="res://assets/audio/vector_continuous.wav" id="4"]
+
+[resource]
+script=ExtResource("1")
+weapon_id="vector"
+title="Vector"
+sprite=ExtResource("2")
+shot_sound=ExtResource("3")
+continuous_sound=ExtResource("4")
+muzzle_uv=Vector2(0.105, 0.195)
+flash_color=Color(0.67, 0.6, 1, 1)
+continuous_interval_s=0.08

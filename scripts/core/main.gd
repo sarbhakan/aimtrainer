@@ -31,10 +31,10 @@ var initial_y_counts: float = 0.0
 @onready var target_pool: TargetPool = $Arena/TargetPool
 @onready var reference_sphere: MeshInstance3D = $Arena/ReferenceSphere
 @onready var home: AimDashboard = $Interface/Home
-@onready var hud: Control = $Interface/TestHud
-@onready var hud_title: Label = $Interface/TestHud/Margin/Rows/Title
-@onready var angles_label: Label = $Interface/TestHud/Margin/Rows/Angles
-@onready var help_label: Label = $Interface/TestHud/Margin/Rows/Help
+@onready var hud: TrainingHud = $Interface/TestHud
+@onready var hud_title: Label = hud.title_label
+@onready var angles_label: Label = hud.metric_label
+@onready var help_label: Label = hud.help_label
 @onready var pause_panel: Control = $Interface/PausePanel
 @onready var resume_button: Button = $Interface/PausePanel/Center/Card/Content/ResumeButton
 @onready var menu_button: Button = $Interface/PausePanel/Center/Card/Content/MenuButton
@@ -85,6 +85,8 @@ func _input(event: InputEvent) -> void:
 			pause_test()
 		elif screen == Screen.PAUSED:
 			resume_test()
+		else:
+			return
 		get_viewport().set_input_as_handled()
 		return
 	if not window_has_focus or finish_queued:
@@ -93,8 +95,15 @@ func _input(event: InputEvent) -> void:
 		aim_camera.apply_mouse_counts(event.screen_relative)
 		if screen == Screen.TRAINING:
 			engine.record_aim(clock.elapsed_s(Time.get_ticks_usec()), aim_camera.yaw_deg, aim_camera.pitch_deg)
-	elif screen == Screen.TRAINING and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		engine.shoot(clock.elapsed_s(Time.get_ticks_usec()), -aim_camera.global_basis.z)
+	elif screen == Screen.TRAINING and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if selected_definition.family == "tracking":
+			hud.weapon_feedback.set_continuous(event.pressed)
+		elif event.pressed:
+			var hit := engine.shoot(clock.elapsed_s(Time.get_ticks_usec()), -aim_camera.global_basis.z)
+			if not engine.completed:
+				hud.weapon_feedback.play_shot()
+				if hit:
+					hud.hit()
 		if engine.completed:
 			queue_finish()
 
@@ -103,6 +112,7 @@ func _process(delta_s: float) -> void:
 	var now_us := Time.get_ticks_usec()
 	if screen == Screen.REST:
 		session_panel.next_button.disabled = now_us < rest_until_us or not window_has_focus
+		session_panel.update_rest(maxf(float(rest_until_us - now_us) / 1000000.0, 0.0), calibration.current_index + 1 == calibration.plan.size())
 		return
 	if finish_queued:
 		return
@@ -141,7 +151,9 @@ func _notification(what: int) -> void:
 func start_test() -> void:
 	if screen != Screen.HOME or not window_has_focus:
 		return
-	apply_profile(home.read_profile())
+	var profile := home.read_profile()
+	apply_profile(profile)
+	hud.configure(profile)
 	aim_camera.reset_aim()
 	reference_sphere.show()
 	target_pool.hide_targets()
@@ -163,6 +175,7 @@ func pause_test() -> void:
 	paused_from = screen
 	clock.pause(Time.get_ticks_usec())
 	engine.paused = true
+	hud.weapon_feedback.stop()
 	screen = Screen.PAUSED
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	pause_panel.show()
@@ -194,8 +207,8 @@ func return_to_menu() -> void:
 	home.show()
 	var checkpoint := store.load_checkpoint()
 	home.resume_calibration_button.visible = not checkpoint.is_empty()
-	home.resume_calibration_button.text = "Revoir le dernier bilan de calibration" if checkpoint.get("status", "") == "complete" else "Reprendre la calibration sauvegardée"
-	test_button.grab_focus()
+	home.resume_calibration_button.text = "Voir mon dernier bilan" if checkpoint.get("status", "") == "complete" else "Reprendre"
+	home.nav_buttons[home.selected_page].grab_focus()
 
 
 func save_profile() -> void:
@@ -223,7 +236,7 @@ func prepare_training(definition: ScenarioDefinition, duration_s: float, seed_va
 	if not error.is_empty():
 		home.set_status(error)
 		if screen != Screen.HOME:
-			session_panel.body_label.text += "\n" + error
+			session_panel.set_notice(error)
 		return false
 	selected_definition = definition
 	selected_duration_s = duration_s
@@ -233,6 +246,7 @@ func prepare_training(definition: ScenarioDefinition, duration_s: float, seed_va
 	finish_queued = false
 	pending_trial.clear()
 	apply_profile(profile)
+	hud.configure(profile)
 	aim_camera.reset_aim()
 	reference_sphere.hide()
 	target_pool.hide_targets()
@@ -298,12 +312,16 @@ func finish_training(finished: bool, show_result: bool = true) -> void:
 		pending_trial = last_report.duplicate(true)
 		screen = Screen.REST
 		rest_until_us = Time.get_ticks_usec() + 3000000
-		var caption := "Familiarisation non notée" if last_report.warmup else "Passage mesuré"
-		session_panel.present(caption + " · %d / %d" % [calibration.current_index + 1, calibration.plan.size()], body + "\n\nRepos d'au moins 3 secondes. Indiquez votre confort avant de continuer.", true)
-		session_panel.next_button.text = "Voir la recommandation" if calibration.current_index + 1 == calibration.plan.size() else "Passage suivant"
+		session_panel.present_result(last_report, body, true, calibration.current_index + 1, calibration.plan.size())
+		session_panel.update_rest(3.0, calibration.current_index + 1 == calibration.plan.size())
 	else:
 		screen = Screen.RESULTS
-		session_panel.present("Résultat" if last_report.completed else "Passage interrompu", body + ("\n\nPassage à refaire : " + quality_error if not quality_error.is_empty() else ""))
+		session_panel.present_result(last_report, body, false, 0, 0)
+		if not quality_error.is_empty():
+			session_panel.set_notice("Ce passage n’est pas assez fiable. Rejouez en visant activement et sans saccades.")
+			session_panel.body_label.text += "\n\nPassage à refaire : " + quality_error
+	if not saved:
+		session_panel.set_notice("Résultat non sauvegardé : " + store.last_error)
 
 
 func result_text(report: Dictionary) -> String:
@@ -379,12 +397,12 @@ func next_calibration_stage() -> void:
 		start_calibration_stage()
 		return
 	if not calibration.accept(pending_trial, int(session_panel.comfort_input.value)):
-		session_panel.body_label.text += "\n" + calibration.error
+		session_panel.set_notice(calibration.error)
 		return
 	if not store.save_checkpoint(calibration.checkpoint()):
 		calibration.trials.pop_back()
 		calibration.current_index -= 1
-		session_panel.body_label.text += "\n" + store.last_error + "\nPassage conservé en mémoire ; réessayer la sauvegarde."
+		session_panel.set_notice(store.last_error + "\nVotre passage reste en mémoire. Réessayez Continuer.")
 		return
 	pending_trial.clear()
 	start_calibration_stage()
@@ -414,13 +432,11 @@ func show_recommendation() -> void:
 		1000.0 * final_recommendation.score_gap, 1000.0 * final_recommendation.dispersion_threshold]
 	if final_recommendation.boundary_best:
 		body += "\nLe meilleur réglage est au bord de la plage : affiner autour de lui peut tester une autre zone."
-	if not store.save_calibration(final_recommendation):
-		body += "\nSauvegarde du bilan en échec : " + store.last_error
+	var saved := store.save_calibration(final_recommendation)
 	screen = Screen.RESULTS
-	session_panel.present("Votre sensibilité repère", body)
-	session_panel.retry_button.hide()
-	session_panel.apply_button.visible = bool(final_recommendation.apply_allowed)
-	session_panel.refine_button.visible = status in ["indicative", "uncertain"]
+	session_panel.present_recommendation(final_recommendation, float(calibration.baseline.dpi), body)
+	if not saved:
+		session_panel.set_notice("Bilan non sauvegardé : " + store.last_error)
 
 
 func apply_recommendation() -> void:
@@ -429,11 +445,12 @@ func apply_recommendation() -> void:
 	var profile: Dictionary = calibration.baseline.duplicate(true)
 	profile.cm_per_360 = snappedf(float(final_recommendation.recommended_cm_per_360), 0.001)
 	if not store.save_profile(profile):
-		session_panel.body_label.text += "\n" + store.last_error
+		session_panel.set_notice(store.last_error)
 		return
 	home.bind_profile(profile)
 	return_to_menu()
-	home.set_status("Sensibilité appliquée : %.3f cm/360°. Les valeurs CS2/Valorant sont dans Convertir." % profile.cm_per_360)
+	home.show_page(3)
+	home.set_status("Sensibilité appliquée. Vous pouvez maintenant la reporter dans votre jeu.")
 
 
 func refine_calibration() -> void:
@@ -459,15 +476,13 @@ func refresh_history() -> void:
 	var results := store.sessions()
 	var profile := home.read_profile()
 	var seconds: float = [30.0, 60.0, 15.0][home.duration_input.selected]
-	var text := "%d séances locales ; contexte actuel : %.2f cm/360°, %.0f DPI, %.0f s, FOV vertical %.0f°.\n" % [results.size(), profile.cm_per_360, profile.dpi, seconds, profile.vertical_fov_deg]
+	var summaries: Array[Dictionary] = []
 	for definition in ScenarioCatalog.DEFINITIONS:
 		var key := ScoringService.comparison_key(definition, seconds, profile, current_aspect())
 		var summary := ProgressService.summarize(results, key)
-		var trend := "tendance : données insuffisantes (10 séances nécessaires)"
-		if summary.change_pct != null:
-			trend = "médiane récente %+.1f %% vs cinq premières" % summary.change_pct
-		text += "\n%s · n=%d · médiane récente %.0f · record %.0f · %s\n" % [definition.title, summary.count, summary.latest_median, summary.best, trend]
-	home.history_label.text = text
+		summary.title = ScenarioCopy.title(definition)
+		summaries.append(summary)
+	home.show_history(results.size(), summaries)
 
 
 func export_history() -> void:
@@ -477,25 +492,37 @@ func export_history() -> void:
 
 func update_telemetry() -> void:
 	if screen == Screen.TEST:
-		hud_title.text = "TEST SOURIS"
+		hud.countdown_label.hide()
+		hud.progress.hide()
+		hud_title.text = "Vérification souris"
 		angles_label.text = "Yaw %+.2f° · Pitch %+.2f°\nCounts X %.0f / Y %.0f" % [aim_camera.yaw_deg, aim_camera.pitch_deg, aim_camera.received_x_counts, aim_camera.received_y_counts]
-		help_label.text = "Échap : pause/reprise · Repère sans score · %.5f°/count · FOV vertical %.0f°" % [aim_camera.degrees_per_count, aim_camera.fov]
+		help_label.text = "Déplacez la souris pour mesurer un tour complet.  ·  Échap : pause"
+		hud.queue_redraw()
 		return
 	var prefix := ""
 	if is_calibrating:
 		var stage := calibration.current_stage()
-		prefix = "%d/%d · %s · Réglage %s · " % [calibration.current_index + 1, calibration.plan.size(), "Mesuré" if stage.scored else "Familiarisation", ["A", "B", "C"][int(stage.candidate_index)]]
-	hud_title.text = prefix + selected_definition.title
+		prefix = "%d/%d · %s · " % [calibration.current_index + 1, calibration.plan.size(), "Test" if stage.scored else "Échauffement"]
+	hud_title.text = prefix + ScenarioCopy.title(selected_definition)
+	hud.countdown_label.visible = screen == Screen.COUNTDOWN
+	hud.progress.visible = screen == Screen.TRAINING
 	if screen == Screen.COUNTDOWN:
-		angles_label.text = "Départ dans %.0f…" % ceil(maxf(2.0 - clock.elapsed_s(Time.get_ticks_usec()), 0.0))
+		hud.countdown_label.text = "%.0f" % ceil(maxf(2.0 - clock.elapsed_s(Time.get_ticks_usec()), 0.0))
+		angles_label.text = "Préparez-vous"
+		help_label.text = ScenarioCopy.description(selected_definition)
 	else:
-		angles_label.text = "Reste %.1f s · %d touches / %d tirs" % [maxf(engine.duration_s - engine.elapsed_s, 0.0), engine.hits, engine.shots]
+		angles_label.text = "%ds  ·  %d touches" % [int(ceil(maxf(engine.duration_s - engine.elapsed_s, 0.0))), engine.hits]
 		if selected_definition.family == "tracking":
-			angles_label.text = "Reste %.1f s · temps sur cible %.1f %%" % [maxf(engine.duration_s - engine.elapsed_s, 0.0), 100.0 * engine.on_target_s / maxf(engine.integrated_s, 0.000001)]
-	help_label.text = selected_definition.instructions + "\nÉchap : pause et pointeur libre."
+			angles_label.text = "%ds  ·  %.0f %% sur cible" % [int(ceil(maxf(engine.duration_s - engine.elapsed_s, 0.0))), 100.0 * engine.on_target_s / maxf(engine.integrated_s, 0.000001)]
+		hud.progress.max_value = engine.duration_s
+		hud.progress.value = engine.elapsed_s
+		help_label.text = ScenarioCopy.interaction(selected_definition) + "  ·  Échap : pause"
+	hud.queue_redraw()
 
 
 func quit_application() -> void:
+	hud.weapon_feedback.stop()
+	home.weapon_preview.stop()
 	if session_active:
 		finish_training(false, false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

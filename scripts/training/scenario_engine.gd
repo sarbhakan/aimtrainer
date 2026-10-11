@@ -288,7 +288,7 @@ func result(profile: Dictionary, aspect: float, finished: bool) -> Dictionary:
 		"path_efficiency_median": ScoringService.median(path_efficiencies),
 		"angular_path_deg": timeline.angular_path_deg, "input_events": timeline.event_count,
 		"input_buffer_overflows": timeline.overflow_count}
-	var report := {"schema_version": 1, "app_version": "0.1.0", "engine_version": "4.7.2",
+	var report := {"schema_version": 1, "app_version": str(ProjectSettings.get_setting("application/config/version")), "engine_version": "4.7.2",
 		"scenario_id": definition.scenario_id, "scenario_revision": definition.revision,
 		"scenario_fingerprint": definition.fingerprint(), "family": definition.family, "seed": scenario_seed,
 		"duration_s": duration_s, "active_duration_s": elapsed_s, "completed": finished and completed,

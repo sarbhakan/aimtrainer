@@ -1,4 +1,45 @@
-# Validation de la V1 0.1.0
+# Plan de validation
+
+## Refonte 0.2.0 — 11 octobre 2026
+
+Godot `4.7.2.stable.official.ed1daf0bf`, Linux ; les résultats 0.1.0 sont conservés plus bas comme historique, pas comme mesures de cette refonte.
+
+| Contrôle | Résultat |
+|---|---|
+| Import et suite GDScript | 797 assertions, 0 échec, 1 contrôle de capture physique non exécuté |
+| Import vierge sans `.godot/`, puis démarrage dans une copie isolée | Codes 0, aucune erreur de script/ressource ; thème chargé après import des SVG |
+| Rendu graphique avec Mesa llvmpipe et Xorg dummy | 29 captures, 0 échec ; six pages à 800×450, 1280×720 et 1920×1080, listes déroulantes, HUD, pause, repos, bilans et courbe isolée |
+| Export Windows 0.2.0 et démarrage du pack isolé | Code 0, aucune erreur de script/ressource |
+| Harness externe sur le pack exporté | 16 exercices et 3 profils d’arme embarqués, 0 échec |
+| Archive Windows | ZIP, PE x86-64/PCK, notices, intégrité ZIP et SHA-256 vérifiés |
+| Windows natif, écoute, souris physique et validation utilisateur | Non exécutés ; nécessaires avant réception finale |
+
+La nouvelle couverture vérifie navigation/filtres/recherche, consignes et aperçus, arrêt des traitements masqués, compatibilité des anciens profils, conservation de la distance physique lors d’un changement de DPI, préférences cosmétiques hors du contexte de score, trois sprites/six sons PCM distincts, frames de boucle, voix bornées, silence, clic simple vs maintien en tracking, arrêt sur focus/pause/menu et recommandation sans familiarisations. Les erreurs de sauvegarde restent visibles même quand les détails sont repliés. Les captures synthétiques de courbe/bilan ne sont jamais ajoutées aux données réelles.
+
+```bash
+bash tools/godot.sh --headless --editor --import
+bash tools/test.sh
+bash tools/visual_smoke.sh
+bash tools/export_windows.sh
+cd dist
+sha256sum --check AimLocal-0.2.0-windows-x64.zip.sha256
+unzip -t AimLocal-0.2.0-windows-x64.zip
+```
+
+Le contrôle graphique requiert X11 ou Xvfb/Xorg avec le pilote dummy ; il refuse le headless et ne confond pas absence d’affichage avec succès. Il démarre si besoin un affichage temporaire, attend sa disponibilité et le ferme à la sortie. L’avertissement Mesa concernant VSync n’est pas une erreur de script. Le rendu logiciel n’est pas un benchmark Windows. Aucun nouveau benchmark matériel n’est annoncé.
+
+### Réception UX et audio sous Windows
+
+En complément des essais physiques plus bas :
+
+1. Extraire le nouveau ZIP dans un dossier vierge ; ouvrir les six destinations, les listes de durée/jeu, puis parcourir les cartes avec souris et clavier. Vérifier les tailles minimale et normale, ainsi que le scaling Windows.
+2. À 800×450, vérifier que « Lancer l’exercice » et « Enregistrer » restent accessibles et que la fiche, les réglages et les résultats défilent sans débordement horizontal.
+3. Faire essayer « Ma sensibilité » à une personne sans connaissance de cm/360° : elle doit pouvoir entrer ses DPI, comprendre le confort, reprendre un test et appliquer/copier le conseil sans ouvrir les détails.
+4. Écouter Pulse, Vector et Classic au casque à faible volume : tirs distincts, boucle sans clic audible, aucun son résiduel après relâchement, Échap, Alt+Tab, menu ou résultats. Vérifier silence, volume zéro et retour après pause sans tir automatique.
+5. Dans un exercice de clic, maintenir le bouton ne doit pas tirer plusieurs fois. En suivi, tester avec/sans clic maintenu : la mécanique de mesure ne doit pas dépendre de ce retour audio. Masquer l’arme et réduire les animations ne doit pas faire tourner la caméra.
+6. Enregistrer les préférences, redémarrer et les retrouver ; charger aussi un profil 0.1.0. Vérifier que les anciens résultats comparables restent présents et qu’aucune courbe de démonstration n’apparaît.
+
+## Historique — V1 0.1.0
 
 ## Résultats cloud du 11 octobre 2026
 
@@ -50,12 +91,12 @@ Les données de calibration fabriquées pour les tests servent à vérifier l'al
 
 Sur Windows 10/11 x86-64, extraire le ZIP dans un dossier utilisateur vierge, sans Godot :
 
-1. Démarrer hors ligne ; tester les quatre onglets, Tab/Entrée, Quitter, fenêtres 800×450 et 1280×720. Vérifier que le résultat long défile correctement.
+1. Démarrer hors ligne ; tester les six destinations, Tab/Entrée, Quitter, fenêtres 800×450 et 1280×720. Vérifier que le résultat long défile correctement.
 2. Déclarer les DPI réels. Dans Test souris, mesurer le déplacement horizontal pour 360° avec une règle, plusieurs essais gauche/droite ; comparer la distance et les counts, pas seulement l'impression visuelle.
 3. Refaire aux scalings Windows 100/125/150 %, aux tailles de fenêtre, aux FPS 60/144/240, DPI 400/800/1600 ; le cm/360 doit rester constant si les DPI et le profil sont cohérents.
 4. Tester les deux modes d'accumulation à 1/2/4/8 kHz, avec matériel identique et mesure externe de frametime/latence. Les événements du HUD ne certifient pas le taux HID. Consigner machine, version Windows, fréquence écran, souris, driver et résultats.
 5. Échap/Alt+Tab pendant compte à rebours et exercice : horloge arrêtée, curseur libre, caméra ignorante des mouvements hors focus, retour sans reprise ni saut parasite. Aucun tir en pause ou après fin.
-6. Exercer chacun des 16 scénarios : silhouettes orange, viseur central, hitbox conforme au rayon visible, expiration réelle des pop-ups, aucune sphère hors de l'arène par défaut, grille réelle, suivi continu et croisement des cibles mobiles.
+6. Exercer chacun des 16 scénarios : cibles turquoise, viseur central, hitbox conforme au rayon visible, expiration réelle des pop-ups, aucune sphère hors de l’arène par défaut, grille réelle, suivi continu et croisement des cibles mobiles.
 7. Faire une calibration entière en conditions stables : 15 familiarisations exclues, 45 passages mesurés, repos/confort, A/B/C, bilan détaillé et refus d'appliquer si indiscernable/insuffisant. Fermer après quelques passages puis reprendre sans modifier les conditions.
 8. Revoir le bilan après redémarrage ; appliquer explicitement et vérifier le profil. Affiner uniquement si utile, puis refaire à un autre jour. Comparer stabilité de la plage et confort, pas une seule meilleure valeur.
 9. Reporter manuellement CS2/Valorant aux DPI déclarés, sans accélération et avec yaw connu. Mesurer un vrai 360° dans le jeu ; documenter les écarts et limites ADS/FOV.

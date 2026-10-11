@@ -1,5 +1,6 @@
 from hashlib import sha256
 from pathlib import Path
+import re
 import struct
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -21,21 +22,30 @@ with executable.open("rb") as executable_file:
     if executable_file.read(4) != b"GDPC":
         raise SystemExit("Le pack Godot doit être embarqué dans l'exécutable.")
 
-archive = dist_dir / "AimLocal-0.1.0-windows-x64.zip"
+version_match = re.search(r'^config/version="([0-9]+\.[0-9]+\.[0-9]+)"$', (project_root / "project.godot").read_text(encoding="utf-8"), re.MULTILINE)
+if version_match is None:
+    raise SystemExit("Version du projet invalide.")
+version = version_match.group(1)
+archive = dist_dir / f"AimLocal-{version}-windows-x64.zip"
 with ZipFile(archive, "w", compression=ZIP_DEFLATED) as package:
     package.write(executable, "AimLocal/AimLocal.exe")
     for notice in sorted((project_root / "LICENSES").glob("*.txt")):
         package.write(notice, f"AimLocal/LICENSES/{notice.name}")
     package.writestr(
         "AimLocal/README.txt",
-        "AIM/LOCAL 0.1.0 - calibration et entraînement local\n\n"
+        f"AIM/LOCAL {version} - calibration et entraînement local\n\n"
         "Windows 10/11 x86-64. Extraire tout le ZIP, puis ouvrir AimLocal.exe.\n"
         "Godot n'est pas nécessaire. L'application fonctionne hors ligne.\n"
-        "Indiquer les DPI de la souris, puis la distance de départ en cm/360 degrés.\n"
+        "Accueil : choisir un exercice ou trouver sa sensibilité.\n"
+        "Ma sensibilité : recopier les DPI de la souris et choisir un départ confortable.\n"
         "Calibration : 5 exercices, 3 réglages, 15 familiarisations puis 45 essais mesurés.\n"
         "Prévoir environ 16 minutes. Repos, confort et reprise sauvegardée inclus.\n"
         "La recommandation est indicative : retester un autre jour, jamais un optimum garanti.\n"
         "16 exercices autonomes, métriques, progression à contexte fixe, export CSV/JSON.\n"
+        "Réglages : 3 armes avec sprites et sons. Cliquer pour un tir ; en suivi,\n"
+        "maintenir le clic pour un son continu facultatif, sans effet sur le score.\n"
+        "Volume, silence, arme masquée et animations réduites sont disponibles.\n"
+        "Enregistrer les réglages pour les conserver après fermeture.\n"
         "Convertir : CS2, Valorant ou coefficient yaw manuel ; vérifier la distance en jeu.\n"
         "Les valeurs sont à saisir manuellement, aucun jeu n'est modifié.\n"
         "Échap : pause/reprise. La perte de focus suspend l'exercice.\n"

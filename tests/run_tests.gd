@@ -4,6 +4,7 @@ const CameraScript = preload("res://scripts/input/aim_camera.gd")
 const AppScript = preload("res://scripts/core/main.gd")
 const MainScene = preload("res://scenes/app/Main.tscn")
 const DomainTests = preload("res://tests/domain_tests.gd")
+const UiTests = preload("res://tests/ui_tests.gd")
 
 var assertion_count: int = 0
 var failure_count: int = 0
@@ -29,6 +30,7 @@ func run_tests() -> void:
 	check(DomainTests.new().run(check), "La suite métier doit se terminer sans erreur de script.")
 	await test_application_flow()
 	await test_training_flow()
+	check(await UiTests.new().run(self, check), "La suite d’interface et d’équipement doit se terminer.")
 	print("AIM/LOCAL : %d assertions, %d échecs, %d contrôles non exécutés." % [assertion_count, failure_count, skipped_count])
 	quit(0 if failure_count == 0 else 1)
 
