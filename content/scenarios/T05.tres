@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ScenarioDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/training/scenario_definition.gd" id="1"]
+
+[resource]
+script=ExtResource("1")
+scenario_id="T05"
+title="Suivi de strafes"
+instructions="Suivre les allers-retours et réacquérir après chaque changement de direction."
+family="tracking"
+motion="strafe"
+angular_diameter_deg=1.8
+yaw_extent_deg=12
+pitch_extent_deg=3
+speed_deg_s=26

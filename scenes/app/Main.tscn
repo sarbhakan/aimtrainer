@@ -1,0 +1,147 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/ui/Home.tscn" id="2_home"]
+[ext_resource type="PackedScene" path="res://scenes/training/Arena.tscn" id="3_arena"]
+[ext_resource type="Theme" path="res://assets/ui_theme.tres" id="4_theme"]
+[ext_resource type="Script" path="res://scripts/ui/session_panel.gd" id="5_panel"]
+
+[node name="Main" type="Node"]
+script=ExtResource("1_main")
+
+[node name="Arena" parent="." instance=ExtResource("3_arena")]
+visible=false
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Home" parent="Interface" instance=ExtResource("2_home")]
+theme=ExtResource("4_theme")
+
+[node name="TestHud" type="Control" parent="Interface"]
+visible=false
+layout_mode=3
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+mouse_filter=2
+theme=ExtResource("4_theme")
+
+[node name="Margin" type="MarginContainer" parent="Interface/TestHud"]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+mouse_filter=2
+theme_override_constants/margin_left=28
+theme_override_constants/margin_top=24
+theme_override_constants/margin_right=28
+theme_override_constants/margin_bottom=24
+
+[node name="Rows" type="VBoxContainer" parent="Interface/TestHud/Margin"]
+layout_mode=2
+mouse_filter=2
+theme_override_constants/separation=12
+
+[node name="Title" type="Label" parent="Interface/TestHud/Margin/Rows"]
+layout_mode=2
+text="TEST SOURIS"
+
+[node name="Angles" type="Label" parent="Interface/TestHud/Margin/Rows"]
+layout_mode=2
+theme_override_font_sizes/font_size=17
+text="Yaw +0.00°   ·   Pitch +0.00°"
+
+[node name="Space" type="Control" parent="Interface/TestHud/Margin/Rows"]
+layout_mode=2
+size_flags_vertical=3
+mouse_filter=2
+
+[node name="Help" type="Label" parent="Interface/TestHud/Margin/Rows"]
+layout_mode=2
+theme_override_font_sizes/font_size=17
+text="Échap : pause / reprendre  ·  La sphère est un repère, sans tir ni score.\nSensibilité provisoire : 0,044° / count  ·  FOV vertical : 75°"
+
+[node name="Crosshair" type="ColorRect" parent="Interface/TestHud"]
+layout_mode=1
+anchors_preset=8
+anchor_left=0.5
+anchor_top=0.5
+anchor_right=0.5
+anchor_bottom=0.5
+offset_left=-2.0
+offset_top=-2.0
+offset_right=2.0
+offset_bottom=2.0
+grow_horizontal=2
+grow_vertical=2
+mouse_filter=2
+color=Color(0.95, 1, 1, 1)
+
+[node name="PausePanel" type="Control" parent="Interface"]
+visible=false
+layout_mode=3
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+theme=ExtResource("4_theme")
+
+[node name="Shade" type="ColorRect" parent="Interface/PausePanel"]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+mouse_filter=2
+color=Color(0.015, 0.025, 0.045, 0.92)
+
+[node name="Center" type="CenterContainer" parent="Interface/PausePanel"]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+
+[node name="Card" type="PanelContainer" parent="Interface/PausePanel/Center"]
+custom_minimum_size=Vector2(440, 0)
+layout_mode=2
+
+[node name="Content" type="VBoxContainer" parent="Interface/PausePanel/Center/Card"]
+layout_mode=2
+theme_override_constants/separation=18
+
+[node name="Title" type="Label" parent="Interface/PausePanel/Center/Card/Content"]
+layout_mode=2
+theme_override_font_sizes/font_size=32
+text="En pause"
+
+[node name="Description" type="Label" parent="Interface/PausePanel/Center/Card/Content"]
+layout_mode=2
+theme_override_font_sizes/font_size=17
+text="Le pointeur est libre.\nLa caméra attend votre reprise."
+
+[node name="ResumeButton" type="Button" parent="Interface/PausePanel/Center/Card/Content"]
+layout_mode=2
+text="Reprendre"
+
+[node name="MenuButton" type="Button" parent="Interface/PausePanel/Center/Card/Content"]
+layout_mode=2
+text="Retour à l'accueil"
+
+[node name="SessionPanel" type="Control" parent="Interface"]
+visible=false
+layout_mode=3
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+theme=ExtResource("4_theme")
+script=ExtResource("5_panel")

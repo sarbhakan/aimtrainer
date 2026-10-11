@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ScenarioDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/training/scenario_definition.gd" id="1"]
+
+[resource]
+script=ExtResource("1")
+scenario_id="C07"
+title="Flicks verticaux"
+instructions="Corriger le pitch sur des cibles étagées. La même sensibilité s'applique aux deux axes."
+family="click"
+angular_diameter_deg=1
+yaw_extent_deg=4
+pitch_extent_deg=17
+min_transition_deg=6
+reference_hits_s=2

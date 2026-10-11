@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ScenarioDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/training/scenario_definition.gd" id="1"]
+
+[resource]
+script=ExtResource("1")
+scenario_id="T03"
+title="Suivi diagonal"
+instructions="Coordonner les deux axes sur une trajectoire régulière, sans cliquer."
+family="tracking"
+motion="diagonal"
+angular_diameter_deg=2
+yaw_extent_deg=12
+pitch_extent_deg=8
+speed_deg_s=16

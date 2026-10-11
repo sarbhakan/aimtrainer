@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ScenarioDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/training/scenario_definition.gd" id="1"]
+
+[resource]
+script=ExtResource("1")
+scenario_id="D02"
+title="Clic mobile"
+instructions="Cliquer sur la sphère mobile. Les collisions utilisent sa position au moment du clic."
+family="click"
+motion="horizontal"
+angular_diameter_deg=1.8
+yaw_extent_deg=14
+pitch_extent_deg=6
+speed_deg_s=16
+reference_hits_s=1.8

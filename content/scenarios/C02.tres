@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ScenarioDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/training/scenario_definition.gd" id="1"]
+
+[resource]
+script=ExtResource("1")
+scenario_id="C02"
+title="Micro-précision"
+instructions="Petites cibles proches : contrôler la fin du geste et éviter les surcorrections."
+family="click"
+angular_diameter_deg=0.65
+yaw_extent_deg=4
+pitch_extent_deg=3
+min_transition_deg=1.4
+reference_hits_s=1.6

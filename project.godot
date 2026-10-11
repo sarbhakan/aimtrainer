@@ -1,0 +1,31 @@
+config_version=5
+
+[application]
+
+config/name="AIM/LOCAL"
+config/version="0.1.0"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="AIM_LOCAL"
+run/main_scene="res://scenes/app/Main.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/size/min_width=800
+window/size/min_height=450
+window/stretch/mode="canvas_items"
+window/vsync/vsync_mode=0
+
+[gui]
+
+theme/custom="res://assets/ui_theme.tres"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.035, 0.05, 0.075, 1)

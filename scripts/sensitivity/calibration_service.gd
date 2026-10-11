@@ -1,0 +1,227 @@
+class_name CalibrationService
+extends RefCounted
+
+const PROTOCOL_VERSION: int = 1
+const SCENARIOS: Array[String] = ["C02", "C04", "S01", "T01", "T05"]
+const FACTORS: Array[float] = [0.9, 1.0, 1.1]
+const WEIGHTS: Dictionary = {"balanced": [0.2, 0.2, 0.2, 0.2, 0.2],
+	"precision": [0.3, 0.25, 0.2, 0.15, 0.1], "tracking": [0.1, 0.1, 0.1, 0.35, 0.35]}
+
+var baseline: Dictionary = {}
+var aspect: float = 16.0 / 9.0
+var calibration_seed: int = 1
+var calibration_id: String = ""
+var plan: Array[Dictionary] = []
+var trials: Array[Dictionary] = []
+var current_index: int = 0
+var error: String = ""
+
+
+func begin(profile: Dictionary, viewport_aspect: float, seed_value: int, identifier: String) -> bool:
+	error = SensitivityService.validate_profile(profile)
+	if not error.is_empty():
+		return false
+	if not SensitivityService.positive(viewport_aspect) or identifier.is_empty() or not identifier.is_valid_filename() or identifier in [".", ".."] or identifier.length() > 96:
+		error = "Format de fenêtre ou identifiant de calibration invalide."
+		return false
+	if float(profile.cm_per_360) < 5.5 or float(profile.cm_per_360) > 135.0:
+		error = "Le point de départ doit être entre 5,5 et 135 cm/360° pour comparer trois réglages distincts."
+		return false
+	for scenario_id in SCENARIOS:
+		if not ScenarioCatalog.find(scenario_id).fits_view(float(profile.vertical_fov_deg), viewport_aspect):
+			error = "Champ de vision trop étroit pour " + scenario_id + " : élargir la fenêtre ou augmenter le FOV."
+			return false
+	baseline = profile.duplicate(true)
+	aspect = viewport_aspect
+	calibration_seed = seed_value
+	calibration_id = identifier
+	plan.clear()
+	trials.clear()
+	current_index = 0
+	for scenario_index in SCENARIOS.size():
+		for candidate_index in FACTORS.size():
+			plan.append(stage(scenario_index, candidate_index, -1))
+	for repetition in 3:
+		for scenario_offset in SCENARIOS.size():
+			var scenario_index := (scenario_offset + repetition) % SCENARIOS.size()
+			for order_index in FACTORS.size():
+				var candidate_index := (repetition + scenario_index + order_index) % FACTORS.size()
+				plan.append(stage(scenario_index, candidate_index, repetition))
+	return true
+
+
+func stage(scenario_index: int, candidate_index: int, repetition: int) -> Dictionary:
+	return {"scenario_id": SCENARIOS[scenario_index], "candidate_index": candidate_index,
+		"repetition": repetition, "scored": repetition >= 0, "duration_s": 12.0 if repetition >= 0 else 8.0,
+		"seed": calibration_seed + scenario_index * 7919 + (repetition + 1) * 1009}
+
+
+func candidate_profile(candidate_index: int) -> Dictionary:
+	var profile := baseline.duplicate(true)
+	profile.cm_per_360 = float(baseline.cm_per_360) / FACTORS[candidate_index]
+	return profile
+
+
+func current_stage() -> Dictionary:
+	return plan[current_index] if current_index < plan.size() else {}
+
+
+func accept(report: Dictionary, comfort: int) -> bool:
+	error = ScoringService.validate_result(report)
+	if not error.is_empty():
+		return false
+	var expected := current_stage()
+	if expected.is_empty() or not report.get("completed", false) or not report.get("valid", false):
+		error = "Séance interrompue ou invalide : recommencer ce passage."
+		return false
+	error = ScoringService.calibration_quality_error(report)
+	if not error.is_empty():
+		return false
+	var profile: Dictionary = report.get("profile", {})
+	var candidate := candidate_profile(int(expected.candidate_index))
+	if report.get("scenario_id", "") != expected.scenario_id or int(report.get("seed", -1)) != int(expected.seed):
+		error = "Scénario ou graine incompatible avec le protocole."
+		return false
+	if report.get("scenario_fingerprint", "") != ScenarioCatalog.find(expected.scenario_id).fingerprint():
+		error = "Révision du scénario incompatible."
+		return false
+	if report.family != ScenarioCatalog.find(expected.scenario_id).family or report.get("engine_version", "") != "4.7.2":
+		error = "Famille ou version du moteur incompatible."
+		return false
+	for field in ["dpi", "cm_per_360", "vertical_fov_deg"]:
+		if not profile.has(field) or not is_equal_approx(float(profile[field]), float(candidate[field])):
+			error = "Les conditions de calibration ont changé : " + field
+			return false
+	if not is_equal_approx(float(report.get("duration_s", 0.0)), float(expected.duration_s)) or not is_equal_approx(float(report.get("aspect", 0.0)), aspect):
+		error = "Durée ou format de fenêtre incompatible."
+		return false
+	if int(report.get("score_version", -1)) != ScoringService.VERSION or profile.get("accumulated_input", true) != baseline.get("accumulated_input", true) or profile.get("max_fps", 144) != baseline.get("max_fps", 144) or profile.get("invert_y", false) != baseline.get("invert_y", false):
+		error = "Version de score ou paramètres d'input/rendu incompatibles."
+		return false
+	if report.comparison_key != ScoringService.comparison_key(ScenarioCatalog.find(expected.scenario_id), float(expected.duration_s), candidate, aspect):
+		error = "Contexte de comparaison incompatible."
+		return false
+	var trial := report.duplicate(true)
+	trial.candidate_index = int(expected.candidate_index)
+	trial.repetition = int(expected.repetition)
+	trial.scored = bool(expected.scored)
+	trial.comfort = clampi(comfort, 1, 5)
+	trials.append(trial)
+	current_index += 1
+	error = ""
+	return true
+
+
+func checkpoint() -> Dictionary:
+	return {"schema_version": 1, "protocol_version": PROTOCOL_VERSION, "baseline": baseline,
+		"aspect": aspect, "seed": calibration_seed, "calibration_id": calibration_id,
+		"current_index": current_index, "trials": trials, "status": "active" if current_index < plan.size() else "complete"}
+
+
+func restore(data: Dictionary) -> bool:
+	if data.get("schema_version", 0) != 1 or data.get("protocol_version", -1) != PROTOCOL_VERSION or not data.get("baseline", null) is Dictionary or not data.get("trials", null) is Array:
+		error = "Checkpoint de calibration incompatible."
+		return false
+	for field in ["aspect", "seed", "current_index"]:
+		if not ScoringService.number(data.get(field, null)):
+			error = "Valeur de checkpoint invalide : " + field
+			return false
+	for field in ["seed", "current_index"]:
+		if float(data[field]) != floor(float(data[field])):
+			error = "Compteur de checkpoint non entier : " + field
+			return false
+	if not data.get("calibration_id", null) is String:
+		error = "Identifiant de checkpoint invalide."
+		return false
+	if not begin(data.baseline, float(data.get("aspect", 0.0)), int(data.get("seed", 1)), str(data.get("calibration_id", ""))):
+		return false
+	if data.trials.size() > plan.size():
+		error = "Nombre de passages invalide."
+		return false
+	for trial in data.trials:
+		if not trial is Dictionary or not ScoringService.number(trial.get("comfort", null)):
+			error = "Passage de checkpoint invalide."
+			return false
+		var expected := current_stage()
+		if trial.get("candidate_index", -1) != expected.candidate_index or trial.get("repetition", -2) != expected.repetition or trial.get("scored", null) != expected.scored:
+			error = "Ordre des passages incohérent."
+			return false
+		if not accept(trial, int(trial.comfort)):
+			return false
+	if current_index != int(data.get("current_index", -1)):
+		error = "Progression du checkpoint incohérente."
+		return false
+	if data.get("status", "") != ("active" if current_index < plan.size() else "complete"):
+		error = "État du checkpoint incohérent."
+		return false
+	return true
+
+
+func recommendation() -> Dictionary:
+	if baseline.is_empty() or plan.is_empty():
+		return {"status": "insufficient", "apply_allowed": false}
+	var candidates: Array[Dictionary] = []
+	var complete_data: bool = current_index == plan.size() and not plan.is_empty()
+	var weights: Array = WEIGHTS[baseline.get("goal", "balanced")]
+	var total_weight: float = 0.0
+	for weight in weights:
+		total_weight += float(weight)
+	for candidate_index in FACTORS.size():
+		candidates.append({"index": candidate_index, "cm_per_360": candidate_profile(candidate_index).cm_per_360,
+			"value": 0.0, "spread": 0.0, "per_scenario": {}, "comfort_values": []})
+	for scenario_index in SCENARIOS.size():
+		var scenario_id := SCENARIOS[scenario_index]
+		var medians: Array[float] = []
+		var deviations: Array[float] = []
+		for candidate_index in FACTORS.size():
+			var utilities: Array[float] = []
+			for trial in trials:
+				if not trial.get("scored", false) or trial.candidate_index != candidate_index or trial.scenario_id != scenario_id:
+					continue
+				if not ScoringService.has_activity(trial):
+					continue
+				utilities.append(ScoringService.utility(trial))
+				candidates[candidate_index].comfort_values.append(int(trial.comfort))
+			complete_data = complete_data and utilities.size() == 3
+			var median_value := ScoringService.median(utilities)
+			var distances: Array[float] = []
+			for utility in utilities:
+				distances.append(absf(utility - median_value))
+			medians.append(median_value)
+			deviations.append(1.4826 * ScoringService.median(distances))
+			candidates[candidate_index].per_scenario[scenario_id] = {"median_utility": median_value,
+				"dispersion": deviations.back(), "samples": utilities.size()}
+		var best_median: float = medians.max()
+		complete_data = complete_data and best_median > 0.0
+		for candidate_index in FACTORS.size():
+			var weight := float(weights[scenario_index]) / total_weight
+			candidates[candidate_index].value += weight * medians[candidate_index] / maxf(best_median, 0.000001)
+			candidates[candidate_index].spread += weight * deviations[candidate_index] / maxf(best_median, 0.000001)
+	for candidate in candidates:
+		candidate.comfort_median = ScoringService.median(candidate.comfort_values)
+		candidate.erase("comfort_values")
+	candidates.sort_custom(func(candidate_left: Dictionary, candidate_right: Dictionary) -> bool:
+		if float(candidate_left.value) == float(candidate_right.value):
+			return abs(int(candidate_left.index) - 1) < abs(int(candidate_right.index) - 1) if abs(int(candidate_left.index) - 1) != abs(int(candidate_right.index) - 1) else int(candidate_left.index) < int(candidate_right.index)
+		return float(candidate_left.value) > float(candidate_right.value))
+	var best: Dictionary = candidates[0]
+	var runner_up: Dictionary = candidates[1]
+	var gap := float(best.value) - float(runner_up.value)
+	var threshold := maxf(0.03, sqrt(pow(float(best.spread), 2.0) + pow(float(runner_up.spread), 2.0)))
+	var status := "indicative" if complete_data and gap > threshold else "uncertain"
+	if not complete_data:
+		status = "insufficient"
+	elif float(best.comfort_median) <= 2.0:
+		status = "uncomfortable"
+	var accepted_cm: Array[float] = []
+	for candidate in candidates:
+		if float(best.value) - float(candidate.value) <= threshold:
+			accepted_cm.append(float(candidate.cm_per_360))
+	accepted_cm.sort()
+	return {"schema_version": 1, "protocol_version": PROTOCOL_VERSION, "calibration_id": calibration_id,
+		"status": status, "candidates": candidates, "goal": baseline.get("goal", "balanced"),
+		"weights": weights.duplicate(), "score_gap": gap, "dispersion_threshold": threshold,
+		"best_tested_cm_per_360": best.cm_per_360, "recommended_cm_per_360": best.cm_per_360 if status == "indicative" else baseline.cm_per_360,
+		"range_cm_per_360": [accepted_cm.front(), accepted_cm.back()], "apply_allowed": status == "indicative",
+		"boundary_best": int(best.index) != 1, "trials_completed": current_index, "trials_expected": plan.size(),
+		"baseline": baseline.duplicate(true), "trials": trials.duplicate(true)}

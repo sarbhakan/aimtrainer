@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ScenarioDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/training/scenario_definition.gd" id="1"]
+
+[resource]
+script=ExtResource("1")
+scenario_id="C03"
+title="Grid Targets"
+instructions="Six cibles réparties sans chevauchement. Choisir la suivante et garder sa précision."
+family="click"
+layout="grid"
+angular_diameter_deg=1.2
+yaw_extent_deg=16
+pitch_extent_deg=9
+active_targets=6
+reference_hits_s=3

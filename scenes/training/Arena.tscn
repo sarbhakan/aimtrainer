@@ -1,0 +1,71 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/input/aim_camera.gd" id="1_camera"]
+[ext_resource type="Script" path="res://scripts/training/target_pool.gd" id="2_pool"]
+
+[sub_resource type="Environment" id="Environment"]
+background_mode=1
+background_color=Color(0.065, 0.095, 0.13, 1)
+ambient_light_source=3
+ambient_light_color=Color(0.85, 0.91, 1, 1)
+ambient_light_energy=0.6
+tonemap_mode=0
+
+[sub_resource type="StandardMaterial3D" id="FloorMaterial"]
+albedo_color=Color(0.14, 0.19, 0.24, 1)
+roughness=1.0
+
+[sub_resource type="PlaneMesh" id="FloorMesh"]
+material=SubResource("FloorMaterial")
+size=Vector2(40, 40)
+
+[sub_resource type="StandardMaterial3D" id="WallMaterial"]
+albedo_color=Color(0.1, 0.15, 0.2, 1)
+roughness=1.0
+
+[sub_resource type="BoxMesh" id="WallMesh"]
+material=SubResource("WallMaterial")
+size=Vector3(30, 10, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="ReferenceMaterial"]
+albedo_color=Color(1, 0.36, 0.17, 1)
+roughness=1.0
+
+[sub_resource type="SphereMesh" id="ReferenceMesh"]
+material=SubResource("ReferenceMaterial")
+radius=0.4
+height=0.8
+radial_segments=24
+rings=12
+
+[node name="Arena" type="Node3D"]
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment=SubResource("Environment")
+
+[node name="Light" type="DirectionalLight3D" parent="."]
+rotation_degrees=Vector3(-45, -25, 0)
+light_energy=0.8
+shadow_enabled=false
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+mesh=SubResource("FloorMesh")
+
+[node name="BackWall" type="MeshInstance3D" parent="."]
+position=Vector3(0, 5, -12)
+mesh=SubResource("WallMesh")
+
+[node name="ReferenceSphere" type="MeshInstance3D" parent="."]
+position=Vector3(0, 1.6, -8)
+mesh=SubResource("ReferenceMesh")
+
+[node name="AimCamera" type="Camera3D" parent="."]
+position=Vector3(0, 1.6, 0)
+current=true
+fov=75.0
+near=0.05
+far=100.0
+script=ExtResource("1_camera")
+
+[node name="TargetPool" type="Node3D" parent="."]
+script=ExtResource("2_pool")

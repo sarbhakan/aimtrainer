@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ScenarioDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/training/scenario_definition.gd" id="1"]
+
+[resource]
+script=ExtResource("1")
+scenario_id="S02"
+title="Moving Switch"
+instructions="Alterner entre quatre sphères mobiles. Mesurer précision et temps de transition."
+family="switching"
+motion="horizontal"
+angular_diameter_deg=1.8
+yaw_extent_deg=22
+pitch_extent_deg=10
+speed_deg_s=14
+active_targets=4
+reference_hits_s=2.4

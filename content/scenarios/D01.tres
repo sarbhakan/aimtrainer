@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ScenarioDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/training/scenario_definition.gd" id="1"]
+
+[resource]
+script=ExtResource("1")
+scenario_id="D01"
+title="Pop-up"
+instructions="Toucher avant la disparition après une seconde. Les cibles expirées sont comptées."
+family="click"
+angular_diameter_deg=1.5
+yaw_extent_deg=14
+pitch_extent_deg=8
+lifetime_s=1
+reference_hits_s=2

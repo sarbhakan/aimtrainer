@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ScenarioDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/training/scenario_definition.gd" id="1"]
+
+[resource]
+script=ExtResource("1")
+scenario_id="S01"
+title="Target switching"
+instructions="Toucher une sphère puis changer de cible. Chaque clic compte, les ratés aussi."
+family="switching"
+angular_diameter_deg=1.3
+yaw_extent_deg=22
+pitch_extent_deg=10
+min_transition_deg=4
+active_targets=4
+reference_hits_s=2.8
