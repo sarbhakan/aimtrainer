@@ -17,7 +17,7 @@ func smoke() -> void:
 	app.store = LocalStore.new("user://tests/export-" + LocalStore.new().identifier())
 	root.add_child(app)
 	await process_frame
-	for test_path in ["run_tests", "domain_tests", "ui_tests", "sensitivity_import_tests", "geometry_regression_tests", "browser_preview_tests", "weapon_animation_tests", "calibration_block_tests", "checkpoint_migration_tests"]:
+	for test_path in ["run_tests", "domain_tests", "ui_tests", "sensitivity_import_tests", "geometry_regression_tests", "browser_preview_tests", "weapon_animation_tests", "calibration_block_tests", "checkpoint_migration_tests", "ui_polish_tests", "ux_flow_tests", "crosshair_feedback_tests", "gameplay_quality_tests", "adaptive_calibration_tests", "guided_flow_tests", "record_flow_tests"]:
 		if ResourceLoader.exists("res://tests/" + test_path + ".gd"):
 			failures += 1
 	for game_id in ["cs2", "valorant", "cod"]:
@@ -33,8 +33,17 @@ func smoke() -> void:
 		if app.home.read_profile().dpi != 1600.0 or not is_equal_approx(app.aim_camera.degrees_per_count, SensitivityService.degrees_per_count(1600.0, imported.profile.cm_per_360)) or not is_equal_approx(app.home.conversion_value, source_value):
 			failures += 1
 	var calibration := CalibrationService.new()
-	if not calibration.begin(app.home.read_profile(), 16.0 / 9.0, 42, "export-protocol") or CalibrationService.PROTOCOL_VERSION != 2 or calibration.plan.size() != 60:
+	if not calibration.begin(app.home.read_profile(), 16.0 / 9.0, 42, "export-protocol") or CalibrationService.PROTOCOL_VERSION != 3 or calibration.plan.size() != 60:
 		failures += 1
+	var search := AdaptiveSensitivityService.new()
+	if not search.begin(app.home.read_profile(), 16.0 / 9.0, 42, "export-guided") or search.current_spec().speed_factors != [0.5, 1.0, 2.0]:
+		failures += 1
+	for style in CrosshairProfile.STYLES:
+		var profile: Dictionary = app.home.read_profile()
+		profile.crosshair_style = style
+		app.hud.configure(profile)
+		if app.hud.crosshair_profile.crosshair_style != style:
+			failures += 1
 	for definition in WeaponCatalog.DEFINITIONS:
 		if not definition.validate().is_empty() or definition.sprite.get_width() <= 0 or definition.shot_sound.data.is_empty() or definition.continuous_sound.data.is_empty():
 			failures += 1
@@ -63,5 +72,6 @@ func smoke() -> void:
 	await process_frame
 	print("EXPORT SMOKE : 16 exercices embarqués, %d échecs." % failures)
 	print("EXPORT ASSETS : 3 profils d’arme embarqués, %d échecs." % failures)
-	print("EXPORT PROFILES : 3 imports et protocole 2 embarqués, %d échecs." % failures)
+	print("EXPORT PROFILES : 3 imports, protocole 3 et recherche guidée embarqués, %d échecs." % failures)
+	print("EXPORT CROSSHAIRS : 4 styles embarqués, %d échecs." % failures)
 	quit(0 if failures == 0 else 1)

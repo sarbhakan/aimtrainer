@@ -14,7 +14,7 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	verify = check
 	var calibration := CalibrationService.new()
 	calibration.begin(SensitivityService.default_profile(), 16.0 / 9.0, 42, "block-test")
-	expect(CalibrationService.PROTOCOL_VERSION == 2, "Le changement d’ordre doit versionner le protocole.")
+	expect(CalibrationService.PROTOCOL_VERSION == 3, "Les facteurs configurables doivent versionner le protocole.")
 	for block_index in 5:
 		var positions: Array[Array] = [[], [], []]
 		for passage_index in 12:

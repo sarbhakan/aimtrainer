@@ -301,6 +301,8 @@ func test_root_allocation(dashboard: AimDashboard, tree: SceneTree) -> void:
 	for dimensions in [Vector2i(1280, 720), Vector2i(800, 450), Vector2i(1920, 1080), Vector2i(1280, 720)]:
 		tree.root.size = dimensions
 		await settle_allocation(tree)
+		var available_rect := (browser.get_parent() as Control).get_global_rect().intersection(tree.root.get_visible_rect())
+		expect(available_rect.grow(1.0).encloses(browser.start_button.get_global_rect()), "Le lancement doit rester entièrement visible après allocation réelle à %s : bouton %s, navigateur %s." % [dimensions, browser.start_button.get_global_rect(), browser.get_global_rect()])
 		var minimum_before := browser.get_combined_minimum_size()
 		var catalog_before := browser.catalog_scroll.get_global_rect()
 		browser.show_card_preview(ScenarioCatalog.find("C02"))

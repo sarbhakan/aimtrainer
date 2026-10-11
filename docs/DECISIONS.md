@@ -91,3 +91,17 @@ Les exercices passent en révision 2 : profondeur 4 m, origine caméra réelle, 
 Quatre agents ont travaillé sur armes, géométrie, recherche/QA et aperçus, avec périmètres disjoints et tests de régression. L’audit adversarial a identifié des réimports réinterprétés, une confusion DPI et une migration bloquée ; ces cas doivent rester couverts avant publication. Les bots exécutent des scénarios logiciels : ils ne remplacent ni un utilisateur ni une souris physique.
 
 Les conventions publiques des aim trainers servent de référence ; aucun algorithme, score ou asset propriétaire d’Aimlabs n’est annoncé comme reproduit. Les sites officiels indisponibles dans cette session restent non vérifiés, selon `docs/REFERENCE_TASKS.md`. Démonstrations originales, bulles au survol/focus/clic, panneaux répartis sur la largeur disponible et retour HUD vers le viseur remplacent une interface centrée et une arme statique. Ces effets restent cosmétiques.
+
+## D17 — Recherche guidée bornée, 0.4.0
+
+Protocole 3 avec facteurs configurables et reprise compatible 2. Le novice explore 0,5/1/2, puis recentrage sur un bord nettement meilleur et confortable ou affinage à 25 % puis validation à 10 %. Chaque comparaison conserve les cinq exercices et 45 mesures ; maximum quatre comparaisons et deux déplacements. L’incertitude ne déclenche pas une escalade aveugle. Un résultat stable autorise seulement un essai consenti et demande confirmation différée ; rien d’universel ou de causalement prouvé.
+
+## D18 — Cohérence, records et arrondis
+
+La clé est recalculée depuis les conditions du rapport, et le score depuis ses mesures. Changer révision, moteur, renderer ou empreinte sans changer la clé rend le rapport incohérent. Le backend Compatibility est implicite dans les anciens rapports sans renderer. L’exposition continue des suivis 0.1–0.3 peut être lue depuis la durée active, sans réécriture. Un record exige une sauvegarde réussie et un contexte identique. Les styles de viseur/arme restent cosmétiques hors clé mécanique : la progression affichée ne prouve pas une causalité.
+
+Le canonique des champs source est indépendant du Range arrondi ; focus/blur sans édition conserve les métadonnées exactes en mémoire. La relecture JSON peut déplacer les derniers bits, tolérance relative 1e−14 explicitée. Recherche et comparaison sont écrites en une transaction ; panne et reprise ne valident pas deux fois un passage.
+
+## D19 — Cadrage sans trahir la souris
+
+Les cibles restent ancrées dans la zone mondiale. Une rotation pendant le countdown peut mettre cette zone hors champ, sans occlusion par le sol. Le départ attend donc le réalignement avec repère/flèche avant de mesurer. Aucun count supprimé, aucun snap de caméra, aucune cible déplacée pour corriger ce cas. Les régressions vérifient les rotations ±30° et la reprise par vrais deltas.

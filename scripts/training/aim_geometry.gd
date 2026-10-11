@@ -12,6 +12,34 @@ static func angular_error_deg(aim_direction: Vector3, target_direction: Vector3)
 	return rad_to_deg(atan2(aim_direction.cross(target_direction).length(), aim_direction.dot(target_direction)))
 
 
+static func project_direction(center_direction: Vector3, vertical_fov_deg: float, viewport_rect: Rect2) -> Vector2:
+	if not center_direction.is_finite() or center_direction.z >= 0.0 or not is_finite(vertical_fov_deg) or vertical_fov_deg <= 0.0 or vertical_fov_deg >= 180.0 or not viewport_rect.position.is_finite() or not viewport_rect.size.is_finite() or viewport_rect.size.x <= 0.0 or viewport_rect.size.y <= 0.0:
+		return Vector2(INF, INF)
+	var focal_px: float = viewport_rect.size.y / (2.0 * tan(deg_to_rad(vertical_fov_deg * 0.5)))
+	return viewport_rect.get_center() + Vector2(center_direction.x, -center_direction.y) * focal_px / -center_direction.z
+
+
+static func project_sphere_outline(center_direction: Vector3, angular_diameter_deg: float, vertical_fov_deg: float, viewport_rect: Rect2, segments: int = 128) -> PackedVector2Array:
+	var outline := PackedVector2Array()
+	if not center_direction.is_finite() or center_direction.is_zero_approx() or not is_finite(angular_diameter_deg) or angular_diameter_deg <= 0.0 or angular_diameter_deg >= 180.0 or segments < 8 or segments > 512:
+		return outline
+	var direction: Vector3 = center_direction.normalized()
+	var half_angle_rad: float = deg_to_rad(angular_diameter_deg * 0.5)
+	var horizontal: Vector3 = direction.cross(Vector3.UP).normalized()
+	if horizontal.is_zero_approx():
+		horizontal = direction.cross(Vector3.RIGHT).normalized()
+	var vertical: Vector3 = horizontal.cross(direction).normalized()
+	for perimeter_index in segments:
+		var phase_rad: float = float(perimeter_index) * TAU / segments
+		var tangent: Vector3 = horizontal * cos(phase_rad) + vertical * sin(phase_rad)
+		var ray: Vector3 = direction * cos(half_angle_rad) + tangent * sin(half_angle_rad)
+		var projected: Vector2 = project_direction(ray, vertical_fov_deg, viewport_rect)
+		if not projected.is_finite():
+			return PackedVector2Array()
+		outline.append(projected)
+	return outline
+
+
 static func sphere_fits_view(center_direction: Vector3, angular_diameter_deg: float, vertical_fov_deg: float, aspect: float) -> bool:
 	if not center_direction.is_finite() or center_direction.is_zero_approx():
 		return false

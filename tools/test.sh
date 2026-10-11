@@ -6,8 +6,15 @@ run_suite() {
     local script_path="$1"
     local marker="$2"
     local test_log
+    local parse_log
     local completed=false
     test_log="$(mktemp /tmp/aimlocal-tests.XXXXXX)"
+    parse_log="$(mktemp /tmp/aimlocal-parse.XXXXXX)"
+    timeout 30s bash "$project_root/tools/godot.sh" --headless --check-only --script "$script_path" 2>&1 | tee "$parse_log"
+    if rg -q '^(ERROR:|SCRIPT ERROR:)' "$parse_log"; then
+        printf 'Compilation des tests refusée. Journal : %s\n' "$parse_log" >&2
+        exit 1
+    fi
     timeout 120s bash "$project_root/tools/godot.sh" --headless --script "$script_path" 2>&1 | tee "$test_log"
     while IFS= read -r log_line; do
         case "$log_line" in
@@ -25,3 +32,4 @@ run_suite() {
 
 run_suite res://tests/run_tests.gd "AIM/LOCAL"
 run_suite res://tests/geometry_regression_tests.gd "GEOMETRY REGRESSION"
+run_suite res://tests/adaptive_calibration_tests.gd "ADAPTIVE CALIBRATION"

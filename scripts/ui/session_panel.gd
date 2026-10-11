@@ -31,6 +31,8 @@ var details_toggle: Button
 var result_grid: GridContainer
 var context: VBoxContainer
 var context_root: PanelContainer
+var record_celebration: RecordCelebration
+var guided_confirmation: CheckButton
 
 
 func _ready() -> void:
@@ -68,6 +70,16 @@ func _ready() -> void:
 	hero.add_child(hero_caption)
 	hero_label = AimUI.label("", 42, AimUI.ACCENT)
 	hero.add_child(hero_label)
+	record_celebration = RecordCelebration.new()
+	hero_label.add_child(record_celebration)
+	guided_confirmation = CheckButton.new()
+	guided_confirmation.text = "Je souhaite tester ce conseil."
+	guided_confirmation.tooltip_text = "Conseil provisoire : confirmez le confort et les résultats un autre jour."
+	guided_confirmation.toggled.connect(func(confirmed: bool) -> void:
+		if guided_confirmation.visible:
+			apply_button.disabled = not confirmed)
+	hero.add_child(guided_confirmation)
+	guided_confirmation.hide()
 	stats = AimUI.row(content, 12)
 	for stat_index in 3:
 		var stat := AimUI.card(stats, 16)
@@ -112,7 +124,7 @@ func _ready() -> void:
 	var actions := HFlowContainer.new()
 	actions.add_theme_constant_override("h_separation", 10)
 	actions.add_theme_constant_override("v_separation", 8)
-	content.add_child(actions)
+	layout.add_child(actions)
 	next_button = AimUI.button("Continuer  →", func() -> void: next_requested.emit(), true)
 	actions.add_child(next_button)
 	retry_button = AimUI.button("Rejouer  →", func() -> void: retry_requested.emit(), true)
@@ -153,6 +165,7 @@ func select_comfort(value: int) -> void:
 
 
 func present(title: String, body: String, calibration_step: bool = false) -> void:
+	record_celebration.stop()
 	clear_context()
 	title_label.text = title
 	body_label.text = body
@@ -164,10 +177,15 @@ func present(title: String, body: String, calibration_step: bool = false) -> voi
 	progress_label.visible = calibration_step
 	next_button.visible = calibration_step
 	next_button.disabled = calibration_step
+	next_button.text = "Continuer  →"
 	retry_button.visible = not calibration_step
 	retry_button.text = "Rejouer  →"
 	retry_button.disabled = false
 	apply_button.hide()
+	apply_button.disabled = false
+	apply_button.text = "Utiliser ce réglage"
+	guided_confirmation.hide()
+	guided_confirmation.set_pressed_no_signal(false)
 	refine_button.hide()
 	notice_label.hide()
 	details_toggle.button_pressed = false
@@ -179,18 +197,13 @@ func present(title: String, body: String, calibration_step: bool = false) -> voi
 func present_result(report: Dictionary, details: String, calibration_step: bool, stage_index: int, stage_total: int) -> void:
 	var definition := ScenarioCatalog.find(report.scenario_id)
 	present(ScenarioCopy.title(definition), details, calibration_step)
-	var metrics: Dictionary = report.metrics
+	var insights := PerformanceInsights.analyze(report)
 	hero_caption.text = "ÉCHAUFFEMENT · NON NOTÉ" if report.get("warmup", false) else "SCORE" if report.completed else "SCORE PROVISOIRE · SÉANCE INTERROMPUE"
-	hero_label.text = "Bien joué." if report.get("warmup", false) else "%.0f" % report.score
+	hero_label.text = "Échauffement terminé" if report.get("warmup", false) else "%.0f" % report.score
 	subtitle_label.text = "Respirez un instant, puis indiquez votre confort." if calibration_step else "Gardez les mêmes réglages pour comparer votre prochaine séance."
-	if report.family == "tracking":
-		set_stat(0, "Temps sur cible", AimUI.number(100.0 * metrics.on_target_ratio, 1) + " %")
-		set_stat(1, "Temps suivi", AimUI.number(metrics.on_target_time_s, 1) + " s")
-		set_stat(2, "Retour sur cible", "—" if metrics.on_target_time_s <= 0.0 else "%.0f ms" % metrics.reacquisition_median_ms)
-	else:
-		set_stat(0, "Précision", "—" if metrics.accuracy_pct == null else AimUI.number(metrics.accuracy_pct, 1) + " %")
-		set_stat(1, "Cibles touchées", str(int(metrics.hits)))
-		set_stat(2, "Temps de visée", "—" if metrics.hits == 0 else "%.0f ms" % metrics.acquisition_median_ms)
+	set_stat(0, insights.primary_label, insights.primary_value)
+	set_stat(1, insights.secondary_label, insights.secondary_value)
+	set_stat(2, insights.tempo_label, insights.tempo_value)
 	if calibration_step:
 		progress.max_value = stage_total
 		progress.value = stage_index
@@ -203,14 +216,61 @@ func present_result(report: Dictionary, details: String, calibration_step: bool,
 		set_notice("Pas assez d’activité pour comparer ce passage. Bougez le viseur et réessayez.")
 	if not calibration_step:
 		context_root.show()
-		context.add_child(AimUI.label("Rejouer avec un objectif clair", 20))
+		context.add_child(AimUI.label("Votre prochain essai", 20))
+		context.add_child(AimUI.label(insights.get("short_tip", insights.tip), 15, AimUI.ACCENT))
 		var exercise_preview := ScenarioPreview.new()
 		exercise_preview.custom_minimum_size.y = 230.0
 		context.add_child(exercise_preview)
 		exercise_preview.configure(definition, true)
-		context.add_child(AimUI.label(ScenarioCopy.description(definition), 15, AimUI.MUTED))
-		context.add_child(AimUI.label(ScenarioCopy.measure(definition), 14, AimUI.ACCENT))
 		context.add_child(AimUI.label("Gardez les mêmes réglages et la même durée pour mesurer votre progression.", 13, AimUI.MUTED))
+
+
+func present_record(previous_best: float, reduced_motion: bool) -> void:
+	hero_caption.text = "NOUVEAU RECORD PERSONNEL"
+	badge_label.text = "RECORD · MÊMES CONDITIONS"
+	subtitle_label.text = "Votre précédent record : %.0f points. Ce résultat est enregistré." % previous_best
+	record_celebration.celebrate(reduced_motion)
+
+
+func present_guided_search(search: AdaptiveSensitivityService, can_continue: bool) -> void:
+	badge_label.text = "RECHERCHE GUIDÉE · %d / %d COMPARAISONS" % [search.history.size(), AdaptiveSensitivityService.MAX_COMPARISONS]
+	var measured_passages: int = 0
+	for entry in search.history:
+		for trial in entry.trials:
+			measured_passages += 1 if trial.scored else 0
+	set_stat(1, "Passages cumulés", str(measured_passages))
+	refine_button.hide()
+	retry_button.hide()
+	next_button.visible = can_continue
+	next_button.disabled = false
+	next_button.text = "Continuer la recherche  →"
+	apply_button.hide()
+	if can_continue:
+		title_label.text = "Une nouvelle plage à comparer"
+		hero_caption.text = "MEILLEUR RÉGLAGE TESTÉ À CETTE ÉTAPE"
+		var next_spec := search.current_spec()
+		subtitle_label.text = "Prochaine étape : " + str(next_spec.label).split(" · ")[0]
+	else:
+		var result := search.final_result()
+		subtitle_label.text = result.advice
+		if result.get("trial_allowed", false):
+			hero_caption.text = "SENSIBILITÉ À ESSAYER · CONSEIL PROVISOIRE"
+			guided_confirmation.show()
+			apply_button.show()
+			apply_button.disabled = not guided_confirmation.button_pressed
+			apply_button.text = "Essayer ce conseil"
+	var history_card := AimUI.foldout(context, "Les étapes de votre recherche")
+	for entry in search.history:
+		var step: Dictionary = entry.search_step
+		history_card.add_child(AimUI.label("%d · %s" % [int(step.spec.round_index) + 1, str(step.spec.label).split(" · ")[0]], 14, AimUI.ACCENT))
+		var explanations := {"recenter": "Un réglage en bord de plage est meilleur et confortable : on déplace les essais autour de lui.",
+			"refine": "Le centre se détache : on compare des réglages plus proches.",
+			"validate": "Le choix reste cohérent : on vérifie une plage encore plus précise.",
+			"stable": "Un conseil se détache après plusieurs comparaisons. Essayez-le, puis confirmez-le un autre jour.",
+			"retest": "Les résultats ne permettent pas de choisir. Gardez votre réglage et retestez après repos.",
+			"boundary": "Le meilleur essai reste au bord : cette recherche ne suffit pas pour conseiller un changement.",
+			"limit": "La limite d’essais est atteinte. Faites une pause avant de reprendre une recherche."}
+		history_card.add_child(AimUI.label(explanations.get(step.decision, step.reason), 13, AimUI.MUTED))
 
 
 func present_calibration_context(calibration: CalibrationService, pending: Dictionary) -> void:

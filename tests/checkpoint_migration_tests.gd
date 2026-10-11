@@ -165,7 +165,7 @@ func test_application_migration(tree: SceneTree, trial_count: int) -> void:
 	app.start_calibration()
 	expect(app.is_calibrating and app.screen == app.Screen.COUNTDOWN and app.calibration.current_index == 0, "Main.start_calibration doit repartir à zéro après archivage de %d passages historiques." % trial_count)
 	var saved: Dictionary = store.read_json(checkpoint_path(store))
-	expect(saved.ok and saved.data.get("protocol_version", 0) == 2 and saved.data.get("trials", [null]).is_empty(), "Le fichier actif doit être un nouveau protocole 2 vide, jamais une reprise réordonnée du protocole 1.")
+	expect(saved.ok and saved.data.get("protocol_version", 0) == CalibrationService.PROTOCOL_VERSION and saved.data.get("trials", [null]).is_empty(), "Le fichier actif doit être un nouveau protocole vide, jamais une reprise réordonnée du protocole 1.")
 	expect(read_bytes(archive_path(store, old)) == contents, "L'archive immuable doit conserver les octets exacts, CRLF, Unicode, précision et données anciennes inclus.")
 	expect(read_bytes(checkpoint_path(store) + ".bak") == contents, "Le backup de remplacement doit lui aussi préserver l'ancien checkpoint exact.")
 	app.return_to_menu()
@@ -193,7 +193,7 @@ func test_validation_before_archiving() -> void:
 func test_unknown_and_malformed() -> void:
 	var partial: Dictionary = legacy_checkpoint(18)
 	var cases: Array[Dictionary] = []
-	for version in [0, 3, 99, 1.5, "1", true]:
+	for version in [0, 4, 99, 1.5, "1", true]:
 		var unknown: Dictionary = partial.duplicate(true)
 		unknown.protocol_version = version
 		cases.append(unknown)
@@ -279,5 +279,5 @@ func test_archive_retries() -> void:
 	var new_data: Dictionary = new_checkpoint()
 	expect(store.save_checkpoint(new_data), "Une archive déjà identique doit permettre un réessai sans écrasement de l'archive.")
 	expect(read_bytes(archive_path(store, old)) == contents, "L'archive exacte doit rester immuable après le réessai.")
-	expect(store.save_checkpoint(new_data) and store.load_checkpoint().get("protocol_version", 0) == 2, "Les sauvegardes ordinaires du protocole 2 doivent continuer de fonctionner.")
+	expect(store.save_checkpoint(new_data) and store.load_checkpoint().get("protocol_version", 0) == CalibrationService.PROTOCOL_VERSION, "Les sauvegardes ordinaires du protocole actuel doivent continuer de fonctionner.")
 	expect(read_bytes(archive_path(store, old)) == contents, "Une sauvegarde ultérieure ne doit jamais réécrire l'archive historique.")

@@ -10,6 +10,12 @@ const WeaponAnimationTests = preload("res://tests/weapon_animation_tests.gd")
 const CalibrationBlockTests = preload("res://tests/calibration_block_tests.gd")
 const BrowserPreviewTests = preload("res://tests/browser_preview_tests.gd")
 const CheckpointMigrationTests = preload("res://tests/checkpoint_migration_tests.gd")
+const UiPolishTests = preload("res://tests/ui_polish_tests.gd")
+const UxFlowTests = preload("res://tests/ux_flow_tests.gd")
+const CrosshairFeedbackTests = preload("res://tests/crosshair_feedback_tests.gd")
+const GameplayQualityTests = preload("res://tests/gameplay_quality_tests.gd")
+const GuidedFlowTests = preload("res://tests/guided_flow_tests.gd")
+const RecordFlowTests = preload("res://tests/record_flow_tests.gd")
 
 var assertion_count: int = 0
 var failure_count: int = 0
@@ -41,6 +47,12 @@ func run_tests() -> void:
 	check(await CalibrationBlockTests.new().run(self, check), "La strate de calibration par blocs doit se terminer.")
 	check(await BrowserPreviewTests.new().run(self, check), "La strate d’aperçus au survol et au clic doit se terminer.")
 	check(await CheckpointMigrationTests.new().run(self, check), "Les anciens checkpoints doivent être archivés sans perte ni écrasement incohérent.")
+	check(await UiPolishTests.new().run(self, check), "Les interactions UI doivent se terminer sans fuite ni déplacement de layout.")
+	check(await UxFlowTests.new().run(self, check), "Les parcours novices doivent rester accessibles et compréhensibles.")
+	check(await CrosshairFeedbackTests.new().run(self, check), "Viseur et retour de tir doivent rester cosmétiques et sauvegardables.")
+	check(await GameplayQualityTests.new().run(self, check), "Gameplay, aperçus et mesures doivent rester cohérents.")
+	check(await GuidedFlowTests.new().run(self, check), "La recherche guidée doit rester transactionnelle et reprenable.")
+	check(await RecordFlowTests.new().run(self, check), "Seuls les records réellement sauvegardés et comparables doivent être annoncés.")
 	print("AIM/LOCAL : %d assertions, %d échecs, %d contrôles non exécutés." % [assertion_count, failure_count, skipped_count])
 	quit(0 if failure_count == 0 else 1)
 

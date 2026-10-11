@@ -48,6 +48,7 @@ static func run_suite(tree: SceneTree, verify: Callable) -> void:
 	feedback.queue_free()
 	await tree.process_frame
 	await test_hud(tree, verify)
+	await tree.create_timer(0.15).timeout
 
 
 static func test_shot(feedback: WeaponFeedback, definition: WeaponDefinition, verify: Callable) -> void:
@@ -168,6 +169,7 @@ static func test_stop_paths(feedback: WeaponFeedback, verify: Callable) -> void:
 	feedback.configure(WeaponCatalog.DEFINITIONS[0], true, 0.45, true, false)
 	for stop_path in ["stop", "focus", "hidden", "configure"]:
 		feedback.show()
+		feedback.notification(Node.NOTIFICATION_APPLICATION_FOCUS_IN)
 		feedback.play_shot()
 		feedback.set_continuous(true)
 		if stop_path == "stop":
@@ -203,6 +205,7 @@ static func test_hud(tree: SceneTree, verify: Callable) -> void:
 	hud.configure({"weapon_id": "pulse", "sound_enabled": false, "sound_volume": 45.0, "show_weapon": true, "reduced_motion": false})
 	for dimensions in [Vector2(800, 450), Vector2(1280, 720), Vector2(1920, 1080)]:
 		hud.size = dimensions
+		hud.notification(Node.NOTIFICATION_APPLICATION_FOCUS_IN)
 		await tree.process_frame
 		var rectangle := hud.weapon_feedback.sprite_rect()
 		verify.call(hud.weapon_feedback.hud_mode and hud.weapon_feedback.size.is_equal_approx(dimensions), "Le contrôle de tir couvre le HUD sans créer de couche d’input.")

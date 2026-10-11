@@ -1,4 +1,20 @@
-# Interface et présentation — 0.3.0
+# Interface et présentation — 0.4.0
+
+## Finition native
+
+Les composants partagent des états de survol, pression, sélection et focus clavier cohérents. Les transitions durent 100–180 ms, n’animent pas la géométrie des conteneurs et s’arrêtent sur masquage. Animations réduites garde l’information sans mouvement. Compteur et résultats ne dépendent pas de ces effets.
+
+Ma sensibilité distingue **Je cherche un point de départ** et **J’ai déjà un réglage**, avec durée et reprise propres. Les paragraphes redondants laissent place à une action et une consigne. Le formulaire source affiche des nombres lisibles tout en conservant son float canonique : ouvrir/quitter sans éditer n’est pas une nouvelle saisie.
+
+Le résultat associe le score à des mesures utiles : précision, touches/tirs et cadence pour le clic ; fraction et secondes réellement suivies, retour sur cible pour le tracking. Un objectif court propose quoi essayer ensuite, sans diagnostiquer magiquement la sensibilité. Les actions restent dans un pied fixe. Un record n’est célébré qu’après écriture, à contexte identique.
+
+Progression dispose de filtres famille/exercice, de courbes et d’un tableau limité aux vingt dernières séances comparables. Record, médiane et tendance sont distincts. Les préférences de viseur/arme restent hors de la clé mécanique ; changer leur perception peut influencer une performance, ce n’est pas une preuve causale de progrès technique.
+
+Viseur : point, croix, cercle et T, taille 1–32 px, épaisseur 1–8 px, espacement 0–24 px, couleur et contour, aperçu immédiat et sauvegarde. Hitmarker contrasté de 110 ms ; flash/recul/trace sans caméra shake ni hitbox différente.
+
+Si le joueur détourne trop la caméra pendant le compte à rebours, le départ attend le réalignement. Repère et flèche indiquent la zone ; aucun count ni angle supprimé, aucun temps d’entraînement mesuré pendant l’attente.
+
+Recherche guidée : explorer largement, recentrer et affiner selon des comparaisons complètes. Maximum quatre comparaisons, généralement 48–64 minutes pour un conseil stable, avec pauses et reprise. Incertitude/inconfort peuvent arrêter plus tôt sans application. Raisons détaillées repliées ; essai du conseil avec consentement puis confirmation un autre jour. Voir `docs/CALIBRATION.md` et `docs/PROFESSIONAL_POLISH.md`.
 
 ## Une action, puis les détails
 
@@ -40,7 +56,7 @@ Changer ensuite les DPI ou la sensibilité active ne réécrit pas silencieuseme
 
 La page **Conversion** part du réglage AIM/LOCAL actif et des DPI utilisés dans le jeu de destination. Elle affiche une valeur à recopier et garde six décimales pour la copie. Un profil mesuré doit rester identifié par son titre/version ; une destination non renseignée ne reçoit pas arbitrairement un coefficient CoD universel. Les hypothèses restent visibles : rotation sans zoom, coefficient documentaire, personnalisé ou issu de la mesure. Le FOV, l’ADS, l’accélération et les différences entre jeux peuvent modifier le ressenti ; la conversion exige une vérification en jeu.
 
-## Calibration par blocs, protocole 2
+## Calibration par blocs, protocole 3
 
 Le joueur choisit son objectif et compare trois réglages autour du départ actuel : **A · lent**, **B · départ**, **C · rapide**, soit 90 %, 100 % et 110 % de sa vitesse de rotation. Le parcours annonce cinq exercices : `C02`, `C04`, `S01`, `T01` et `T05`. Il termine un bloc avant de passer à l’exercice suivant ; les candidats restent les mêmes pendant toute la comparaison.
 

@@ -11,22 +11,22 @@ const TITLES: Dictionary = {
 }
 
 const DESCRIPTIONS: Dictionary = {
-	"C01": "Visez la cible et cliquez. Une nouvelle apparaît après chaque touche.",
-	"C02": "Touchez de petites cibles proches. Prenez le temps de terminer chaque mouvement.",
-	"C03": "Touchez les cibles de la grille, dans l’ordre de votre choix.",
-	"C04": "Passez rapidement d’un côté à l’autre et cliquez sans dépasser la cible.",
-	"C05": "Touchez six petites cibles. Restez précis en passant de l’une à l’autre.",
-	"C07": "Touchez les cibles en haut et en bas. Gardez le contrôle sur l’axe vertical.",
-	"D01": "Touchez la cible avant qu’elle disparaisse. Vous avez une seconde.",
+	"C01": "Visez la cible, puis cliquez.",
+	"C02": "Visez les petites cibles proches, puis cliquez.",
+	"C03": "Cliquez sur les cibles de la grille dans l’ordre de votre choix.",
+	"C04": "Visez de l’autre côté de l’écran, puis cliquez.",
+	"C05": "Cliquez sur les six petites cibles, une à une.",
+	"C07": "Cliquez sur les cibles en haut et en bas.",
+	"D01": "Cliquez sur la cible avant qu’elle disparaisse : une seconde.",
 	"D02": "Cliquez sur la cible pendant qu’elle se déplace.",
-	"T01": "Gardez le viseur sur la cible pendant ses allers-retours horizontaux.",
-	"T02": "Gardez le viseur sur la cible quand elle monte et descend.",
-	"T03": "Suivez la cible en diagonale, avec des mouvements réguliers.",
-	"T04": "Suivez la cible tout au long de sa trajectoire circulaire.",
-	"T05": "Restez sur la cible, même quand elle change brusquement de direction.",
-	"T09": "Suivez une petite cible lente. Corrigez votre visée par petits mouvements.",
-	"S01": "Touchez une cible, puis passez à la suivante. Gardez un rythme précis.",
-	"S02": "Passez d’une cible mobile à l’autre et cliquez pour les toucher."
+	"T01": "Gardez le viseur sur la cible qui va de gauche à droite.",
+	"T02": "Gardez le viseur sur la cible qui monte et descend.",
+	"T03": "Gardez le viseur sur la cible qui se déplace en diagonale.",
+	"T04": "Gardez le viseur sur la cible qui tourne en cercle.",
+	"T05": "Gardez le viseur sur la cible à chaque changement de direction.",
+	"T09": "Gardez le viseur sur la petite cible lente.",
+	"S01": "Cliquez sur une cible, puis visez la suivante.",
+	"S02": "Visez une cible mobile, cliquez, puis passez à la suivante."
 }
 
 
@@ -47,4 +47,4 @@ static func interaction(definition: ScenarioDefinition) -> String:
 
 
 static func measure(definition: ScenarioDefinition) -> String:
-	return "Le score récompense le temps passé sur la cible." if definition.family == "tracking" else "Le score récompense les touches rapides et précises."
+	return "Mesure : % du temps avec le viseur sur la cible. Tir facultatif." if definition.family == "tracking" else "Mesures : % de tirs réussis et cibles touchées par minute."

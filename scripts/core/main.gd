@@ -10,6 +10,9 @@ var store := LocalStore.new()
 var engine := ScenarioEngine.new()
 var clock := SessionClock.new()
 var calibration := CalibrationService.new()
+var guided_search := AdaptiveSensitivityService.new()
+var is_guided: bool = false
+var guided_phase: String = "comparing"
 var training_profile: Dictionary = {}
 var selected_definition: ScenarioDefinition
 var selected_duration_s: float = 30.0
@@ -25,6 +28,7 @@ var final_recommendation: Dictionary = {}
 var rest_until_us: int = 0
 var initial_x_counts: float = 0.0
 var initial_y_counts: float = 0.0
+var start_pose_ready: bool = true
 
 @onready var arena: Node3D = $Arena
 @onready var aim_camera: AimCamera = $Arena/AimCamera
@@ -54,6 +58,8 @@ func _ready() -> void:
 	home.reference_import_requested.connect(import_reference_profile)
 	home.training_requested.connect(start_practice)
 	home.calibration_requested.connect(start_calibration)
+	home.guided_calibration_requested.connect(start_guided_calibration)
+	home.guided_resume_requested.connect(resume_guided_calibration)
 	home.calibration_resume_requested.connect(resume_calibration)
 	home.history_requested.connect(refresh_history)
 	home.export_requested.connect(export_history)
@@ -200,6 +206,7 @@ func return_to_menu() -> void:
 	if session_active:
 		finish_training(false, false)
 	is_calibrating = false
+	is_guided = false
 	screen = Screen.HOME
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	arena.hide()
@@ -210,6 +217,9 @@ func return_to_menu() -> void:
 	var checkpoint := store.load_checkpoint()
 	home.resume_calibration_button.visible = not checkpoint.is_empty()
 	home.resume_calibration_button.text = "Voir mon dernier bilan" if checkpoint.get("status", "") == "complete" else "Reprendre"
+	var guided_checkpoint := store.load_guided_checkpoint()
+	home.guided_resume_button.visible = not guided_checkpoint.is_empty()
+	home.guided_resume_button.text = "Revoir la recherche" if guided_checkpoint.get("phase", "") == "complete" else "Reprendre la recherche"
 	home.nav_buttons[home.selected_page].grab_focus()
 
 
@@ -241,6 +251,7 @@ func start_practice(scenario_id: String, duration_s: float) -> void:
 	if screen != Screen.HOME:
 		return
 	is_calibrating = false
+	is_guided = false
 	prepare_training(ScenarioCatalog.find(scenario_id), duration_s, 1337, home.read_profile())
 
 
@@ -274,6 +285,7 @@ func prepare_training(definition: ScenarioDefinition, duration_s: float, seed_va
 	Input.flush_buffered_events()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	clock.start(Time.get_ticks_usec())
+	start_pose_ready = true
 	screen = Screen.COUNTDOWN
 	home.hide()
 	pause_panel.hide()
@@ -284,7 +296,25 @@ func prepare_training(definition: ScenarioDefinition, duration_s: float, seed_va
 	return true
 
 
+func exercise_zone_fits_start_pose() -> bool:
+	if selected_definition == null:
+		return false
+	var view_basis := aim_camera.global_basis.orthonormalized().inverse()
+	for yaw_sign in [-1.0, 1.0]:
+		for pitch_sign in [-1.0, 1.0]:
+			var direction := AimGeometry.direction(selected_definition.yaw_extent_deg * yaw_sign, selected_definition.pitch_extent_deg * pitch_sign)
+			if not AimGeometry.sphere_fits_view(view_basis * direction, selected_definition.angular_diameter_deg, aim_camera.fov, current_aspect()):
+				return false
+	return true
+
+
 func begin_training(now_us: int) -> void:
+	start_pose_ready = exercise_zone_fits_start_pose()
+	if not start_pose_ready:
+		reference_sphere.show()
+		update_telemetry()
+		return
+	reference_sphere.hide()
 	if not engine.start(selected_definition, selected_seed, selected_duration_s, aim_camera.yaw_deg, aim_camera.pitch_deg):
 		home.set_status(engine.invalid_reason)
 		return_to_menu()
@@ -319,6 +349,8 @@ func finish_training(finished: bool, show_result: bool = true) -> void:
 	last_report.metrics.received_y_counts = aim_camera.received_y_counts - initial_y_counts
 	last_report.warmup = is_calibrating and not calibration.current_stage().get("scored", false)
 	last_report.calibration_id = calibration.calibration_id if is_calibrating else ""
+	var record_eligible: bool = not is_calibrating and ScoringService.comparison_error(last_report).is_empty()
+	var previous_summary: Dictionary = ProgressService.summarize(store.sessions(), last_report.comparison_key) if record_eligible else {"count": 0, "best": 0.0}
 	var saved := store.save_session(last_report)
 	var body := result_text(last_report)
 	if not saved:
@@ -344,6 +376,8 @@ func finish_training(finished: bool, show_result: bool = true) -> void:
 			session_panel.body_label.text += "\n\nPassage à refaire : " + quality_error
 	if not saved:
 		session_panel.set_notice("Résultat non sauvegardé : " + store.last_error)
+	elif record_eligible and int(previous_summary.count) > 0 and float(last_report.score) > float(previous_summary.best):
+		session_panel.present_record(float(previous_summary.best), bool(training_profile.get("reduced_motion", false)))
 
 
 func result_text(report: Dictionary) -> String:
@@ -370,9 +404,133 @@ func result_text(report: Dictionary) -> String:
 	return body
 
 
+func start_guided_calibration() -> void:
+	if screen != Screen.HOME or not window_has_focus:
+		return
+	var search := AdaptiveSensitivityService.new()
+	if not search.begin(home.read_profile(), current_aspect(), randi_range(1, 1000000000), store.identifier()):
+		home.set_status(search.error)
+		return
+	var spec := search.current_spec()
+	var comparison := CalibrationService.new()
+	if not comparison.begin(spec.profile, float(spec.aspect), int(spec.seed), str(spec.calibration_id), spec.speed_factors):
+		home.set_status(comparison.error)
+		return
+	var checkpoint := {"schema_version": 1, "phase": "comparing", "search_state": search.checkpoint(), "comparison": comparison.checkpoint()}
+	if not store.save_guided_checkpoint(checkpoint):
+		home.set_status(store.last_error)
+		return
+	guided_search = search
+	calibration = comparison
+	guided_phase = "comparing"
+	is_guided = true
+	is_calibrating = true
+	final_recommendation.clear()
+	start_calibration_stage()
+
+
+func resume_guided_calibration() -> void:
+	if screen != Screen.HOME or not window_has_focus:
+		return
+	var checkpoint := store.load_guided_checkpoint()
+	if checkpoint.is_empty():
+		home.set_status(store.last_error if not store.last_error.is_empty() else "Aucune recherche guidée à reprendre.")
+		return
+	var search := AdaptiveSensitivityService.new()
+	var comparison := CalibrationService.new()
+	if not search.restore(checkpoint.search_state) or not comparison.restore(checkpoint.comparison):
+		home.set_status(search.error + comparison.error)
+		return
+	if not is_equal_approx(comparison.aspect, current_aspect()):
+		home.set_status("Reprenez avec le même format de fenêtre que lors de la recherche.")
+		return
+	guided_search = search
+	calibration = comparison
+	guided_phase = checkpoint.phase
+	is_guided = true
+	is_calibrating = true
+	home.bind_profile(search.initial_profile)
+	if guided_phase == "comparing" and not calibration.current_stage().is_empty():
+		start_calibration_stage()
+	else:
+		show_guided_recommendation()
+
+
+func save_guided_progress(phase: String) -> bool:
+	return store.save_guided_checkpoint({"schema_version": 1, "phase": phase,
+		"search_state": guided_search.checkpoint(), "comparison": calibration.checkpoint()})
+
+
+func continue_guided_search() -> void:
+	if screen != Screen.RESULTS or not window_has_focus or not is_guided:
+		return
+	if guided_phase == "comparing":
+		show_guided_recommendation()
+		return
+	if guided_phase != "transition" or guided_search.finished:
+		return
+	var spec := guided_search.current_spec()
+	var comparison := CalibrationService.new()
+	if not comparison.begin(spec.profile, float(spec.aspect), int(spec.seed), str(spec.calibration_id), spec.speed_factors):
+		session_panel.set_notice(comparison.error)
+		return
+	var previous_comparison := calibration
+	calibration = comparison
+	if not save_guided_progress("comparing"):
+		calibration = previous_comparison
+		session_panel.set_notice(store.last_error)
+		return
+	guided_phase = "comparing"
+	final_recommendation.clear()
+	start_calibration_stage()
+
+
+func show_guided_recommendation() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	home.hide()
+	arena.hide()
+	hud.hide()
+	pause_panel.hide()
+	screen = Screen.RESULTS
+	var round_report := calibration.recommendation()
+	if guided_phase == "comparing":
+		var previous_search := guided_search.checkpoint()
+		if not guided_search.accept_comparison(round_report):
+			session_panel.present_recommendation(round_report, float(calibration.baseline.dpi), guided_search.error)
+			session_panel.apply_button.hide()
+			session_panel.set_notice(guided_search.error)
+			return
+		var next_phase := "complete" if guided_search.finished else "transition"
+		if not save_guided_progress(next_phase):
+			var save_error := store.last_error
+			guided_search.restore(previous_search)
+			session_panel.present_recommendation(round_report, float(calibration.baseline.dpi), save_error)
+			session_panel.apply_button.hide()
+			session_panel.next_button.show()
+			session_panel.next_button.disabled = false
+			session_panel.next_button.text = "Réessayer l’enregistrement"
+			session_panel.set_notice(save_error)
+			return
+		guided_phase = next_phase
+	final_recommendation = guided_search.final_result()
+	var displayed := final_recommendation.duplicate(true) if guided_search.finished else round_report.duplicate(true)
+	displayed.apply_allowed = false
+	var body: String = "Recherche guidée · %d comparaisons complètes · DPI constants.\n" % guided_search.history.size()
+	for entry in guided_search.history:
+		body += "\n%s\n%s\n" % [entry.search_step.spec.label, entry.search_step.reason]
+		for candidate in entry.candidates:
+			body += "Réglage %s : %.3f cm/360°, utilité relative %.3f, confort %.1f/5.\n" % [["A", "B", "C"][int(candidate.index)], candidate.cm_per_360, candidate.value, candidate.comfort_median]
+	body += "\n" + str(final_recommendation.advice)
+	session_panel.present_recommendation(displayed, float(calibration.baseline.dpi), body)
+	session_panel.present_guided_search(guided_search, not guided_search.finished)
+	if not store.save_calibration(round_report):
+		session_panel.set_notice("Bilan non sauvegardé : " + store.last_error)
+
+
 func start_calibration() -> void:
 	if screen != Screen.HOME or not window_has_focus:
 		return
+	is_guided = false
 	var profile := home.read_profile()
 	if not calibration.begin(profile, current_aspect(), randi_range(1, 1000000000), store.identifier()):
 		home.set_status(calibration.error)
@@ -393,6 +551,7 @@ func start_calibration() -> void:
 func resume_calibration() -> void:
 	if screen != Screen.HOME:
 		return
+	is_guided = false
 	if not calibration.restore(store.load_checkpoint()):
 		home.set_status(calibration.error)
 		return
@@ -413,6 +572,9 @@ func start_calibration_stage() -> void:
 
 
 func next_calibration_stage() -> void:
+	if is_guided and screen == Screen.RESULTS:
+		continue_guided_search()
+		return
 	if screen != Screen.REST or Time.get_ticks_usec() < rest_until_us or not window_has_focus:
 		return
 	if pending_trial.is_empty():
@@ -421,7 +583,8 @@ func next_calibration_stage() -> void:
 	if not calibration.accept(pending_trial, int(session_panel.comfort_input.value)):
 		session_panel.set_notice(calibration.error)
 		return
-	if not store.save_checkpoint(calibration.checkpoint()):
+	var saved: bool = save_guided_progress("comparing") if is_guided else store.save_checkpoint(calibration.checkpoint())
+	if not saved:
 		calibration.trials.pop_back()
 		calibration.current_index -= 1
 		session_panel.set_notice(store.last_error + "\nVotre passage reste en mémoire. Réessayez Continuer.")
@@ -431,6 +594,9 @@ func next_calibration_stage() -> void:
 
 
 func show_recommendation() -> void:
+	if is_guided:
+		show_guided_recommendation()
+		return
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	home.hide()
 	arena.hide()
@@ -462,7 +628,8 @@ func show_recommendation() -> void:
 
 
 func apply_recommendation() -> void:
-	if screen != Screen.RESULTS or not final_recommendation.get("apply_allowed", false):
+	var trial_consent: bool = is_guided and final_recommendation.get("trial_allowed", false) and session_panel.guided_confirmation.button_pressed
+	if screen != Screen.RESULTS or not (final_recommendation.get("apply_allowed", false) or trial_consent):
 		return
 	var profile: Dictionary = calibration.baseline.duplicate(true)
 	profile.cm_per_360 = snappedf(float(final_recommendation.recommended_cm_per_360), 0.001)
@@ -472,10 +639,12 @@ func apply_recommendation() -> void:
 	home.bind_profile(profile)
 	return_to_menu()
 	home.show_page(3)
-	home.set_status("Sensibilité appliquée. Vous pouvez maintenant la reporter dans votre jeu.")
+	home.set_status("Réglage de test appliqué. Confirmez-le un autre jour avant de le garder." if trial_consent else "Sensibilité appliquée. Vous pouvez maintenant la reporter dans votre jeu.")
 
 
 func refine_calibration() -> void:
+	if is_guided:
+		return
 	if not final_recommendation.get("status", "") in ["indicative", "uncertain"]:
 		return
 	var profile: Dictionary = calibration.baseline.duplicate(true)
@@ -505,6 +674,12 @@ func refresh_history() -> void:
 		var key := ScoringService.comparison_key(definition, seconds, profile, current_aspect())
 		var summary := ProgressService.summarize(results, key)
 		summary.title = ScenarioCopy.title(definition)
+		summary.scenario_id = definition.scenario_id
+		summary.family = definition.family
+		summary.comparison_key = key
+		summary.duration_s = seconds
+		summary.dpi = profile.dpi
+		summary.cm_per_360 = profile.cm_per_360
 		summaries.append(summary)
 	home.show_history(results.size(), summaries)
 
@@ -527,13 +702,16 @@ func update_telemetry() -> void:
 	if is_calibrating:
 		var stage := calibration.current_stage()
 		prefix = "Exercice %d/5 · réglage %s · %s · " % [int(stage.block_index) + 1, ["A", "B", "C"][int(stage.candidate_index)], "Série %d/3" % (int(stage.repetition) + 1) if stage.scored else "Échauffement"]
+		if is_guided:
+			var spec := guided_search.current_spec()
+			prefix = "%s %d/4 · " % [{"explore": "Exploration", "refine": "Affinage", "validate": "Validation"}.get(spec.phase, "Recherche"), int(spec.round_index) + 1] + prefix
 	hud_title.text = prefix + ScenarioCopy.title(selected_definition)
 	hud.countdown_label.visible = screen == Screen.COUNTDOWN
 	hud.progress.visible = screen == Screen.TRAINING
 	if screen == Screen.COUNTDOWN:
-		hud.countdown_label.text = "%.0f" % ceil(maxf(2.0 - clock.elapsed_s(Time.get_ticks_usec()), 0.0))
-		angles_label.text = "Préparez-vous"
-		help_label.text = ScenarioCopy.description(selected_definition)
+		hud.countdown_label.text = "%.0f" % ceil(maxf(2.0 - clock.elapsed_s(Time.get_ticks_usec()), 0.0)) if start_pose_ready else "↓" if aim_camera.pitch_deg > 0.0 else "↑" if aim_camera.pitch_deg < 0.0 else "→" if aim_camera.yaw_deg > 0.0 else "←"
+		angles_label.text = "Préparez-vous" if start_pose_ready else "Revenez vers la zone de tir"
+		help_label.text = ScenarioCopy.description(selected_definition) if start_pose_ready else "Orientez le viseur vers le repère. Le chronomètre n’a pas démarré."
 	else:
 		angles_label.text = "%ds  ·  %d touches" % [int(ceil(maxf(engine.duration_s - engine.elapsed_s, 0.0))), engine.hits]
 		if selected_definition.family == "tracking":

@@ -149,7 +149,7 @@ func checkpoint_trial_types_are_safe(trial: Dictionary) -> bool:
 func checkpoint_shape_is_valid(data: Dictionary) -> bool:
 	if not checkpoint_integer(data.get("schema_version", null)) or int(data.schema_version) != 1:
 		return false
-	if not checkpoint_integer(data.get("protocol_version", null)) or int(data.protocol_version) != CalibrationService.PROTOCOL_VERSION:
+	if not checkpoint_integer(data.get("protocol_version", null)) or not int(data.protocol_version) in [2, CalibrationService.PROTOCOL_VERSION]:
 		return false
 	if not data.get("baseline", null) is Dictionary or not data.get("trials", null) is Array or not data.get("status", null) is String:
 		return false
@@ -242,6 +242,87 @@ func load_checkpoint() -> Dictionary:
 		last_error = "Checkpoint invalide conservé : " + verifier.error
 		return {}
 	return loaded.data
+
+
+func validate_guided_checkpoint(data: Dictionary) -> String:
+	if not checkpoint_integer(data.get("schema_version", null)) or int(data.schema_version) != 1 or not data.get("phase", null) in ["comparing", "transition", "complete"]:
+		return "Recherche guidée de version inconnue ou invalide."
+	if not data.get("search_state", null) is Dictionary or not data.get("comparison", null) is Dictionary:
+		return "État de recherche ou comparaison absent."
+	var search := AdaptiveSensitivityService.new()
+	if not search.restore(data.search_state):
+		return search.error
+	var comparison := CalibrationService.new()
+	if not checkpoint_shape_is_valid(data.comparison) or not comparison.restore(data.comparison):
+		return "Comparaison guidée invalide : " + comparison.error
+	var spec: Dictionary
+	if data.phase == "comparing":
+		if search.finished:
+			return "Recherche terminée avec un passage encore actif."
+		spec = search.current_spec()
+	else:
+		if search.history.is_empty() or not comparison.current_stage().is_empty() or search.finished != (data.phase == "complete"):
+			return "Transition de recherche incohérente."
+		var last_comparison: Dictionary = search.history.back()
+		spec = last_comparison.search_step.spec
+		if not AdaptiveSensitivityService.same_value(last_comparison.trials, comparison.trials):
+			return "Le bilan accepté ne correspond pas aux passages sauvegardés."
+	if comparison.calibration_id != spec.calibration_id or comparison.calibration_seed != int(spec.seed) or not is_equal_approx(comparison.aspect, float(spec.aspect)):
+		return "Identifiant, graine ou format de recherche incohérent."
+	if not AdaptiveSensitivityService.same_value(comparison.baseline, spec.profile) or not AdaptiveSensitivityService.same_value(comparison.speed_factors, spec.speed_factors):
+		return "La plage sauvegardée diffère de la comparaison prévue."
+	return ""
+
+
+func save_guided_checkpoint(data: Dictionary) -> bool:
+	last_error = validate_guided_checkpoint(data)
+	if not last_error.is_empty():
+		return false
+	var path := root_path + "/guided_calibration_checkpoint.json"
+	var existing := read_json(path)
+	if not existing.ok and not existing.missing:
+		return false
+	if existing.ok:
+		last_error = validate_guided_checkpoint(existing.data)
+		if not last_error.is_empty():
+			return false
+		if existing.data.search_state.state.search_id != data.search_state.state.search_id and not archive_guided_checkpoint(existing.data):
+			return false
+	return write_json(path, data)
+
+
+func load_guided_checkpoint() -> Dictionary:
+	var loaded := read_json(root_path + "/guided_calibration_checkpoint.json")
+	if not loaded.ok:
+		return {}
+	last_error = validate_guided_checkpoint(loaded.data)
+	return loaded.data if last_error.is_empty() else {}
+
+
+func archive_guided_checkpoint(data: Dictionary) -> bool:
+	var path := root_path + "/guided_calibration_checkpoint.json"
+	var contents := checkpoint_bytes(path)
+	var parsed: Variant = JSON.parse_string(contents.get_string_from_utf8())
+	if not parsed is Dictionary or not AdaptiveSensitivityService.same_value(parsed, data):
+		last_error = "Recherche modifiée ou illisible ; archivage refusé."
+		return false
+	var identifier: String = data.search_state.state.search_id
+	if not valid_identifier(identifier):
+		last_error = "Identifiant de recherche invalide."
+		return false
+	var absolute := ProjectSettings.globalize_path(root_path + "/archives/guided-" + identifier + ".json")
+	if DirAccess.make_dir_recursive_absolute(absolute.get_base_dir()) != OK:
+		last_error = "Dossier d’archive inaccessible."
+		return false
+	var lock_path := absolute + ".lock"
+	if DirAccess.make_dir_absolute(lock_path) != OK:
+		last_error = "Archive verrouillée ; recherche conservée."
+		return false
+	var archived := publish_checkpoint_archive(absolute, contents)
+	if DirAccess.remove_absolute(lock_path) != OK:
+		last_error = "Verrou d’archive conservé ; recherche non remplacée."
+		return false
+	return archived
 
 
 func save_calibration(report: Dictionary) -> bool:

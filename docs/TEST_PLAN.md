@@ -1,5 +1,46 @@
 # Plan de validation
 
+## Finition 0.4.0 — 12 octobre 2026, Europe/Paris
+
+Godot `4.7.2.stable.official.ed1daf0bf`, Linux. Résultats après intégration des lots UI, UX, gameplay, feedback et calibration ; les essais précédents restent historiques.
+
+| Contrôle | Résultat |
+|---|---|
+| Suite intégrée UI/UX/moteur/import/viseur/reprise/records | **5 469 assertions, 0 échec**, 1 contrôle physique non exécuté en headless |
+| Régressions géométriques | **1 560 assertions, 0 échec** |
+| Calibration adaptative | **906 assertions, 0 échec** ; bornes, bruit, inconfort, contexte, historique falsifié, consentement, recentrage d’affinage et 240 passages synthétiques |
+| Rendu Mesa llvmpipe et Xorg dummy | **53 captures, 0 échec** ; trois tailles, onglets, bulles, viseurs, impact réel du moteur, footer fixe, tableau et recherche guidée |
+| Import vierge sans `.godot/` et lancement isolé | Code 0, aucun `ERROR`/`SCRIPT ERROR` ; mêmes sources que le build final |
+| Export Windows 0.4.0, pack lancé hors checkout | Code 0 ; 16 exercices, 3 armes, 3 imports, protocole 3/recherche guidée et 4 viseurs, zéro échec |
+| ZIP, PE x64/PCK, notices et SHA-256 | Vérifiés ; seule la version 0.4.0 est conservée dans les téléchargements |
+| Benchmark logiciel | 200 000 événements en 292,23 ms, 1,461 µs/événement, tampon max 183/32 768, 6 nœuds ; observation concurrente, pas benchmark matériel |
+| Souris physique, écoute, scaling/latence Windows et essais humains | **Non exécutés** ; aucune validation matérielle ou amélioration causale revendiquée |
+
+Total logiciel : **7 935 assertions sans échec**. Les runners exigent compilation préalable (`--check-only`), marqueur final avec assertions positives, journaux sans erreur ni fuite signalée, et timeout. Un code de sortie zéro ou des tests qui n’ont pas fini ne suffit pas.
+
+### Contre-exemples et corrections
+
+- QA indépendante : 13 RED initiaux ; contexte moteur/rendu/révision/empreinte altéré avec ancienne clé était accepté. La clé est maintenant reconstruite depuis les métadonnées du rapport, le score depuis les mesures, et ces incohérences sont refusées avant stockage ou record. Les rapports anciens cohérents restent lisibles.
+- Source CS2 à nombreuses décimales : un focus/blur pouvait décaler un float d’un dernier bit et provoquer une reconstruction de la référence. Le canonique est séparé du Range ; tests ciblés **85 assertions** et UX **205**, zéro échec. L’ancien formulaire produit neuf RED sur les mêmes cas. Certains RED initiaux étaient des fixtures sans `invert_y` ou une égalité JSON bit à bit injustifiée : détails dans `docs/QA_040_IMPORT.md`.
+- Le fixture « aucun signal » de l’ancien audit affichait 100 % de précision sans tir : il est réellement incohérent, pas un bug du validateur. Les vrais essais sans signal conservent des tirs ratés cohérents et ne donnent pas de conseil.
+- Poses initiales ±30° : pas d’occlusion par le sol, mais une zone mondiale peut être hors frustum. Le départ attend désormais un réalignement avec repère/flèche, sans supprimer les counts ni snap de caméra. Source de l’audit : `docs/GAMEPLAY_040_REVIEW.md`.
+- Les faux champs de scénario introduits pendant l’intégration ont été détectés par les tests d’exécution, corrigés vers `yaw_extent_deg`/`pitch_extent_deg`, puis les suites et rendus réexécutés. La compilation seule ne prouve pas un parcours fonctionnel.
+
+Les assertions de parcours couvrent recherche/comparaison écrites ensemble, dernier passage terminé avant décision, rollback d’écriture, transition relue, double acceptation interdite, reprise aux nouveaux candidats, version inconnue/archives conflictuelles protégées et essai stable uniquement consenti. Les records proviennent aussi de vrais raycasts sur dix cibles par événements synthétiques ; panne, interruption et contexte modifié ne sont jamais célébrés.
+
+Les préférences de viseur/arme restent hors clé mécanique. Elles peuvent influencer la perception : médiane/record mesurent les séances, pas une preuve causale de développement d’une habileté. La recherche garde un même profil et des conditions verrouillées pendant ses comparaisons.
+
+Les captures de progression, records et conseils sont des fixtures isolées avec notice visible. Les valeurs du tableau de démonstration suivent la formule du score, mais ne sont pas les performances d’un joueur. Seules les captures de navigation sont publiées comme interface dans `docs/screenshots/`.
+
+### Réception 0.4 sous Windows
+
+1. Vérifier navigation souris/clavier, sélection persistante au survol, animations réduites et petites fenêtres. Les CTA de résultats restent visibles pendant le scroll.
+2. Personnaliser les quatre viseurs, couleur/contour et dimensions ; enregistrer, redémarrer, vérifier HUD/aperçu et absence d’effet sur caméra ou collision.
+3. Cliquer et manquer : hitmarker uniquement sur touche, aucune trace dans le centre du viseur. Tester maintien en suivi, pause, Alt+Tab, silence et reprise explicite.
+4. Détourner la caméra pendant le countdown : repère/flèche, aucune mesure avant réalignement ; pas de rotation forcée.
+5. Terminer une séance comparable et battre son record ; vérifier animation, date/tableau et bonne clé. Changer durée/DPI/FOV : pas de mélange. Interruption et panne d’écriture : pas de record annoncé.
+6. Comparer un réglage connu puis faire une recherche guidée complète. Vérifier plages successives, bruit/inconfort, pause entre comparaisons, fermeture/reprise, consentement et conversion inverse. Confirmer à deux puis sept jours ; ne pas extrapoler un optimum universel.
+
 ## Itération 0.3.0 — 11–12 octobre 2026, Europe/Paris
 
 Godot `4.7.2.stable.official.ed1daf0bf`, Linux. Validation finale après intégration des quatre agents ; les résultats précédents restent historiques.

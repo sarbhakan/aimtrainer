@@ -60,10 +60,15 @@ static func validate_profile(profile: Dictionary) -> String:
 		var reference_error := GameProfileService.validate_reference(profile.reference_game)
 		if not reference_error.is_empty():
 			return reference_error
+	var crosshair_error := CrosshairProfile.validate(profile)
+	if not crosshair_error.is_empty():
+		return crosshair_error
 	return ""
 
 
 static func default_profile() -> Dictionary:
-	return {"schema_version": 1, "dpi": 800.0, "cm_per_360": 35.0,
+	var profile := {"schema_version": 1, "dpi": 800.0, "cm_per_360": 35.0,
 		"vertical_fov_deg": 75.0, "goal": "balanced", "accumulated_input": true, "max_fps": 144,
 		"weapon_id": "pulse", "sound_enabled": true, "sound_volume": 45.0, "show_weapon": true, "reduced_motion": false}
+	profile.merge(CrosshairProfile.defaults())
+	return profile

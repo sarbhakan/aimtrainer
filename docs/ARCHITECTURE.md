@@ -1,4 +1,4 @@
-# Architecture — 0.3.0
+# Architecture — 0.4.0
 
 ## Responsabilités
 
@@ -15,6 +15,10 @@
 | `scripts/training/target_pool.gd` | Six instances de sphères, mesh/matériau partagés |
 | `scripts/sensitivity/` | Unités physiques, conversions, plan expérimental et recommandation |
 | `scripts/sensitivity/game_profile_service.gd`, `scripts/ui/sensitivity_import.gd` | Validation des profils source, provenance et import sans confusion DPI source/actuels |
+| `scripts/sensitivity/adaptive_sensitivity_service.gd` | Recherche bornée, choix des plages et historique vérifié depuis les passages |
+| `scripts/presentation/crosshair_profile.gd`, `scripts/ui/crosshair_settings.gd` | Viseur validé, dessin natif et aperçu live |
+| `scripts/ui/interaction_feedback.gd`, `record_celebration.gd` | Interactions et célébrations bornées, animations réduites |
+| `scripts/statistics/performance_insights.gd`, `scripts/ui/progress_board.gd` | Mesures expliquées, filtres et tableau comparable |
 | `scripts/statistics/` | Score versionné, contexte comparable, progression |
 | `scripts/persistence/local_store.gd` | JSON local, validation, backups, checkpoint, archives, CSV |
 | `scripts/ui/` | Tableau de bord et bilan ; aucun calcul de scoring caché dans l'interface |
@@ -51,11 +55,23 @@ Les 16 ressources d’exercice passent en révision 2 avec une profondeur de 4 m
 
 L’interface responsive conserve les boutons de lancement et d’enregistrement hors des défilements. Les bilans affichent trois indicateurs utiles et replient les données techniques ; les erreurs de persistance restent visibles indépendamment de ce repli. Les choix UX et l’ajout d’équipements sont documentés dans `docs/UI_UX.md`.
 
+## Recherche et retours 0.4.0
+
+`CalibrationService` reste le comparateur de cinq blocs 3+9, avec trois facteurs configurables et un protocole 3. Le protocole 2 garde ses facteurs historiques ; la reprise rejoue et valide les passages. `AdaptiveSensitivityService` ne pilote ni caméra ni difficulté : il vérifie les bilans complets, choisit une prochaine plage et borne la recherche à quatre comparaisons. Les choix sont reconstruits depuis les passages, pas depuis un score ou un gagnant déclarés arbitrairement.
+
+`Main` demande une action explicite entre comparaisons. Un départ hors de la zone attend le réalignement avec un repère et une flèche, sans reset des counts ou des angles. Le chronomètre de mesure commence seulement quand toute la zone peut tenir dans le champ.
+
+Les viseurs sont cosmétiques et validés par `CrosshairProfile`. Le hitmarker dure 110 ms et ne décale pas la caméra. Les records sont recherchés avant l’écriture de la nouvelle séance puis célébrés seulement après une sauvegarde réussie, à contexte identique. La validation recalcule également la clé depuis les métadonnées du rapport et le score depuis ses mesures. Un vieux renderer absent signifie le backend Compatibility implicite, pas une métadonnée arbitraire acceptée.
+
 ## Persistance
 
 `user://` est fixé au dossier applicatif `AIM_LOCAL`. Toutes les données produit vont dans `aim_local/` : `profile.json`, `sessions/<id>.json`, `calibration_checkpoint.json`, `calibrations/<id>.json`, `archives/`, `exports/`. Les tests injectent un autre dossier aléatoire sous `user://tests/` et ne touchent pas aux données réelles.
 
-Schéma JSON 1, score 1, protocole 2. Cinq blocs de trois familiarisations puis neuf mesures chacun ; les positions A/B/C tournent au sein des séries. Les comparaisons médianes brutes par exercice sont séparées de l’utilité normalisée utilisée pour la recommandation. Refaire un passage conserve le candidat, la graine et le checkpoint jusqu’à validation explicite.
+Schéma JSON 1, score 1, protocole 3 avec reprise compatible 2. Cinq blocs de trois familiarisations puis neuf mesures ; les positions A/B/C tournent. Les médianes brutes restent séparées de l’utilité normalisée. Refaire conserve candidat, graine et checkpoint jusqu’à validation.
+
+`guided_calibration_checkpoint.json` contient la phase, le checkpoint du contrôleur et celui du comparateur dans un remplacement atomique unique. `comparing` peut être entièrement terminé mais pas encore traité ; `transition` conserve le bilan accepté et la prochaine plage ; `complete` conserve le conseil. L’enveloppe vérifie la cohérence entre les deux états, les facteurs, profils, graines, identifiants et passages. Une panne annule la décision mémoire ; une reprise n’accepte pas deux fois le même bilan. Les anciennes recherches sont archivées, les fichiers inconnus ou incohérents restent protégés.
+
+Le float canonique des champs source est séparé du `Range` et de l’affichage arrondi ; focus/blur sans modification ne réinterprète pas une mesure historique. JSON Godot peut déplacer les derniers bits lors d’une relecture : les tests utilisent une tolérance relative de 1e−14, sans quantification intermédiaire du profil.
 
 Sauvegarde en précision complète, temporaire + flush + backup + rename, sans enlever l'original avant le remplacement. Un ancien protocole 1 reconnu est archivé avant une nouvelle comparaison ; aucun replay n’est tenté avec la nouvelle géométrie. Les JSON incohérents ou inconnus ne sont pas écrasés. Les rapports de séances/bilans sont immuables ; revoir un bilan identique est idempotent. Les identifiants ne peuvent pas être des chemins. Le chargement d'historique porte sur les 2 000 fichiers les plus récents ; les fichiers plus anciens restent sur disque.
 

@@ -1,4 +1,25 @@
-# Sensibilité repère et exercices — protocole 2, application 0.3.0
+# Sensibilité repère et exercices — protocole 3, application 0.4.0
+
+## Deux parcours
+
+**Comparer mon réglage** conserve une comparaison à ±10 % : cinq exercices, 60 passages dont 45 mesures, environ 16 minutes minimum. Les facteurs deviennent configurables, mais chaque candidat et difficulté restent fixes pendant un passage et sa comparaison.
+
+**Trouver mon réglage** utilise une recherche expérimentale bornée à quatre comparaisons complètes, jamais deux mini-exercices suffisants pour conclure :
+
+1. Explorer des vitesses angulaires **0,5 / 1 / 2 × centre**, soit des distances **2 / 1 / 0,5 × centre**.
+2. Centre dominant : affiner à **0,75 / 1 / 1,25**, puis valider à **0,9 / 1 / 1,1**.
+3. Bord gagnant au-delà du seuil heuristique, confort médian > 2/5 dans chacun des cinq exercices : déplacer le centre vers ce réglage réellement testé et garder une exploration large, maximum deux déplacements. Si un bord gagne pendant l’affinage, recentrer plutôt la validation étroite sur ce meilleur essai ; une validation centrale doit encore être rejouée avant tout conseil.
+4. Égalité, manque de signal, inconfort, bord persistant, borne physique ou limite d’essais : arrêter sans conseiller un changement définitif. Profil initial intact.
+
+La plage reste 5–150 cm/360°. Trois candidats distincts imposent un centre d’exploration entre 10 et 75 cm/360° ; les phases plus étroites ont leurs propres bornes. Un départ hors centre est explicité et sauvegardé séparément, pas réécrit silencieusement comme profil actif. DPI, objectif, FOV, ratio et input restent constants. Les graines changent par comparaison avec un pas déterministe de 104 729 et restent communes entre candidats d’une même série.
+
+Un trajet stable prend généralement trois comparaisons, parfois quatre : **48–64 minutes minimum**, hors pauses supplémentaires. L’incertitude peut l’arrêter plus tôt sans conseil applicable. La difficulté ne s’ajuste pas pour faire gagner une sensibilité : seuls les candidats de la prochaine comparaison changent.
+
+Le contrôleur reconstruit ses décisions depuis les 60 passages vérifiés de chaque bilan, sa dispersion, ses poids et le confort. Gagnant arbitraire et historique modifié sont refusés. `guided_calibration_checkpoint.json` écrit recherche et comparaison ensemble ; une panne annule l’avancement mémoire. Reprendre un bilan accepté ne le compte pas deux fois.
+
+Après validation stable : `trial_allowed=true`, `confirmation_required=true`, `apply_allowed=false`. **Essayer ce conseil** exige le consentement ; profil provisoire, pas validation scientifique définitive. Refaire les essais à deux puis sept jours, contrôler confort et distance en jeu reste recommandé. Aucun transfert causal vers un FPS n’est prouvé.
+
+Le protocole 3 restaure un protocole 2 compatible avec ses facteurs historiques. Les nouvelles sauvegardes explicitent facteurs et contexte ; un protocole 1 est archivé. Les rapports restent conservés, sans mélange de difficultés ou métadonnées incohérentes.
 
 ## Ce que signifie la recommandation
 

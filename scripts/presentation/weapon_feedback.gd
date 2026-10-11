@@ -1,6 +1,8 @@
 class_name WeaponFeedback
 extends Control
 
+signal stopped
+
 const RECOIL_DURATION_S: float = 0.22
 const FLASH_DURATION_S: float = 0.065
 const TRACER_DURATION_S: float = 0.045
@@ -20,6 +22,8 @@ var shot_count: int = 0
 var players: Array[AudioStreamPlayer] = []
 var player_index: int = 0
 var continuous_player: AudioStreamPlayer
+var window_has_focus: bool = true
+var crosshair_clearance_px: float = 18.0
 
 
 func _ready() -> void:
@@ -67,7 +71,7 @@ func set_hud_mode(enabled: bool) -> void:
 
 
 func play_shot() -> void:
-	if definition == null or not is_visible_in_tree():
+	if definition == null or not feedback_available():
 		return
 	shot_count += 1
 	if sound_enabled and sound_volume > 0.0:
@@ -81,10 +85,11 @@ func play_shot() -> void:
 func set_continuous(enabled: bool) -> void:
 	if not enabled:
 		continuous_active = false
-		continuous_player.stop()
+		if continuous_player != null:
+			continuous_player.stop()
 		update_processing()
 		return
-	if definition == null or continuous_active or not is_visible_in_tree():
+	if definition == null or continuous_active or not feedback_available():
 		return
 	continuous_active = true
 	pulse_elapsed_s = 0.0
@@ -107,14 +112,27 @@ func stop() -> void:
 		continuous_player.stop()
 	set_process(false)
 	queue_redraw()
+	stopped.emit()
+
+
+func feedback_available() -> bool:
+	return is_node_ready() and is_visible_in_tree() and window_has_focus and not get_tree().paused
 
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or (what == NOTIFICATION_VISIBILITY_CHANGED and not is_visible_in_tree()):
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		window_has_focus = false
+		stop()
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		window_has_focus = true
+	elif what == NOTIFICATION_PAUSED or what == NOTIFICATION_EXIT_TREE or (what == NOTIFICATION_VISIBILITY_CHANGED and not is_visible_in_tree()):
 		stop()
 
 
 func _process(delta_s: float) -> void:
+	if not feedback_available():
+		stop()
+		return
 	var elapsed_s := maxf(delta_s, 0.0)
 	if continuous_active:
 		pulse_elapsed_s += elapsed_s
@@ -138,7 +156,7 @@ func begin_pulse() -> void:
 
 
 func update_processing() -> void:
-	set_process(show_sprite and not reduced_motion and (recoil_elapsed_s < RECOIL_DURATION_S or flash_remaining_s > 0.0 or tracer_remaining_s > 0.0 or continuous_active))
+	set_process(feedback_available() and show_sprite and not reduced_motion and (recoil_elapsed_s < RECOIL_DURATION_S or flash_remaining_s > 0.0 or tracer_remaining_s > 0.0 or continuous_active))
 
 
 func sprite_rect() -> Rect2:
@@ -183,13 +201,15 @@ func _draw() -> void:
 	if hud_mode and tracer_remaining_s > 0.0 and not reduced_motion:
 		var toward_center := size * 0.5 - muzzle
 		var distance := toward_center.length()
-		if distance > 32.0:
+		if distance > maxf(crosshair_clearance_px, 32.0):
 			var travel := 1.0 - tracer_remaining_s / TRACER_DURATION_S
 			var start := muzzle + toward_center * (0.06 + travel * 0.62)
-			var end := muzzle + toward_center * minf(0.25 + travel * 0.62, 1.0 - 18.0 / distance)
+			var end_fraction := minf(0.25 + travel * 0.62, 1.0 - crosshair_clearance_px / distance)
+			var end := muzzle + toward_center * end_fraction
 			var tracer_color := definition.flash_color
 			tracer_color.a = 0.4 * (1.0 - travel)
-			draw_line(start, end, tracer_color, 1.5, true)
+			if end_fraction > 0.06 + travel * 0.62:
+				draw_line(start, end, tracer_color, 1.5, true)
 	if flash_remaining_s > 0.0 and not reduced_motion:
 		var direction := (size * 0.5 - muzzle).normalized() if hud_mode else Vector2(-1.0, -0.44).rotated(transform.get_rotation()).normalized()
 		var sideways := direction.orthogonal()

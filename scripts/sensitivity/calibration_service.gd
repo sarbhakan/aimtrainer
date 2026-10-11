@@ -1,7 +1,7 @@
 class_name CalibrationService
 extends RefCounted
 
-const PROTOCOL_VERSION: int = 2
+const PROTOCOL_VERSION: int = 3
 const SCENARIOS: Array[String] = ["C02", "C04", "S01", "T01", "T05"]
 const FACTORS: Array[float] = [0.9, 1.0, 1.1]
 const WEIGHTS: Dictionary = {"balanced": [0.2, 0.2, 0.2, 0.2, 0.2],
@@ -11,22 +11,41 @@ var baseline: Dictionary = {}
 var aspect: float = 16.0 / 9.0
 var calibration_seed: int = 1
 var calibration_id: String = ""
+var speed_factors: Array[float] = FACTORS.duplicate()
 var plan: Array[Dictionary] = []
 var trials: Array[Dictionary] = []
 var current_index: int = 0
 var error: String = ""
 
 
-func begin(profile: Dictionary, viewport_aspect: float, seed_value: int, identifier: String) -> bool:
+func begin(profile: Dictionary, viewport_aspect: float, seed_value: int, identifier: String, speed_factors: Array = FACTORS) -> bool:
 	error = SensitivityService.validate_profile(profile)
 	if not error.is_empty():
 		return false
 	if not SensitivityService.positive(viewport_aspect) or identifier.is_empty() or not identifier.is_valid_filename() or identifier in [".", ".."] or identifier.length() > 96:
 		error = "Format de fenêtre ou identifiant de calibration invalide."
 		return false
-	if float(profile.cm_per_360) < 5.5 or float(profile.cm_per_360) > 135.0:
-		error = "Le point de départ doit être entre 5,5 et 135 cm/360° pour comparer trois réglages distincts."
+	if absf(float(seed_value)) >= 9007199254640992.0:
+		error = "Graine de calibration hors limites."
 		return false
+	var factors: Array[float] = []
+	if speed_factors.size() != 3:
+		error = "Une comparaison exige exactement trois facteurs de vitesse."
+		return false
+	for factor in speed_factors:
+		if not ScoringService.number(factor) or not SensitivityService.positive(float(factor)):
+			error = "Les facteurs de vitesse doivent être positifs et finis."
+			return false
+		factors.append(float(factor))
+	factors.sort()
+	if factors[1] != 1.0 or is_equal_approx(factors[0], factors[1]) or is_equal_approx(factors[1], factors[2]):
+		error = "Trois vitesses distinctes doivent encadrer la référence centrale (facteur 1)."
+		return false
+	for factor in factors:
+		var distance_cm: float = float(profile.cm_per_360) / factor
+		if not is_finite(distance_cm) or distance_cm < 5.0 or distance_cm > 150.0:
+			error = "Les trois candidats doivent rester entre 5 et 150 cm/360°."
+			return false
 	for scenario_id in SCENARIOS:
 		if not ScenarioCatalog.find(scenario_id).fits_view(float(profile.vertical_fov_deg), viewport_aspect):
 			error = "Champ de vision trop étroit pour " + scenario_id + " : élargir la fenêtre ou augmenter le FOV."
@@ -35,15 +54,16 @@ func begin(profile: Dictionary, viewport_aspect: float, seed_value: int, identif
 	aspect = viewport_aspect
 	calibration_seed = seed_value
 	calibration_id = identifier
+	self.speed_factors.assign(factors)
 	plan.clear()
 	trials.clear()
 	current_index = 0
 	for scenario_index in SCENARIOS.size():
-		for candidate_index in FACTORS.size():
+		for candidate_index in self.speed_factors.size():
 			plan.append(stage(scenario_index, candidate_index, -1))
 		for repetition in 3:
-			for order_index in FACTORS.size():
-				var candidate_index := (repetition + scenario_index + order_index) % FACTORS.size()
+			for order_index in self.speed_factors.size():
+				var candidate_index := (repetition + scenario_index + order_index) % self.speed_factors.size()
 				plan.append(stage(scenario_index, candidate_index, repetition))
 	return true
 
@@ -55,16 +75,21 @@ func stage(scenario_index: int, candidate_index: int, repetition: int) -> Dictio
 
 
 func candidate_profile(candidate_index: int) -> Dictionary:
+	if baseline.is_empty() or candidate_index < 0 or candidate_index >= speed_factors.size():
+		return {}
 	var profile := baseline.duplicate(true)
-	profile.cm_per_360 = float(baseline.cm_per_360) / FACTORS[candidate_index]
+	profile.cm_per_360 = float(baseline.cm_per_360) / speed_factors[candidate_index]
 	return profile
 
 
 func current_stage() -> Dictionary:
-	return plan[current_index] if current_index < plan.size() else {}
+	return plan[current_index].duplicate(true) if current_index >= 0 and current_index < plan.size() else {}
 
 
 func accept(report: Dictionary, comfort: int) -> bool:
+	if not integer(report.get("seed", null)) or not integer(report.get("scenario_revision", null)):
+		error = "Graine ou révision de séance invalide."
+		return false
 	error = ScoringService.validate_result(report)
 	if not error.is_empty():
 		return false
@@ -80,10 +105,10 @@ func accept(report: Dictionary, comfort: int) -> bool:
 	if report.get("scenario_id", "") != expected.scenario_id or int(report.get("seed", -1)) != int(expected.seed):
 		error = "Scénario ou graine incompatible avec le protocole."
 		return false
-	if report.get("scenario_fingerprint", "") != ScenarioCatalog.find(expected.scenario_id).fingerprint():
+	if report.get("scenario_fingerprint", "") != ScenarioCatalog.find(expected.scenario_id).fingerprint() or int(report.scenario_revision) != ScenarioCatalog.find(expected.scenario_id).revision:
 		error = "Révision du scénario incompatible."
 		return false
-	if report.family != ScenarioCatalog.find(expected.scenario_id).family or report.get("engine_version", "") != "4.7.2":
+	if report.family != ScenarioCatalog.find(expected.scenario_id).family or report.get("engine_version", "") != "4.7.2" or report.get("renderer", "compatibility") != "compatibility":
 		error = "Famille ou version du moteur incompatible."
 		return false
 	for field in ["dpi", "cm_per_360", "vertical_fov_deg"]:
@@ -111,13 +136,43 @@ func accept(report: Dictionary, comfort: int) -> bool:
 
 
 func checkpoint() -> Dictionary:
-	return {"schema_version": 1, "protocol_version": PROTOCOL_VERSION, "baseline": baseline,
+	return {"schema_version": 1, "protocol_version": PROTOCOL_VERSION, "baseline": baseline.duplicate(true),
 		"aspect": aspect, "seed": calibration_seed, "calibration_id": calibration_id,
-		"current_index": current_index, "trials": trials, "status": "active" if current_index < plan.size() else "complete"}
+		"speed_factors": speed_factors.duplicate(), "report_context": report_context(),
+		"current_index": current_index, "trials": trials.duplicate(true), "status": "active" if current_index < plan.size() else "complete"}
+
+
+func report_context() -> Dictionary:
+	var fingerprints: Dictionary = {}
+	for scenario_id in SCENARIOS:
+		fingerprints[scenario_id] = ScenarioCatalog.find(scenario_id).fingerprint()
+	return {"score_version": ScoringService.VERSION, "engine_version": "4.7.2",
+		"renderer": "compatibility", "scenario_fingerprints": fingerprints}
+
+
+static func integer(value: Variant) -> bool:
+	return ScoringService.number(value) and absf(float(value)) < 9007199254740992.0 and float(value) == floor(float(value))
 
 
 func restore(data: Dictionary) -> bool:
-	if data.get("schema_version", 0) != 1 or data.get("protocol_version", -1) != PROTOCOL_VERSION or not data.get("baseline", null) is Dictionary or not data.get("trials", null) is Array:
+	var restored := CalibrationService.new()
+	if not restored.restore_data(data):
+		error = restored.error
+		return false
+	baseline = restored.baseline
+	aspect = restored.aspect
+	calibration_seed = restored.calibration_seed
+	calibration_id = restored.calibration_id
+	speed_factors = restored.speed_factors
+	plan = restored.plan
+	trials = restored.trials
+	current_index = restored.current_index
+	error = ""
+	return true
+
+
+func restore_data(data: Dictionary) -> bool:
+	if not integer(data.get("schema_version", null)) or data.schema_version != 1 or not integer(data.get("protocol_version", null)) or not int(data.protocol_version) in [2, PROTOCOL_VERSION] or not data.get("baseline", null) is Dictionary or not data.get("trials", null) is Array:
 		error = "Ce test provient d’une autre version ou est invalide. Il reste conservé ; démarrez une nouvelle comparaison."
 		return false
 	for field in ["aspect", "seed", "current_index"]:
@@ -125,24 +180,53 @@ func restore(data: Dictionary) -> bool:
 			error = "Valeur de checkpoint invalide : " + field
 			return false
 	for field in ["seed", "current_index"]:
-		if float(data[field]) != floor(float(data[field])):
+		if not integer(data[field]):
 			error = "Compteur de checkpoint non entier : " + field
 			return false
 	if not data.get("calibration_id", null) is String:
 		error = "Identifiant de checkpoint invalide."
 		return false
-	if not begin(data.baseline, float(data.get("aspect", 0.0)), int(data.get("seed", 1)), str(data.get("calibration_id", ""))):
+	var factors: Array = FACTORS.duplicate()
+	if int(data.protocol_version) == PROTOCOL_VERSION:
+		if not data.get("speed_factors", null) is Array or not data.get("report_context", null) is Dictionary:
+			error = "Facteurs ou contexte du protocole 3 absents."
+			return false
+		factors = data.speed_factors.duplicate()
+	elif data.has("speed_factors") and data.speed_factors != FACTORS:
+		error = "Le protocole 2 exige les facteurs historiques."
 		return false
+	if not begin(data.baseline, float(data.get("aspect", 0.0)), int(data.get("seed", 1)), str(data.get("calibration_id", "")), factors):
+		return false
+	if int(data.protocol_version) == PROTOCOL_VERSION:
+		var context: Dictionary = data.report_context
+		var expected_context := report_context()
+		if data.speed_factors != speed_factors or context.size() != expected_context.size() or not integer(context.get("score_version", null)) or int(context.score_version) != ScoringService.VERSION or context.get("engine_version", null) != expected_context.engine_version or context.get("renderer", null) != expected_context.renderer or context.get("scenario_fingerprints", null) != expected_context.scenario_fingerprints:
+			error = "Facteurs triés ou contexte de checkpoint incohérents."
+			return false
 	if data.trials.size() > plan.size():
 		error = "Nombre de passages invalide."
 		return false
 	for trial in data.trials:
-		if not trial is Dictionary or not ScoringService.number(trial.get("comfort", null)):
+		if not trial is Dictionary:
 			error = "Passage de checkpoint invalide."
 			return false
+		for field in ["candidate_index", "repetition", "comfort", "seed", "scenario_revision", "schema_version", "score_version"]:
+			if not integer(trial.get(field, null)):
+				error = "Compteur de passage invalide : " + field
+				return false
+		if int(trial.comfort) < 1 or int(trial.comfort) > 5 or not trial.get("scored", null) is bool:
+			error = "Confort ou état de passage invalide."
+			return false
+		for field in ["scenario_id", "family", "scenario_fingerprint", "comparison_key", "engine_version"]:
+			if not trial.get(field, null) is String:
+				error = "Contexte de passage invalide : " + field
+				return false
 		var expected := current_stage()
 		if trial.get("candidate_index", -1) != expected.candidate_index or trial.get("repetition", -2) != expected.repetition or trial.get("scored", null) != expected.scored:
 			error = "Ordre des passages incohérent."
+			return false
+		if trial.has("warmup") and (not trial.warmup is bool or trial.warmup != (not bool(expected.scored))):
+			error = "Familiarisation de checkpoint incohérente."
 			return false
 		if not accept(trial, int(trial.comfort)):
 			return false
@@ -164,14 +248,14 @@ func recommendation() -> Dictionary:
 	var total_weight: float = 0.0
 	for weight in weights:
 		total_weight += float(weight)
-	for candidate_index in FACTORS.size():
+	for candidate_index in speed_factors.size():
 		candidates.append({"index": candidate_index, "cm_per_360": candidate_profile(candidate_index).cm_per_360,
 			"value": 0.0, "spread": 0.0, "per_scenario": {}, "comfort_values": []})
 	for scenario_index in SCENARIOS.size():
 		var scenario_id := SCENARIOS[scenario_index]
 		var medians: Array[float] = []
 		var deviations: Array[float] = []
-		for candidate_index in FACTORS.size():
+		for candidate_index in speed_factors.size():
 			var utilities: Array[float] = []
 			for trial in trials:
 				if not trial.get("scored", false) or trial.candidate_index != candidate_index or trial.scenario_id != scenario_id:
@@ -191,7 +275,7 @@ func recommendation() -> Dictionary:
 				"dispersion": deviations.back(), "samples": utilities.size()}
 		var best_median: float = medians.max()
 		complete_data = complete_data and best_median > 0.0
-		for candidate_index in FACTORS.size():
+		for candidate_index in speed_factors.size():
 			var weight := float(weights[scenario_index]) / total_weight
 			candidates[candidate_index].value += weight * medians[candidate_index] / maxf(best_median, 0.000001)
 			candidates[candidate_index].spread += weight * deviations[candidate_index] / maxf(best_median, 0.000001)
@@ -217,6 +301,7 @@ func recommendation() -> Dictionary:
 			accepted_cm.append(float(candidate.cm_per_360))
 	accepted_cm.sort()
 	return {"schema_version": 1, "protocol_version": PROTOCOL_VERSION, "calibration_id": calibration_id,
+		"aspect": aspect, "seed": calibration_seed, "speed_factors": speed_factors.duplicate(), "report_context": report_context(),
 		"status": status, "candidates": candidates, "goal": baseline.get("goal", "balanced"),
 		"weights": weights.duplicate(), "score_gap": gap, "dispersion_threshold": threshold,
 		"best_tested_cm_per_360": best.cm_per_360, "recommended_cm_per_360": best.cm_per_360 if status == "indicative" else baseline.cm_per_360,
@@ -228,7 +313,7 @@ func recommendation() -> Dictionary:
 func scenario_scores(scenario_id: String, pending_report: Dictionary = {}) -> Array[Dictionary]:
 	var results: Array[Dictionary] = []
 	var stage_data := current_stage()
-	for candidate_index in FACTORS.size():
+	for candidate_index in speed_factors.size():
 		var scores: Array[float] = []
 		for trial in trials:
 			if trial.scored and trial.scenario_id == scenario_id and int(trial.candidate_index) == candidate_index:
