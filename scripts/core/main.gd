@@ -13,6 +13,13 @@ var engine := ScenarioEngine.new()
 var clock := SessionClock.new()
 var calibration := CalibrationService.new()
 var guided_search := AdaptiveSensitivityService.new()
+var progressive := ProgressiveCalibrationService.new()
+var routine := TrainingRoutineService.new()
+var is_progressive: bool = false
+var is_routine: bool = false
+var routine_index: int = 0
+var routine_reports: Array[Dictionary] = []
+var routine_auto_continue: bool = true
 var is_guided: bool = false
 var guided_phase: String = "comparing"
 var training_profile: Dictionary = {}
@@ -25,6 +32,7 @@ var session_active: bool = false
 var finish_queued: bool = false
 var skip_frame_sample: bool = true
 var pending_trial: Dictionary = {}
+var pending_trial_saved: bool = false
 var last_report: Dictionary = {}
 var final_recommendation: Dictionary = {}
 var rest_until_us: int = 0
@@ -67,6 +75,9 @@ func _ready() -> void:
 	home.guided_calibration_requested.connect(start_guided_calibration)
 	home.guided_resume_requested.connect(resume_guided_calibration)
 	home.calibration_resume_requested.connect(resume_calibration)
+	home.progressive_requested.connect(start_progressive_calibration)
+	home.progressive_resume_requested.connect(resume_progressive_calibration)
+	home.routine_requested.connect(start_routine)
 	home.history_requested.connect(refresh_history)
 	home.export_requested.connect(export_history)
 	pause_panel.resume_requested.connect(resume_test)
@@ -127,7 +138,13 @@ func _process(delta_s: float) -> void:
 	if screen == Screen.REST:
 		session_panel.next_button.disabled = now_us < rest_until_us or not window_has_focus
 		session_panel.retry_button.disabled = session_panel.next_button.disabled
-		session_panel.update_rest(maxf(float(rest_until_us - now_us) / 1000000.0, 0.0), calibration.current_index + 1 == calibration.plan.size())
+		if is_routine:
+			session_panel.next_button.text = "Étape suivante  →"
+			if now_us >= rest_until_us and window_has_focus and routine_auto_continue:
+				continue_routine()
+		else:
+			var last_stage := progressive.trials.size() + 1 == ProgressiveCalibrationService.TOTAL_TRIALS if is_progressive else calibration.current_index + 1 == calibration.plan.size()
+			session_panel.update_rest(maxf(float(rest_until_us - now_us) / 1000000.0, 0.0), last_stage)
 		return
 	if finish_queued:
 		return
@@ -156,6 +173,7 @@ func _process(delta_s: float) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		window_has_focus = false
+		routine_auto_continue = false
 		pause_test()
 	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
 		window_has_focus = true
@@ -168,6 +186,8 @@ func start_test() -> void:
 		return
 	is_calibrating = false
 	is_guided = false
+	is_progressive = false
+	is_routine = false
 	activate_test(home.read_profile())
 
 
@@ -230,6 +250,9 @@ func apply_paused_sensitivity(profile: Dictionary) -> void:
 		return
 	if expected.cm_per_360 == training_profile.cm_per_360:
 		return
+	if is_routine:
+		pause_panel.set_error("La séance utilise le même réglage aux trois étapes. Modifiez-le depuis l’accueil.")
+		return
 	if not store.save_profile(expected):
 		pause_panel.set_error(store.last_error)
 		return
@@ -268,12 +291,15 @@ func save_pending_abandon() -> bool:
 
 func return_to_menu() -> void:
 	if session_active:
-		finish_training(false, false)
+		if not finish_training(false, false):
+			pending_abandon_report = last_report.duplicate(true)
 	pending_restart_profile.clear()
 	if not save_pending_abandon():
 		home.set_status("Essai interrompu non sauvegardé : " + store.last_error)
 	is_calibrating = false
 	is_guided = false
+	is_progressive = false
+	is_routine = false
 	screen = Screen.HOME
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	arena.hide()
@@ -287,6 +313,9 @@ func return_to_menu() -> void:
 	var guided_checkpoint := store.load_guided_checkpoint()
 	home.guided_resume_button.visible = not guided_checkpoint.is_empty()
 	home.guided_resume_button.text = "Revoir la recherche" if guided_checkpoint.get("phase", "") == "complete" else "Reprendre la recherche"
+	var progressive_checkpoint := store.load_progressive_checkpoint()
+	home.progressive_resume_button.visible = not progressive_checkpoint.is_empty()
+	home.progressive_resume_button.text = "Voir ma sensibilité" if progressive_checkpoint.get("trials", []).size() == ProgressiveCalibrationService.TOTAL_TRIALS else "Reprendre ma calibration"
 	home.nav_buttons[home.selected_page].grab_focus()
 
 
@@ -319,6 +348,8 @@ func start_practice(scenario_id: String, duration_s: float) -> void:
 		return
 	is_calibrating = false
 	is_guided = false
+	is_progressive = false
+	is_routine = false
 	prepare_training(ScenarioCatalog.find(scenario_id), duration_s, next_practice_seed(), home.read_profile())
 
 
@@ -336,7 +367,8 @@ func prepare_training(definition: ScenarioDefinition, duration_s: float, seed_va
 		error = definition.validate()
 	if error.is_empty() and not definition.fits_view(float(profile.vertical_fov_deg), current_aspect()):
 		error = "Champ de vision trop étroit : élargir la fenêtre ou augmenter le FOV."
-	if error.is_empty() and is_calibrating and not is_equal_approx(current_aspect(), calibration.aspect):
+	var comparison_aspect := progressive.aspect if is_progressive else calibration.aspect
+	if error.is_empty() and is_calibrating and not is_equal_approx(current_aspect(), comparison_aspect):
 		error = "Restaurer le format de fenêtre de départ avant le passage suivant."
 	if not error.is_empty():
 		home.set_status(error)
@@ -350,10 +382,12 @@ func prepare_training(definition: ScenarioDefinition, duration_s: float, seed_va
 	training_aspect = current_aspect()
 	finish_queued = false
 	pending_trial.clear()
+	pending_trial_saved = false
 	apply_profile(profile)
 	hud.configure(profile)
 	aim_camera.reset_aim()
 	reference_sphere.hide()
+	hud.begin_countdown()
 	preparation_engine.start(definition, seed_value, duration_s)
 	target_pool.sync(preparation_engine, 0.0)
 	Input.flush_buffered_events()
@@ -423,8 +457,10 @@ func finish_training(finished: bool, show_result: bool = true) -> bool:
 	last_report.session_id = store.identifier()
 	last_report.metrics.received_x_counts = aim_camera.received_x_counts - initial_x_counts
 	last_report.metrics.received_y_counts = aim_camera.received_y_counts - initial_y_counts
-	last_report.warmup = is_calibrating and not calibration.current_stage().get("scored", false)
-	last_report.calibration_id = calibration.calibration_id if is_calibrating else ""
+	last_report.warmup = is_calibrating and not is_progressive and not calibration.current_stage().get("scored", false)
+	last_report.calibration_id = progressive.calibration_id if is_progressive else calibration.calibration_id if is_calibrating else ""
+	if is_routine:
+		last_report.routine_stage_index = routine_index
 	var record_eligible: bool = not is_calibrating and ScoringService.comparison_error(last_report).is_empty()
 	var previous_summary: Dictionary = ProgressService.summarize(store.sessions(), last_report.comparison_key) if record_eligible else {"count": 0, "best": 0.0}
 	var saved := store.save_session(last_report)
@@ -437,6 +473,12 @@ func finish_training(finished: bool, show_result: bool = true) -> bool:
 	pause_panel.hide()
 	arena.hide()
 	var quality_error := ScoringService.calibration_quality_error(last_report) if is_calibrating else ""
+	if is_progressive:
+		present_progressive_result(body, quality_error, saved)
+		return saved
+	if is_routine:
+		present_routine_result(body, saved)
+		return saved
 	if is_calibrating and last_report.completed and last_report.valid and quality_error.is_empty():
 		pending_trial = last_report.duplicate(true)
 		screen = Screen.REST
@@ -459,7 +501,11 @@ func finish_training(finished: bool, show_result: bool = true) -> bool:
 
 func result_text(report: Dictionary) -> String:
 	var metrics: Dictionary = report.metrics
-	var sensitivity_text: String = "Réglage " + ["A", "B", "C"][int(calibration.current_stage().candidate_index)] if is_calibrating else "%.2f cm/360°" % report.profile.cm_per_360
+	var sensitivity_text: String = "%.2f cm/360°" % report.profile.cm_per_360
+	if is_progressive:
+		sensitivity_text = "Essai %d/5 · sensibilité %.2f" % [int(progressive.current_stage().trial_index) + 1, SensitivityService.game_sensitivity(report.profile.dpi, report.profile.cm_per_360, SensitivityService.APP_YAW_DEG)]
+	elif is_calibrating:
+		sensitivity_text = "Réglage " + ["A", "B", "C"][int(calibration.current_stage().candidate_index)]
 	var body := "%s · %.2f secondes actives · %s\n%s\n" % [report.scenario_id, report.active_duration_s,
 		sensitivity_text, "Échauffement exclu des comparaisons" if report.get("warmup", false) else "Séance complète" if report.completed else "Abandon exclu des records"]
 	if report.family == "tracking":
@@ -479,6 +525,206 @@ func result_text(report: Dictionary) -> String:
 	elif not ScoringService.has_activity(report):
 		body += "\nActivité insuffisante : exclu de la recommandation et de la progression."
 	return body
+
+
+func start_progressive_calibration(exploration: bool = true, duration_s: float = 60.0) -> void:
+	if screen != Screen.HOME or not window_has_focus:
+		return
+	if not save_pending_abandon():
+		home.set_status("Essai précédent non sauvegardé : " + store.last_error)
+		return
+	var next := ProgressiveCalibrationService.new()
+	if not next.begin(home.read_profile(), current_aspect(), randi_range(1, 1000000000), store.identifier(), duration_s, exploration):
+		home.set_status(next.error)
+		return
+	if not store.save_progressive_checkpoint(next.checkpoint()):
+		home.set_status(store.last_error)
+		return
+	progressive = next
+	is_calibrating = true
+	is_progressive = true
+	is_guided = false
+	is_routine = false
+	final_recommendation.clear()
+	start_progressive_stage()
+
+
+func resume_progressive_calibration() -> void:
+	if screen != Screen.HOME or not window_has_focus:
+		return
+	if not save_pending_abandon():
+		home.set_status("Essai précédent non sauvegardé : " + store.last_error)
+		return
+	var saved := store.load_progressive_checkpoint()
+	var next := ProgressiveCalibrationService.new()
+	if saved.is_empty() or not next.restore(saved):
+		home.set_status(store.last_error if saved.is_empty() else next.error)
+		return
+	if not next.completed() and not is_equal_approx(next.aspect, current_aspect()):
+		home.set_status("Reprenez avec le même format de fenêtre.")
+		return
+	progressive = next
+	is_calibrating = true
+	is_progressive = true
+	is_guided = false
+	is_routine = false
+	home.bind_profile(progressive.baseline)
+	start_progressive_stage()
+
+
+func start_progressive_stage() -> void:
+	if progressive.completed():
+		show_progressive_recommendation()
+		return
+	var stage := progressive.current_stage()
+	prepare_training(ScenarioCatalog.find(stage.scenario_id), stage.duration_s, stage.seed, stage.profile)
+
+
+func present_progressive_result(body: String, quality_error: String, saved: bool) -> void:
+	var context := progressive.current_stage().duplicate(true)
+	var usable: bool = last_report.completed and last_report.valid and quality_error.is_empty()
+	if usable:
+		pending_trial = last_report.duplicate(true)
+		pending_trial_saved = saved
+		context.completed_trials += 1
+		context.block_history.append({"family": last_report.family, "sensitivity": context.active_sensitivity, "score": last_report.score,
+			"hits": last_report.metrics.hits, "misses": last_report.metrics.misses,
+			"accuracy_pct": last_report.metrics.accuracy_pct, "on_target_ratio": last_report.metrics.on_target_ratio,
+			"utility": ScoringService.utility(last_report)})
+		screen = Screen.REST
+		rest_until_us = Time.get_ticks_usec() + 3000000
+	else:
+		screen = Screen.RESULTS
+		pending_trial.clear()
+	session_panel.present_progressive_trial(last_report, body, context)
+	session_panel.next_button.visible = usable
+	if usable:
+		session_panel.next_button.disabled = true
+		session_panel.retry_button.disabled = true
+	if not quality_error.is_empty():
+		session_panel.set_notice("Essai à rejouer : " + quality_error)
+	if not saved:
+		session_panel.set_notice("Enregistrement à réessayer avec Continuer : " + store.last_error)
+
+
+func advance_progressive_calibration() -> void:
+	if screen == Screen.RESULTS and progressive.completed():
+		show_progressive_recommendation()
+		return
+	if screen != Screen.REST or not window_has_focus or Time.get_ticks_usec() < rest_until_us:
+		return
+	if pending_trial.is_empty():
+		start_progressive_stage()
+		return
+	if not pending_trial_saved and not store.save_session(pending_trial):
+		session_panel.set_notice(store.last_error + " Votre essai reste en mémoire.")
+		return
+	pending_trial_saved = true
+	var previous := progressive.checkpoint()
+	if not progressive.accept(pending_trial):
+		session_panel.set_notice(progressive.error)
+		return
+	if not store.save_progressive_checkpoint(progressive.checkpoint()):
+		var save_error := store.last_error
+		progressive.restore(previous)
+		session_panel.set_notice(save_error + " Votre essai reste en mémoire. Réessayez Continuer.")
+		return
+	pending_trial.clear()
+	start_progressive_stage()
+
+
+func show_progressive_recommendation() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	home.hide()
+	arena.hide()
+	hud.hide()
+	pause_panel.hide()
+	screen = Screen.RESULTS
+	final_recommendation = progressive.recommendation()
+	var saved := store.save_progressive_recommendation(final_recommendation)
+	session_panel.present_progressive_complete(final_recommendation, progressive.baseline.dpi,
+		"Les cinq essais de chaque exercice sont comparés par leur score non arrondi. La zone du meilleur essai est resserrée avant l’exercice suivant ; le réglage final a été testé sur la dernière activité. DPI constants.")
+	if not saved:
+		session_panel.apply_button.hide()
+		session_panel.next_button.show()
+		session_panel.next_button.disabled = false
+		session_panel.next_button.text = "Réessayer l’enregistrement"
+		session_panel.set_notice(store.last_error)
+
+
+func start_routine(duration_s: float = 60.0) -> void:
+	if screen != Screen.HOME or not window_has_focus:
+		return
+	if not save_pending_abandon():
+		home.set_status("Essai précédent non sauvegardé : " + store.last_error)
+		return
+	var profile := home.read_profile()
+	var next := TrainingRoutineService.new()
+	if not next.begin(duration_s):
+		home.set_status("Séance indisponible.")
+		return
+	for stage in next.plan:
+		if not ScenarioCatalog.find(stage.scenario_id).fits_view(profile.vertical_fov_deg, current_aspect()):
+			home.set_status("Élargissez la fenêtre pour la séance complète.")
+			return
+	routine = next
+	routine_index = 0
+	routine_reports.clear()
+	training_profile = profile.duplicate(true)
+	is_routine = true
+	is_calibrating = false
+	is_guided = false
+	is_progressive = false
+	start_routine_stage()
+
+
+func start_routine_stage() -> void:
+	var stage := routine.current_stage(routine_index)
+	if stage.is_empty():
+		return
+	routine_auto_continue = true
+	if not prepare_training(ScenarioCatalog.find(stage.scenario_id), stage.duration_s, next_practice_seed(), training_profile):
+		routine_auto_continue = false
+
+
+func present_routine_result(body: String, saved: bool) -> void:
+	var usable: bool = last_report.completed and last_report.valid and ScoringService.has_activity(last_report)
+	session_panel.present_result(last_report, body, false, 0, 0)
+	if usable:
+		pending_trial = last_report.duplicate(true)
+		pending_trial_saved = saved
+		screen = Screen.REST
+		rest_until_us = Time.get_ticks_usec() + 3000000
+		session_panel.next_button.show()
+		session_panel.next_button.text = "Étape suivante  →"
+		session_panel.set_notice("Étape %d/3 terminée. La suivante démarre après la pause." % (routine_index + 1))
+		routine_auto_continue = saved
+	else:
+		screen = Screen.RESULTS
+		session_panel.set_notice("Rejouez cette étape pour terminer la séance.")
+	if not saved:
+		session_panel.set_notice("Résultat non sauvegardé. Continuer réessaie l’enregistrement : " + store.last_error)
+
+
+func continue_routine() -> void:
+	if screen != Screen.REST or not window_has_focus or Time.get_ticks_usec() < rest_until_us:
+		return
+	if pending_trial.is_empty():
+		start_routine_stage()
+		return
+	if not pending_trial_saved and not store.save_session(pending_trial):
+		routine_auto_continue = false
+		session_panel.set_notice(store.last_error + " Votre étape reste en mémoire.")
+		return
+	pending_trial_saved = true
+	routine_reports.append(pending_trial.duplicate(true))
+	pending_trial.clear()
+	routine_index += 1
+	if routine_index == routine.plan.size():
+		screen = Screen.RESULTS
+		session_panel.present_routine_complete(routine_reports, "Chaque étape conserve son score, sa précision et son contexte. Aucun total ne mélange les unités des exercices.")
+	else:
+		start_routine_stage()
 
 
 func start_guided_calibration() -> void:
@@ -661,6 +907,12 @@ func start_calibration_stage() -> void:
 
 
 func next_calibration_stage() -> void:
+	if is_progressive:
+		advance_progressive_calibration()
+		return
+	if is_routine:
+		continue_routine()
+		return
 	if is_guided and screen == Screen.RESULTS:
 		continue_guided_search()
 		return
@@ -720,19 +972,20 @@ func apply_recommendation() -> void:
 	var trial_consent: bool = is_guided and final_recommendation.get("trial_allowed", false) and session_panel.guided_confirmation.button_pressed
 	if screen != Screen.RESULTS or not (final_recommendation.get("apply_allowed", false) or trial_consent):
 		return
-	var profile: Dictionary = calibration.baseline.duplicate(true)
-	profile.cm_per_360 = snappedf(float(final_recommendation.recommended_cm_per_360), 0.001)
+	var profile: Dictionary = progressive.baseline.duplicate(true) if is_progressive else calibration.baseline.duplicate(true)
+	profile.cm_per_360 = float(final_recommendation.recommended_cm_per_360) if is_progressive else snappedf(float(final_recommendation.recommended_cm_per_360), 0.001)
 	if not store.save_profile(profile):
 		session_panel.set_notice(store.last_error)
 		return
 	home.bind_profile(profile)
+	apply_profile(profile)
 	return_to_menu()
 	home.show_page(3)
 	home.set_status("Réglage de test appliqué. Confirmez-le un autre jour avant de le garder." if trial_consent else "Sensibilité appliquée. Vous pouvez maintenant la reporter dans votre jeu.")
 
 
 func refine_calibration() -> void:
-	if is_guided:
+	if is_guided or is_progressive:
 		return
 	if not final_recommendation.get("status", "") in ["indicative", "uncertain"]:
 		return
@@ -755,7 +1008,11 @@ func retry_training() -> void:
 		if prepare_training(selected_definition, selected_duration_s, next_practice_seed(), pending_restart_profile):
 			pending_restart_profile.clear()
 		return
-	if is_calibrating:
+	if is_progressive:
+		start_progressive_stage()
+	elif is_routine:
+		start_routine_stage()
+	elif is_calibrating:
 		start_calibration_stage()
 	else:
 		prepare_training(selected_definition, selected_duration_s, next_practice_seed(), training_profile)
@@ -800,14 +1057,20 @@ func update_telemetry() -> void:
 		hud.queue_redraw()
 		return
 	var prefix := ""
-	if is_calibrating:
+	if is_progressive:
+		var stage := progressive.current_stage()
+		prefix = "%d/5 · essai %d/5 · " % [int(stage.block_index) + 1, int(stage.trial_index) + 1]
+	elif is_routine:
+		prefix = "Étape %d/3 · " % (routine_index + 1)
+	elif is_calibrating:
 		var stage := calibration.current_stage()
 		prefix = "%s · %s · " % [["A", "B", "C"][int(stage.candidate_index)], "Série %d/3" % (int(stage.repetition) + 1) if stage.scored else "Échauffement"]
 	hud.set_training_view(screen == Screen.TRAINING, screen == Screen.COUNTDOWN)
 	hud.countdown_label.visible = screen == Screen.COUNTDOWN
 	if screen == Screen.COUNTDOWN:
 		hud_title.text = prefix + ScenarioCopy.title(selected_definition)
-		hud.countdown_label.text = "%.0f" % ceil(maxf(COUNTDOWN_DURATION_S - clock.elapsed_s(Time.get_ticks_usec()), 1.0)) if start_pose_ready else "↓" if aim_camera.pitch_deg > 0.0 else "↑" if aim_camera.pitch_deg < 0.0 else "→" if aim_camera.yaw_deg > 0.0 else "←"
+		var countdown_text := "%.0f" % ceil(maxf(COUNTDOWN_DURATION_S - clock.elapsed_s(Time.get_ticks_usec()), 1.0)) if start_pose_ready else "↓" if aim_camera.pitch_deg > 0.0 else "↑" if aim_camera.pitch_deg < 0.0 else "→" if aim_camera.yaw_deg > 0.0 else "←"
+		hud.present_countdown(countdown_text)
 		help_label.text = "" if start_pose_ready else "Revenez vers le repère pour démarrer."
 		help_label.visible = not start_pose_ready
 	else:
@@ -818,6 +1081,8 @@ func update_telemetry() -> void:
 func quit_application() -> void:
 	hud.weapon_feedback.stop()
 	home.weapon_preview.stop()
+	if session_active and not finish_training(false, false):
+		pending_abandon_report = last_report.duplicate(true)
 	if not save_pending_abandon():
 		if unsaved_exit_dialog == null:
 			unsaved_exit_dialog = ConfirmationDialog.new()
@@ -830,7 +1095,5 @@ func quit_application() -> void:
 			add_child(unsaved_exit_dialog)
 		unsaved_exit_dialog.popup_centered(Vector2i(460, 0))
 		return
-	if session_active:
-		finish_training(false, false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().quit()

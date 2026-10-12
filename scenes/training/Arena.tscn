@@ -6,22 +6,22 @@
 
 [sub_resource type="Environment" id="Environment"]
 background_mode=1
-background_color=Color(0.67, 0.72, 0.76, 1)
-ambient_light_source=3
-ambient_light_color=Color(0.87, 0.92, 1, 1)
-ambient_light_energy=0.85
+background_color=Color(0.78, 0.80, 0.81, 1)
+ambient_light_source=2
+ambient_light_color=Color(0.96, 0.98, 1, 1)
+ambient_light_energy=0.45
 tonemap_mode=0
 
 [sub_resource type="StandardMaterial3D" id="FloorMaterial"]
-albedo_color=Color(0.45, 0.47, 0.47, 1)
-roughness=0.84
+albedo_color=Color(0.65, 0.68, 0.69, 1)
+roughness=0.92
 
 [sub_resource type="PlaneMesh" id="FloorMesh"]
 material=SubResource("FloorMaterial")
 size=Vector2(40, 40)
 
 [sub_resource type="StandardMaterial3D" id="WallMaterial"]
-albedo_color=Color(0.62, 0.61, 0.57, 1)
+albedo_color=Color(0.79, 0.80, 0.78, 1)
 roughness=0.96
 
 [sub_resource type="BoxMesh" id="WallMesh"]
@@ -36,8 +36,8 @@ roughness=1.0
 material=SubResource("ReferenceMaterial")
 radius=0.2
 height=0.4
-radial_segments=24
-rings=12
+radial_segments=64
+rings=32
 
 [node name="Arena" type="Node3D"]
 
@@ -48,19 +48,13 @@ script=ExtResource("3_presentation")
 environment=SubResource("Environment")
 
 [node name="Light" type="DirectionalLight3D" parent="."]
-rotation_degrees=Vector3(-38, -32, 0)
-light_color=Color(1, 0.94, 0.84, 1)
-light_energy=0.3
+rotation_degrees=Vector3(-40, -25, 0)
+light_color=Color(1, 0.98, 0.95, 1)
+light_energy=0.35
 shadow_enabled=true
 directional_shadow_mode=0
 directional_shadow_max_distance=32.0
 shadow_blur=2.0
-
-[node name="FillLight" type="DirectionalLight3D" parent="."]
-rotation_degrees=Vector3(-20, 145, 0)
-light_color=Color(0.76, 0.86, 1, 1)
-light_energy=0.15
-shadow_enabled=false
 
 [node name="Floor" type="MeshInstance3D" parent="."]
 mesh=SubResource("FloorMesh")

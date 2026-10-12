@@ -58,7 +58,7 @@ func visible_card_count(browser: TrainingBrowser) -> int:
 func test_browser(app: Node) -> void:
 	var browser: TrainingBrowser = app.home.browser
 	app.home.show_page(1)
-	expect(browser.cards.size() == 16 and visible_card_count(browser) == 16, "Les seize exercices doivent être accessibles sans liste déroulante.")
+	expect(browser.cards.size() == 18 and visible_card_count(browser) == 18, "Les dix-huit exercices doivent être accessibles sans liste déroulante.")
 	for definition in ScenarioCatalog.DEFINITIONS:
 		expect(ScenarioCopy.TITLES.has(definition.scenario_id) and ScenarioCopy.DESCRIPTIONS.has(definition.scenario_id), "Chaque exercice doit avoir un titre et une consigne en français.")
 		browser.select_definition(definition)
@@ -66,7 +66,7 @@ func test_browser(app: Node) -> void:
 		var thumbnail: ScenarioPreview = browser.cards[definition.scenario_id].get_child(0).get_child(0).get_child(0)
 		expect(not thumbnail.is_processing(), "Les miniatures ne doivent pas simuler seize scènes en continu.")
 	browser.filter_buttons[2].pressed.emit()
-	expect(visible_card_count(browser) == 6 and browser.selected_definition.family == "tracking", "Le filtre Suivi doit isoler les six exercices de suivi.")
+	expect(visible_card_count(browser) == 7 and browser.selected_definition.family == "tracking", "Le filtre Suivi doit isoler les sept exercices de suivi.")
 	browser.search_input.text = "aucun-exercice-correspondant"
 	browser.filter_catalog()
 	expect(browser.empty_label.visible and browser.start_button.disabled, "Une recherche vide ne doit pas lancer un exercice masqué.")

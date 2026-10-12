@@ -1,10 +1,13 @@
 class_name TrainingHud
 extends Control
 
+const CountdownFeedbackScript := preload("res://scripts/presentation/countdown_feedback.gd")
 const HIT_DURATION_S: float = 0.11
 const COUNTDOWN_PULSE_DURATION_S: float = 0.16
 const GO_DURATION_S: float = 0.45
-const HIT_DIRECTIONS: PackedVector2Array = [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]
+const HIT_DIRECTIONS: PackedVector2Array = [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]
+const HIT_COLOR: Color = Color("ffd18a")
+const HIT_LENGTH_PX: float = 5.0
 
 var title_label: Label
 var metric_label: Label
@@ -15,6 +18,7 @@ var help_label: Label
 var countdown_label: Label
 var progress: ProgressBar
 var weapon_feedback: WeaponFeedback
+var countdown_feedback: CountdownFeedbackScript
 var hit_remaining_s: float = 0.0
 var reduced_motion: bool = false
 var crosshair_profile: Dictionary = CrosshairProfile.defaults()
@@ -98,8 +102,7 @@ func _ready() -> void:
 	help_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	countdown_content.add_child(help_label)
 	countdown_label.hide()
-	countdown_label.visibility_changed.connect(sync_countdown)
-	countdown_label.draw.connect(sync_countdown)
+	countdown_label.visibility_changed.connect(sync_countdown_visibility)
 	countdown_label.resized.connect(func() -> void: countdown_label.pivot_offset = countdown_label.size * 0.5)
 	var go_center := CenterContainer.new()
 	go_center.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
@@ -112,6 +115,9 @@ func _ready() -> void:
 	go_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	go_label.hide()
 	go_center.add_child(go_label)
+	countdown_feedback = CountdownFeedbackScript.new()
+	countdown_feedback.name = "CountdownFeedback"
+	add_child(countdown_feedback)
 	weapon_feedback = WeaponFeedback.new()
 	weapon_feedback.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	weapon_feedback.set_hud_mode(true)
@@ -169,12 +175,30 @@ func present_live(elapsed_s: float, duration_s: float, hits: int, shots: int, tr
 
 
 func show_go() -> void:
+	if countdown_feedback == null or countdown_feedback.go_consumed or (countdown_label != null and countdown_label.visible):
+		return
+	countdown_feedback.play_go(feedback_available())
 	if reduced_motion or not feedback_available():
 		return
 	go_remaining_s = GO_DURATION_S
 	go_label.show()
 	go_label.modulate.a = 1.0
 	update_processing()
+
+
+func begin_countdown() -> void:
+	clear_feedback()
+	countdown_text = ""
+	if countdown_feedback != null:
+		countdown_feedback.reset_sequence()
+
+
+func present_countdown(text: String) -> void:
+	if countdown_label == null:
+		return
+	countdown_label.text = text
+	countdown_label.show()
+	sync_countdown()
 
 
 func ignore_mouse(parent: Node) -> void:
@@ -196,6 +220,8 @@ func configure(profile: Dictionary) -> void:
 	if weapon_feedback != null:
 		weapon_feedback.configure(WeaponCatalog.find(profile.get("weapon_id", "pulse")), bool(profile.get("sound_enabled", true)), float(profile.get("sound_volume", 45.0)) / 100.0, bool(profile.get("show_weapon", true)), reduced_motion)
 		weapon_feedback.crosshair_clearance_px = maxf(CrosshairProfile.radius_px(crosshair_profile) + 8.0, 18.0)
+	if countdown_feedback != null:
+		countdown_feedback.configure(bool(profile.get("sound_enabled", true)), float(profile.get("sound_volume", 45.0)) / 100.0)
 	queue_redraw()
 
 
@@ -223,6 +249,9 @@ func clear_feedback() -> void:
 		countdown_text = countdown_label.text if countdown_label.visible else ""
 		countdown_label.scale = Vector2.ONE
 		countdown_label.modulate.a = 1.0
+	if countdown_feedback != null:
+		countdown_feedback.play_tick(countdown_text, false)
+		countdown_feedback.stop()
 	set_process(false)
 	queue_redraw()
 
@@ -242,10 +271,26 @@ func sync_countdown() -> void:
 	elif countdown_label.text != countdown_text:
 		countdown_text = countdown_label.text
 		hit_remaining_s = 0.0
-		if feedback_available() and not reduced_motion and not countdown_text.is_empty():
+		countdown_remaining_s = 0.0
+		countdown_label.scale = Vector2.ONE
+		countdown_label.modulate.a = 1.0
+		if countdown_feedback != null:
+			countdown_feedback.play_tick(countdown_text, feedback_available())
+			if countdown_text not in ["3", "2", "1"]:
+				countdown_feedback.stop()
+		if feedback_available() and not reduced_motion and countdown_text in ["3", "2", "1"]:
 			countdown_remaining_s = COUNTDOWN_PULSE_DURATION_S
 			countdown_label.scale = Vector2.ONE * 1.08
 			countdown_label.modulate.a = 0.85
+	update_processing()
+
+
+func sync_countdown_visibility() -> void:
+	if countdown_label != null and not countdown_label.visible:
+		countdown_text = ""
+		countdown_remaining_s = 0.0
+		countdown_label.scale = Vector2.ONE
+		countdown_label.modulate.a = 1.0
 	update_processing()
 
 
@@ -285,7 +330,6 @@ func _process(delta_s: float) -> void:
 
 
 func _draw() -> void:
-	sync_countdown()
 	if countdown_label != null and countdown_label.is_visible_in_tree():
 		var ring_center := countdown_label.global_position - global_position + countdown_label.size * 0.5
 		var ring_radius := 58.0 + 4.0 * countdown_remaining_s / COUNTDOWN_PULSE_DURATION_S
@@ -300,8 +344,20 @@ func draw_crosshair() -> void:
 	var center := size * 0.5
 	CrosshairProfile.draw(crosshair_layer, center, crosshair_profile)
 	if hit_remaining_s > 0.0:
-		var inner_px := maxf(CrosshairProfile.radius_px(crosshair_profile) + 5.0, 8.0)
-		for direction in HIT_DIRECTIONS:
-			var unit_direction := direction.normalized()
-			crosshair_layer.draw_line(center + unit_direction * inner_px, center + unit_direction * (inner_px + 5.0), CrosshairProfile.OUTLINE_COLOR, 4.0, true)
-			crosshair_layer.draw_line(center + unit_direction * inner_px, center + unit_direction * (inner_px + 5.0), AimUI.ACCENT, 2.0, true)
+		var segments := hitmarker_segments()
+		for segment_index in HIT_DIRECTIONS.size():
+			var first_px := segments[segment_index * 2]
+			var last_px := segments[segment_index * 2 + 1]
+			var direction := HIT_DIRECTIONS[segment_index]
+			crosshair_layer.draw_line(first_px - direction, last_px + direction, CrosshairProfile.OUTLINE_COLOR, 4.0, true)
+			crosshair_layer.draw_line(first_px, last_px, HIT_COLOR, 2.0, true)
+
+
+func hitmarker_segments() -> PackedVector2Array:
+	var center_px := size * 0.5
+	var inner_px := maxf(CrosshairProfile.radius_px(crosshair_profile) + 5.0, 8.0)
+	var segments := PackedVector2Array()
+	for direction in HIT_DIRECTIONS:
+		segments.append(center_px + direction * inner_px)
+		segments.append(center_px + direction * (inner_px + HIT_LENGTH_PX))
+	return segments

@@ -1,5 +1,50 @@
 # Plan de validation
 
+## Jalon 0.7.0 — 12 octobre 2026, Europe/Paris
+
+| Contrôle exécuté | Résultat |
+|---|---|
+| Input/UI/UX/imports/armes/archives/pause | 11 971 assertions, 0 échec ; capture physique du pointeur non exécutée en headless |
+| Géométrie/frustum/sol/vitesses | 2 355 assertions, 0 échec |
+| Recherche historique et reprise | 906 assertions, 0 échec |
+| Scroll/espacement/focus | 385 assertions, 0 échec ; seul le parcours progressif est public |
+| Silhouette des aperçus | 9 042 assertions, 0 échec |
+| Patterns et cinq empreintes r3 | 2 711 assertions, 0 échec |
+| Scores V1 après JSON | 36 867 assertions, 0 échec ; 512 graines × 18 exercices et altérations contrôlées |
+| Calibration progressive et parcours intégré | 9 250 assertions, 0 échec ; 45/60 s, bornes, décisions, reprises, sauvegardes et application |
+| C03/M01/T10 et routine | 139 747 assertions, 0 échec ; géométrie seedée, fallback, transitions, profondeur et replays |
+| OpenGL/Mesa/Xorg dummy | 163 captures, 0 échec ; trois tailles, blocs/final synthétiques explicitement signalés, dix-huit exercices, trois profils d’arme et routines45/60 |
+| Installation épinglée | Deux SHA-512 officiels revérifiés et Godot 4.7.2 standard |
+| Import sans cache puis startup | Codes 0, aucun ERROR/SCRIPT ERROR ; manifestes de sources SHA-256 identiques avant/après |
+| Windows release/pack isolé ouvert par Linux | 18 exercices terminés, 3 profils d’arme/imports, protocole4, 25×60 s, routine et 4 viseurs ; 0 échec, tests exclus |
+| ZIP Windows et galerie | Intégrité ZIP/SHA-256 vérifiée ; EXE PE x64/PCK/notices, 163 PNG, seules distributions0.7 dans downloads |
+| Windows natif, son entendu, souris/scaling/latence/GPU et ergonomie humaine | Non exécutés |
+
+Total final des neuf runners : **213 234 assertions, zéro échec**. L’export réexécute tous les runners ; ces nombres ne représentent ni joueurs ni minutes de jeu humain. Les contrôles graphiques ciblés supplémentaires des agents ne sont pas additionnés au total.
+
+Contre-exemples traités : égalités de scores/gaps proches au dernier bit provoquant une décision différente après JSON ; comparaison avec une clé régénérée depuis un float au lieu du profil enregistré ; reprise affichant le même réglage avec une différence au dernier bit ; ancienne assertion UI exigeant un panneau fixe alors que les choix et formulaires partagent maintenant le scroll ; réécriture d’un état antérieur refusée pour préserver les essais déjà sauvegardés. Les scores et profils ne sont pas quantifiés pour contourner ces cas.
+
+## Réception 0.7 — calibration et exercices longs
+
+Couverture ajoutée : 25 essais de 45/60 s, cinq sensibilités distinctes par activité, branche rapide/meilleur ou lent/sous le départ, extension novice, contraction transmise, bornes 5/150 cm, égalités et reprise JSON à chaque frontière. Corruption, changement de conditions, saccades, archivage exact, verrou, sauvegardes refusées, rollback et application exacte sont vérifiés. Le parcours intégré utilise les rapports du vrai moteur ; les scores contrôlés de l’algorithme sont explicitement synthétiques.
+
+C03/M01/T10 : variété seedée, placement libre hors des neuf nœuds, absence de recouvrement, réserve après 128 tirages refusés, transitions micro/larges et profondeurs. Replays de suivi à 60/144/240 FPS, vitesses bornées et même géométrie pour hitbox/rendu. Routine en trois phases, scores séparés et retour de focus sans reprise implicite. Les cinq empreintes de calibration r3, archives historiques et score V1 restent couverts.
+
+Armes de profil sans mains : cadre orthographique, marge, bounds centrés, changements d’arme et ressources réutilisées. Lumière mondiale unique/ambient, décor biseauté statique, MSAA4×, hitmarker ambre orthogonal. PCM original, une émission par chiffre/GO, silence/volume, arrêt en pause/focus/menu, pas de répétition au redraw, animations réduites indépendantes du son.
+
+À réceptionner **sur Windows**, sans Godot installé :
+
+1. Extraire le dernier ZIP, lancer hors ligne et parcourir les menus à 800×450/1280×720/1920×1080, scaling 100/125/150 %. Vérifier scroll naturel et boutons accessibles.
+2. Vérifier que les trois aperçus montrent l’arme seule et entière, de profil ; en jeu, arme tenue et orientée vers le viseur. Écouter le décompte, couper le son, changer le volume et reprendre après pause sans double bip.
+3. Tester une calibration entière : cinq activités × cinq essais de 60 s (et choix 45), sensibilité différente à chaque essai du bloc, adaptation aux vrais scores, résultats par famille, pas de confort. Fermer/reprendre à une frontière, rejouer un essai interrompu et appliquer le réglage final ; contrôler conversion et cm/360° physique.
+4. Refaire un autre jour, comparer stabilité et fatigue. Le réglage retenu est testé dans la dernière activité, pas une preuve d’optimum sur toutes les tâches. Interrompre si fatigue/douleur.
+5. Exercer les dix-huit scénarios et la routine M01/T10/S02 : mêmes règles que leurs aperçus, nouvelles positions à chaque pratique, profondeur/tailles cohérentes, hitmarker uniquement après impact. Alt+Tab pendant une transition : Continuer explicite.
+6. Vérifier lumière/ombres du décor et des sphères, contours ronds et lisibles ; mesurer le coût GPU de MSAA4×/ombres4096 sur la machine cible.
+7. Mesurer counts/cm360 et frametimes à 60/144/240 FPS, DPI400/800/1600, souris1/2/4/8kHz. Captures Mesa et horodatages synthétiques ne valident pas le matériel.
+8. Simuler une écriture refusée/checkpoint invalide après sauvegarde de vos données : erreur visible, pas de nouveau réglage appliqué, essai retenu/retry et anciens fichiers préservés. Vérifier CSV/JSON et anciens contextes séparés.
+
+Les sections datées suivantes sont des jalons historiques, pas le protocole public actuel.
+
 ## Refonte 0.6.0 — 12 octobre 2026, UTC
 
 Direction artistique produite avant l’implémentation : deux planches conceptuelles originales, puis trois lots UI/armes/patterns et un audit indépendant des sauvegardes. Les concepts sont distincts des captures réelles.

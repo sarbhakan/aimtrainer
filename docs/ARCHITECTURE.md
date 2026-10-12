@@ -9,7 +9,7 @@
 | `scripts/input/aim_camera.gd` | `screen_relative` → angles explicites, sans delta, lissage ou accélération |
 | `scripts/input/aim_timeline.gd` | File circulaire de 32 768 poses horodatées, counts reçus et trajet angulaire |
 | `scripts/training/scenario_definition.gd` | Paramètres angulaires validés et empreinte immuable du contexte |
-| `content/scenarios/*.tres` | 16 exercices pilotés par les données |
+| `content/scenarios/*.tres` | 18 exercices pilotés par les données |
 | `scripts/training/scenario_engine.gd` | RNG local, cibles, trajectoires, tirs, intégration et métriques |
 | `scripts/training/aim_geometry.gd` | Directions, erreur angulaire stable près de zéro, rayons/sphères |
 | `scripts/training/target_pool.gd` | Six instances de sphères, mesh/matériau partagés |
@@ -49,7 +49,7 @@ Les événements peuvent être regroupés par Godot : l'horodatage reflète la r
 
 ## Présentation indépendante
 
-Les 16 ressources d’exercice passent en révision 3 avec tailles angulaires et profondeur distinctes par objectif, depuis l’origine réelle de la caméra. Cibles d’entrée agrandies, C07 au-dessus du sol, S02 avec couloirs séparés, T03 avec vitesse totale normalisée et T05 retournant continûment en 160 ms. La sphère complète doit tenir dans le frustum ; son rayon rendu est celui de la collision. Les empreintes protègent les anciens résultats de toute comparaison trompeuse. Voir `EXERCISE_DESIGN_050.md`.
+Les seize exercices historiques ont reçu leurs tailles angulaires et profondeurs explicites en révision 3. D01/D02/S02 ont ensuite évolué en r4 ; C03/M01/T10 sont maintenant r5, soit dix-huit ressources. Origine caméra réelle, C07 au-dessus du sol, S02 avec couloirs séparés, T03 avec vitesse totale normalisée et T05 retournant continûment en 160 ms. La sphère complète doit tenir dans le frustum ; son rayon rendu est celui de la collision. Les empreintes protègent les anciens résultats de toute comparaison trompeuse. Voir `EXERCISE_DESIGN_070.md`.
 
 `ScenarioCopy` fournit les noms et consignes. Les aperçus utilisent une instance distincte de `ScenarioEngine` ; leur cadrage illustratif ne sert jamais au scoring. Les miniatures sont statiques, la bulle apparaît après 180 ms au survol/focus ou immédiatement au clic ; un seul aperçu est animé à 30 Hz par écran. La fermeture, le changement de page, la recherche ou le défilement coupent la bulle et les traitements masqués.
 
@@ -57,7 +57,17 @@ Les 16 ressources d’exercice passent en révision 3 avec tailles angulaires et
 
 L’interface responsive conserve les boutons de lancement et d’enregistrement hors des défilements. Les bilans affichent trois indicateurs utiles et replient les données techniques ; les erreurs de persistance restent visibles indépendamment de ce repli. Les choix UX et l’ajout d’équipements sont documentés dans `docs/UI_UX.md`.
 
-## Recherche et retours 0.4.0
+## Recherche progressive 0.7.0
+
+`ProgressiveCalibrationService` pilote 25 essais de 45/60 s dans cinq activités. Recherche en logarithme de vitesse, baseline/rapide puis branche guidée par l’utilité non arrondie ; contraction au bloc suivant, tie-breaks numériquement stables. La reprise rejoue les rapports validés depuis la référence ; ni gagnant ni intervalle sérialisé arbitraire ne gouverne les décisions. Le rapport final est reconstructible et correspond à un réglage testé dans la dernière activité. Cette heuristique est séquentielle, pas une validation statistique multisession.
+
+`Main` sauvegarde le rapport avant d’accepter l’essai, puis le checkpoint ; un refus restaure l’état précédent et conserve le même rapport/identifiant en mémoire. La sauvegarde d’une séance déjà réussie n’est pas répétée : elle est immuable. Un bilan non écrit propose de réessayer avant de montrer Appliquer. `progressive_calibration_checkpoint.json` et `calibrations/progressive-<id>.json` sont distincts des anciens formats ; archive du précédent sous verrou et octets conservés.
+
+`TrainingRoutineService` définit trois phases M01/T10/S02 à profil constant ; Main fait les transitions après repos, sans total mélangeant les unités. Le moteur conserve géométrie horodatée, six instances et intégration 240 Hz. C03/M01/T10 r5, D01/D02/S02 r4, autres r3. Les champs actifs ajoutés entrent dans leur empreinte sans modifier les cinq empreintes de calibration publiées.
+
+`WeaponViewmodel` calcule et met en cache les bounds sans mains pour le mode inspection de profil ; le HUD conserve son mode aligné. Une source directionnelle mondiale, ambient diffus et MSAA4×. `CountdownFeedback` construit deux PCM au chargement et consomme chaque chiffre une seule fois ; aucun autoplay dans le dessin, aucun travail PCM dans l’input souris.
+
+## Services historiques 0.4.0
 
 `CalibrationService` reste le comparateur de cinq blocs 3+9, avec trois facteurs configurables et un protocole 3. Le protocole 2 garde ses facteurs historiques ; la reprise rejoue et valide les passages. `AdaptiveSensitivityService` ne pilote ni caméra ni difficulté : il vérifie les bilans complets, choisit une prochaine plage et borne la recherche à quatre comparaisons. Les choix sont reconstruits depuis les passages, pas depuis un score ou un gagnant déclarés arbitrairement.
 
@@ -85,4 +95,4 @@ Le backup n'est pas restauré automatiquement : préserver le fichier fautif, pu
 
 ## Export
 
-Windows x86-64 release, PCK embarqué, ressources produit complètes. Le filtre `all_resources` inclut les services `class_name` et les scénarios, que le filtre limité aux scènes omettait malgré leur emploi dans les scripts. Tests, docs, outils, captures et anciens téléchargements sont exclus. L’export ouvre ensuite le pack avec Godot Linux dans un dossier vierge, puis lance un harness externe qui exerce les 16 scénarios et vérifie les trois profils d’arme embarqués. Aucune ressource du checkout ne doit servir de remplacement. Le nom du ZIP est dérivé de la version de `project.godot`. Ce n’est pas une validation native Windows.
+Windows x86-64 release, PCK embarqué, ressources produit complètes. Le filtre `all_resources` inclut les services `class_name` et les scénarios, que le filtre limité aux scènes omettait malgré leur emploi dans les scripts. Tests, docs, outils, captures et anciens téléchargements sont exclus. L’export ouvre ensuite le pack avec Godot Linux dans un dossier vierge, puis lance un harness externe qui exerce les 18 scénarios, les trois profils d’arme, le protocole 4 et le plan de routine embarqués. Aucune ressource du checkout ne doit servir de remplacement. Le nom du ZIP est dérivé de la version de `project.godot`. Ce n’est pas une validation native Windows.

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="ScenarioDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/training/scenario_definition.gd" id="1"]
+
+[resource]
+script=ExtResource("1")
+scenario_id="M01"
+revision=5
+title="Flicks mixtes"
+instructions="Une seule sphère, de diamètre tiré entre 2,5° et 4,2° : alterner corrections de 2,5° à 6° et grands flicks de 20° à 44°. Le type de transition est tiré à chaque apparition avec 50 % de corrections courtes ; aucun ordre fixe ni adaptation au score."
+family="click"
+motion="static"
+layout="scatter"
+spawn_pattern="mixed"
+angular_diameter_deg=3.4
+angular_diameter_min_deg=2.5
+angular_diameter_max_deg=4.2
+distance_m=4.0
+yaw_extent_deg=28
+pitch_extent_deg=12
+min_transition_deg=2.5
+small_transition_min_deg=2.5
+small_transition_max_deg=6.0
+large_transition_min_deg=20.0
+large_transition_max_deg=44.0
+small_transition_probability=0.5
+reference_hits_s=2.0

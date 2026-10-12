@@ -38,6 +38,8 @@ var main_layout: VBoxContainer
 var result_scroll: ScrollContainer
 var result_content: VBoxContainer
 var actions: HFlowContainer
+var details_content: VBoxContainer
+var progressive_history_grid: GridContainer
 
 
 func _ready() -> void:
@@ -143,6 +145,7 @@ func _ready() -> void:
 	refine_button = AimUI.button("Affiner le test", func() -> void: refine_requested.emit())
 	actions.add_child(refine_button)
 	var details := AimUI.foldout(content, "Voir les mesures détaillées")
+	details_content = details
 	details_toggle = details.get_parent().get_child(0) as Button
 	body_label = RichTextLabel.new()
 	body_label.fit_content = true
@@ -164,6 +167,7 @@ func update_layout() -> void:
 
 
 func clear_context() -> void:
+	progressive_history_grid = null
 	for child in context.get_children():
 		context.remove_child(child)
 		child.queue_free()
@@ -180,6 +184,10 @@ func select_comfort(value: int) -> void:
 func present(title: String, body: String, calibration_step: bool = false) -> void:
 	record_celebration.stop()
 	clear_context()
+	for child in details_content.get_children():
+		if child != body_label:
+			details_content.remove_child(child)
+			child.queue_free()
 	title_label.text = title
 	body_label.text = body
 	subtitle_label.text = ""
@@ -194,6 +202,7 @@ func present(title: String, body: String, calibration_step: bool = false) -> voi
 	retry_button.visible = not calibration_step
 	retry_button.text = "Rejouer  →"
 	retry_button.disabled = false
+	AimUI.style_button(retry_button, &"primary")
 	apply_button.hide()
 	apply_button.disabled = false
 	apply_button.text = "Utiliser ce réglage"
@@ -201,10 +210,166 @@ func present(title: String, body: String, calibration_step: bool = false) -> voi
 	guided_confirmation.set_pressed_no_signal(false)
 	refine_button.hide()
 	notice_label.hide()
-	details_toggle.button_pressed = false
+	details_toggle.text = "Voir les mesures détaillées"
+	details_toggle.set_pressed_no_signal(false)
+	details_content.hide()
 	stats.show()
+	for value in stat_values:
+		value.tooltip_text = ""
 	show()
 	AimUI.fade_in(self)
+
+
+func present_progressive_trial(report: Dictionary, details: String, trial_context: Dictionary) -> void:
+	var scenario_id: String = str(trial_context.get("scenario_id", report.get("scenario_id", "")))
+	var definition := ScenarioCatalog.find(scenario_id)
+	var exercise_title: String = str(trial_context.get("title", ScenarioCopy.title(definition) if definition != null else scenario_id))
+	present(exercise_title, details)
+	var block_index: int = int(trial_context.get("block_index", 0))
+	var trial_index: int = int(trial_context.get("trial_index", 0))
+	var direction: String = str(trial_context.get("direction", "départ"))
+	badge_label.text = "CALIBRATION · EXERCICE %d / 5 · ESSAI %d / 5" % [block_index + 1, trial_index + 1]
+	hero_caption.text = "SCORE"
+	hero_label.text = PerformanceInsights.display(report.get("score", null), 0)
+	subtitle_label.text = "Sensibilité %s · %s" % [AimUI.sensitivity(float(trial_context.get("active_sensitivity", 0.0))), direction]
+	show_raw_stats(report)
+	progress.show()
+	progress_label.show()
+	var total_trials: int = int(trial_context.get("total_trials", 25))
+	var completed_trials: int = int(trial_context.get("completed_trials", 0))
+	progress.max_value = total_trials
+	progress.value = completed_trials
+	progress_label.text = "%d / %d mesures terminées · pause et reprise possibles" % [completed_trials, total_trials]
+	next_button.show()
+	next_button.disabled = false
+	retry_button.text = "Rejouer pour corriger une erreur"
+	retry_button.show()
+	AimUI.style_button(retry_button, &"default")
+	if not bool(report.get("valid", true)):
+		next_button.disabled = true
+		set_notice("Cet essai ne compte pas : " + str(report.get("invalid_reason", "mesure invalide")))
+	elif not bool(report.get("completed", true)):
+		next_button.disabled = true
+		set_notice("Essai interrompu : rejouez pour terminer cette mesure.")
+	context_root.show()
+	context.add_child(AimUI.label("Les cinq sensibilités de cet exercice", 20))
+	progressive_history_grid = show_progressive_candidates(context, trial_context.get("block_history", []))
+
+
+func show_raw_stats(report: Dictionary) -> void:
+	var metrics: Dictionary = report.get("metrics", {})
+	if report.get("family", "") == "tracking":
+		set_stat(0, "Temps sur cible", PerformanceInsights.display(float(metrics.get("on_target_ratio", 0.0)) * 100.0, 1, "%"))
+		set_stat(1, "Suivi réussi", PerformanceInsights.display(metrics.get("on_target_time_s", null), 1, "s"))
+		set_stat(2, "Écart moyen", PerformanceInsights.display(metrics.get("angular_error_mean_deg", null), 2, "°"))
+		return
+	var hits: Variant = metrics.get("hits", null)
+	var misses: Variant = metrics.get("misses", null)
+	set_stat(0, "Touches / ratés", "%s / %s" % [PerformanceInsights.display(hits, 0), PerformanceInsights.display(misses, 0)])
+	set_stat(1, "Précision des tirs", PerformanceInsights.display(metrics.get("accuracy_pct", null), 1, "%"))
+	set_stat(2, "Durée mesurée", PerformanceInsights.display(report.get("active_duration_s", null), 0, "s"))
+	stat_values[0].tooltip_text = "Cibles touchées / tirs ratés."
+	stat_values[1].tooltip_text = "Pourcentage des tirs qui touchent une cible ; indisponible sans tir."
+	stat_values[2].tooltip_text = "Temps actif, hors préparation et pauses."
+
+
+func show_progressive_candidates(parent: Node, history: Array) -> GridContainer:
+	var candidates := GridContainer.new()
+	candidates.columns = 5
+	candidates.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AimUI.grid_spacing(candidates, AimUI.SPACE_SM)
+	parent.add_child(candidates)
+	for trial_index in 5:
+		var card := AimUI.card(candidates, AimUI.SPACE_SM)
+		card.add_theme_constant_override("separation", AimUI.SPACE_XS)
+		card.add_child(AimUI.label("Essai %d" % (trial_index + 1), 12, AimUI.MUTED))
+		if trial_index >= history.size():
+			card.add_child(AimUI.label("À venir", 13, AimUI.MUTED))
+			continue
+		var candidate: Dictionary = history[trial_index]
+		var metrics: Dictionary = candidate.get("metrics", candidate)
+		var candidate_sensitivity: Variant = candidate.get("sensitivity", null)
+		var profile: Dictionary = candidate.get("profile", {})
+		if candidate_sensitivity == null and profile.has("dpi") and profile.has("cm_per_360"):
+			candidate_sensitivity = SensitivityService.game_sensitivity(float(profile.dpi), float(profile.cm_per_360), SensitivityService.APP_YAW_DEG)
+		card.add_child(AimUI.label(AimUI.sensitivity(float(candidate_sensitivity)) if candidate_sensitivity != null else "—", 16, AimUI.ACCENT))
+		card.add_child(AimUI.label("Score %s" % PerformanceInsights.display(candidate.get("score", null), 0), 12))
+		if candidate.get("family", "") == "tracking":
+			var ratio: Variant = metrics.get("on_target_ratio", null)
+			card.add_child(AimUI.label("Sur cible %s" % PerformanceInsights.display(float(ratio) * 100.0 if ratio != null else null, 1, "%"), 11, AimUI.MUTED))
+		else:
+			card.add_child(AimUI.label("Touches %s" % PerformanceInsights.display(metrics.get("hits", null), 0), 11, AimUI.MUTED))
+			card.add_child(AimUI.label("Ratés %s" % PerformanceInsights.display(metrics.get("misses", null), 0), 11, AimUI.MUTED))
+			card.add_child(AimUI.label("Précision %s" % PerformanceInsights.display(metrics.get("accuracy_pct", null), 1, "%"), 11, AimUI.MUTED))
+	return candidates
+
+
+func present_progressive_complete(summary: Dictionary, dpi: float, details: String) -> void:
+	present("Votre sensibilité", details)
+	badge_label.text = "CALIBRATION TERMINÉE"
+	hero_caption.text = "Votre sensibilité"
+	var sensitivity: float = float(summary.get("recommended_sensitivity", SensitivityService.game_sensitivity(dpi, float(summary.get("recommended_cm_per_360", 35.0)), SensitivityService.APP_YAW_DEG)))
+	hero_label.text = AimUI.sensitivity(sensitivity)
+	subtitle_label.text = "Le réglage retenu d’après vos scores sur les cinq exercices."
+	retry_button.hide()
+	apply_button.text = "Appliquer"
+	apply_button.visible = bool(summary.get("apply_allowed", false)) and summary.get("status", "") == "complete"
+	var blocks: Array = summary.get("blocks", [])
+	set_stat(0, "Exercices", str(blocks.size()))
+	set_stat(1, "Essais mesurés", str(int(summary.get("tested_trials", 0))))
+	set_stat(2, "Votre souris", "%d DPI" % int(dpi))
+	context_root.show()
+	context.add_child(AimUI.label("Vos cinq exercices", 20))
+	for block in blocks:
+		var scenario_id: String = str(block.get("scenario_id", ""))
+		var definition := ScenarioCatalog.find(scenario_id)
+		var exercise_title: String = str(block.get("title", ScenarioCopy.title(definition) if definition != null else scenario_id))
+		var trials: Array = block.get("trials", [])
+		context.add_child(AimUI.label("%s · %d essais" % [exercise_title, trials.size()], 14))
+		details_content.add_child(AimUI.label(exercise_title, 16, AimUI.ACCENT))
+		show_progressive_candidates(details_content, trials)
+		var moving_range_cm: Array = block.get("moving_range_cm", [])
+		if moving_range_cm.size() == 2:
+			details_content.add_child(AimUI.label("Intervalle exploré : %s–%s cm/360°" % [AimUI.number(float(moving_range_cm[0])), AimUI.number(float(moving_range_cm[1]))], 12, AimUI.MUTED))
+		details_content.add_child(AimUI.label("Utilités : " + progressive_utilities(trials), 12, AimUI.MUTED))
+
+
+func progressive_utilities(trials: Array) -> String:
+	var values := PackedStringArray()
+	for trial in trials:
+		values.append(PerformanceInsights.display(trial.get("utility", ScoringService.utility(trial) if trial.has("metrics") else null), 4))
+	return " · ".join(values)
+
+
+func present_routine_complete(reports: Array, details: String) -> void:
+	present("Entraînement complet", details)
+	badge_label.text = "BILAN D’ENTRAÎNEMENT"
+	var completed_steps: int = 0
+	for report in reports:
+		completed_steps += 1 if bool(report.get("completed", false)) else 0
+	hero_caption.text = "ÉTAPES TERMINÉES"
+	hero_label.text = "%d / 3" % completed_steps
+	subtitle_label.text = "Retrouvez vos mesures pour chaque exercice."
+	stats.hide()
+	retry_button.hide()
+	context_root.show()
+	context.add_child(AimUI.label("Vos résultats par étape", 20))
+	for report in reports:
+		var scenario_id: String = str(report.get("scenario_id", ""))
+		var definition := ScenarioCatalog.find(scenario_id)
+		var exercise_title: String = ScenarioCopy.title(definition) if definition != null else str(ScenarioCopy.TITLES.get(scenario_id, scenario_id))
+		var card := AimUI.card(context, AimUI.SPACE_LG)
+		card.add_child(AimUI.label(exercise_title, 16, AimUI.ACCENT))
+		card.add_child(AimUI.label("Score %s" % PerformanceInsights.display(report.get("score", null), 0), 18))
+		var metrics: Dictionary = report.get("metrics", {})
+		card.add_child(AimUI.label("Touches %s · ratés %s · précision %s" % [PerformanceInsights.display(metrics.get("hits", null), 0), PerformanceInsights.display(metrics.get("misses", null), 0), PerformanceInsights.display(metrics.get("accuracy_pct", null), 1, "%")], 13, AimUI.MUTED))
+		if report.get("family", "") == "tracking":
+			var ratio: Variant = metrics.get("on_target_ratio", null)
+			card.add_child(AimUI.label("Temps sur cible : %s" % PerformanceInsights.display(float(ratio) * 100.0 if ratio != null else null, 1, "%"), 13, AimUI.MUTED))
+		if not bool(report.get("completed", false)):
+			card.add_child(AimUI.label("Étape interrompue", 13, AimUI.MUTED))
+		elif not bool(report.get("valid", true)):
+			card.add_child(AimUI.label("Mesure invalide", 13, AimUI.MUTED))
 
 
 func present_result(report: Dictionary, details: String, calibration_step: bool, stage_index: int, stage_total: int) -> void:

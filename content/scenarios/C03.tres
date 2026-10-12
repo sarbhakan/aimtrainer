@@ -5,15 +5,15 @@
 [resource]
 script=ExtResource("1")
 scenario_id="C03"
-revision=3
+revision=5
 distance_m=4.0
-title="Grid Targets"
-instructions="Six grandes sphères sur une grille de neuf positions : choisir la suivante, cliquer une fois et construire un rythme régulier sans sacrifier la précision."
+title="Multi-cibles"
+instructions="Six sphères réparties aléatoirement dans toute la zone de 44° sur 26°, sans grille : choisir la suivante, cliquer une fois et construire un rythme régulier. Les apparitions restent séparées et rejouables avec la même graine."
 family="click"
-layout="grid"
+layout="scatter"
 angular_diameter_deg=4.8
-yaw_extent_deg=18
-pitch_extent_deg=10
+yaw_extent_deg=22
+pitch_extent_deg=13
 min_transition_deg=5.5
 active_targets=6
 reference_hits_s=3

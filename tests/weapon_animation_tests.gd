@@ -25,11 +25,13 @@ func check(condition: bool, description: String) -> void:
 func run_standalone() -> void:
 	var started_us := Time.get_ticks_usec()
 	await run_suite(self, check)
-	if "--capture-weapons" in OS.get_cmdline_user_args() or "--capture-live-weapons" in OS.get_cmdline_user_args():
+	if "--capture-weapons" in OS.get_cmdline_user_args() or "--capture-live-weapons" in OS.get_cmdline_user_args() or "--capture-inspection-weapons" in OS.get_cmdline_user_args():
 		if DisplayServer.get_name() == "headless":
 			check(false, "Un affichage graphique est requis pour les captures d’arme.")
 		elif "--capture-live-weapons" in OS.get_cmdline_user_args():
 			await capture_live_weapons()
+		elif "--capture-inspection-weapons" in OS.get_cmdline_user_args():
+			await capture_inspection_weapons()
 		else:
 			await capture_weapons()
 	print("WEAPON ANIMATION : %d assertions, %d échecs." % [assertion_count, failure_count])
@@ -60,9 +62,13 @@ static func run_suite(tree: SceneTree, verify: Callable) -> void:
 	test_stop_paths(feedback, verify)
 	await test_pause(tree, feedback, verify)
 	await test_camera_isolation(tree, feedback, verify)
+	feedback.set_inspection_mode(true)
+	await test_camera_isolation(tree, feedback, verify)
 	feedback.queue_free()
 	await tree.process_frame
+	await test_inspection_switching(tree, verify)
 	await test_hud(tree, verify)
+	await test_hud_scores(tree, verify)
 	await tree.create_timer(0.15).timeout
 
 
@@ -383,16 +389,102 @@ static func test_preferences(feedback: WeaponFeedback, definition: WeaponDefinit
 static func test_preview(feedback: WeaponFeedback, definition: WeaponDefinition, verify: Callable) -> void:
 	feedback.set_hud_mode(false)
 	feedback.configure(definition, false, 0.45, true, false)
-	for dimensions in [Vector2(250, 125), Vector2(360, 200)]:
+	var viewport_id := feedback.viewmodel.viewport.get_instance_id()
+	var camera_id := feedback.viewmodel.camera.get_instance_id()
+	var texture_id := feedback.viewmodel.texture.get_instance_id()
+	var resting_transform := feedback.viewmodel.weapon_root.transform
+	for dimensions in [Vector2(80, 40), Vector2(250, 125), Vector2(333, 167), Vector2(360, 200), Vector2(160, 360), Vector2(1280, 120), Vector2(960, 540), Vector2(3840, 2160)]:
 		feedback.size = dimensions
 		feedback.play_shot()
 		verify.call(feedback.tracer_remaining_s == 0.0 and feedback.clip_contents, "Les aperçus n’envoient aucun tracer hors de leur contrôle.")
 		var rectangle := feedback.sprite_rect()
 		verify.call(rectangle.position == Vector2.ZERO and rectangle.size.is_equal_approx(dimensions) and feedback.viewmodel.get_rect().is_equal_approx(rectangle), "L’aperçu 3D reste strictement clippé à son contrôle.")
-		verify_axis(feedback, verify)
+		verify_inspection(feedback, verify)
 		verify.call(rectangle.has_point(feedback.muzzle_position()), "Le canon de l’aperçu reste dans son contrôle pendant le recul.")
+		verify.call(feedback.viewmodel.weapon_root.transform.is_equal_approx(resting_transform) and feedback.viewmodel.slide.position == Vector3.ZERO and not feedback.viewmodel.flash.visible and not feedback.is_processing(), "Écouter un tir conserve l’arme d’inspection entière et immobile.")
+		verify.call(feedback.viewmodel.viewport.size.x <= WeaponViewmodel.MAX_RENDER_SIZE_PX.x and feedback.viewmodel.viewport.size.y <= WeaponViewmodel.MAX_RENDER_SIZE_PX.y, "L’inspection borne la résolution même dans les grandes cartes.")
 		feedback.stop()
+	verify.call(feedback.viewmodel.viewport.get_instance_id() == viewport_id and feedback.viewmodel.camera.get_instance_id() == camera_id and feedback.viewmodel.texture.get_instance_id() == texture_id, "Redimensionner et écouter réutilise le viewport, la caméra et la texture d’inspection.")
 	feedback.set_hud_mode(true)
+
+
+static func verify_inspection(feedback: WeaponFeedback, verify: Callable) -> void:
+	var viewmodel := feedback.viewmodel
+	var model: Node3D = viewmodel.models[viewmodel.selected_id]
+	verify.call(viewmodel.inspection_mode and not feedback.hud_mode and viewmodel.camera.projection == Camera3D.PROJECTION_ORTHOGONAL, "Chaque aperçu non-HUD emploie automatiquement une caméra orthographique.")
+	verify.call(absf(viewmodel.camera.global_basis.z.normalized().dot(viewmodel.muzzle_axis())) < 0.00001 and viewmodel.camera.global_basis.y.is_equal_approx(Vector3.UP), "L’arme est vue exactement de profil, sans perspective ni inclinaison.")
+	var bounds_px := Rect2()
+	var bounds_m := AABB()
+	var has_bounds: bool = false
+	var complete_weapon: bool = true
+	var absent_hands: bool = true
+	for hand_root in viewmodel.hand_roots:
+		absent_hands = absent_hands and hand_root.has_meta("weapon_hand_root") and not hand_root.visible
+	for instance in viewmodel.meshes:
+		if not model.is_ancestor_of(instance):
+			continue
+		var belongs_to_hand: bool = false
+		var ancestor := instance.get_parent()
+		while ancestor != model:
+			belongs_to_hand = belongs_to_hand or ancestor.has_meta("weapon_hand_root")
+			ancestor = ancestor.get_parent()
+		if belongs_to_hand:
+			absent_hands = absent_hands and not instance.is_visible_in_tree()
+			continue
+		complete_weapon = complete_weapon and instance.is_visible_in_tree()
+		var projected := projected_bounds_px(viewmodel, instance)
+		var mesh_bounds := mesh_bounds_m(instance)
+		bounds_px = bounds_px.merge(projected) if has_bounds else projected
+		bounds_m = bounds_m.merge(mesh_bounds) if has_bounds else mesh_bounds
+		has_bounds = true
+	verify.call(has_bounds and complete_weapon and absent_hands and viewmodel.hand_roots.size() == 4, "Poignée, canon, culasse et crosse restent présents ; toutes les mains et manches sont masquées par leurs racines marquées.")
+	verify.call(bounds_m.is_equal_approx(viewmodel.inspection_bounds_m[viewmodel.selected_id]), "Le cadrage utilise les bounds de tous les meshes de l’arme, sans main, manche ni flash.")
+	var padded_region := viewmodel.region_px.grow_individual(-viewmodel.size.x * WeaponViewmodel.INSPECTION_PADDING_FRACTION, -viewmodel.size.y * WeaponViewmodel.INSPECTION_PADDING_FRACTION, -viewmodel.size.x * WeaponViewmodel.INSPECTION_PADDING_FRACTION, -viewmodel.size.y * WeaponViewmodel.INSPECTION_PADDING_FRACTION)
+	verify.call(padded_region.grow(0.02).encloses(bounds_px), "L’arme entière conserve dix pour cent de marge dans chaque carte : %s, %s." % [feedback.size, bounds_px])
+	verify.call(bounds_px.get_center().distance_to(feedback.size * 0.5) < 0.02 and viewmodel.project_to_control(bounds_m.get_center()).distance_to(feedback.size * 0.5) < 0.02, "Le centre des bounds de l’arme coïncide avec le centre de la carte.")
+	var occupied_fraction := maxf(bounds_px.size.x / feedback.size.x, bounds_px.size.y / feedback.size.y)
+	verify.call(absf(occupied_fraction - 0.8) < 0.002, "Le profil reste lisible en occupant quatre-vingts pour cent de son axe limitant.")
+
+
+static func test_inspection_switching(tree: SceneTree, verify: Callable) -> void:
+	var feedback: WeaponFeedback = FeedbackScript.new()
+	feedback.configure(WeaponCatalog.DEFINITIONS[1], false, 0.0, true, false)
+	tree.root.add_child(feedback)
+	await tree.process_frame
+	verify.call(not feedback.hud_mode and not feedback.viewmodel.rendering_enabled, "Un aperçu non-HUD peut être configuré avant son premier layout sans lancer un viewport vide.")
+	feedback.size = Vector2(360, 200)
+	await tree.process_frame
+	verify_inspection(feedback, verify)
+	var viewport_id := feedback.viewmodel.viewport.get_instance_id()
+	var node_count := count_nodes(feedback)
+	for definition in WeaponCatalog.DEFINITIONS:
+		feedback.configure(definition, false, 0.0, true, false)
+		verify_inspection(feedback, verify)
+		feedback.size = Vector2(1280, 720)
+		feedback.set_inspection_mode(false)
+		verify.call(feedback.hud_mode and not feedback.viewmodel.inspection_mode and feedback.viewmodel.camera.projection == Camera3D.PROJECTION_FRUSTUM and feedback.viewmodel.camera.transform == Transform3D.IDENTITY, "Quitter l’inspection restaure la caméra HUD après layout.")
+		var held_hands: bool = true
+		for hand_root in feedback.viewmodel.hand_roots:
+			held_hands = held_hands and hand_root.visible
+		verify.call(held_hands, "Revenir au HUD restaure chaque vraie main et sa manche.")
+		verify_axis(feedback, verify)
+		var resting_transform := feedback.viewmodel.weapon_root.transform
+		var resting_projection := feedback.viewmodel.camera.get_camera_projection()
+		feedback.play_shot()
+		feedback.set_inspection_mode(true)
+		feedback.size = Vector2(250, 125)
+		verify_inspection(feedback, verify)
+		verify.call(feedback.flash_remaining_s == 0.0 and feedback.tracer_remaining_s == 0.0 and not feedback.viewmodel.flash.visible and not feedback.is_processing(), "Passer en inspection pendant le recul efface tous les effets HUD.")
+		feedback.size = Vector2(1280, 720)
+		feedback.set_hud_mode(true)
+		verify.call(feedback.viewmodel.weapon_root.transform.is_equal_approx(resting_transform) and feedback.viewmodel.camera.get_camera_projection() == resting_projection, "Un aller-retour conserve exactement la pose et la projection HUD au repos.")
+		feedback.size = Vector2.ZERO
+		feedback.set_inspection_mode(true)
+		feedback.size = Vector2(360, 200)
+		verify_inspection(feedback, verify)
+	verify.call(count_nodes(feedback) == node_count and feedback.viewmodel.viewport.get_instance_id() == viewport_id, "Les commutations et layouts tardifs réutilisent tous les nœuds et le même viewport.")
+	feedback.queue_free()
+	await tree.process_frame
 
 
 static func test_stop_paths(feedback: WeaponFeedback, verify: Callable) -> void:
@@ -521,6 +613,59 @@ static func test_hud(tree: SceneTree, verify: Callable) -> void:
 	await tree.process_frame
 
 
+static func test_hud_scores(tree: SceneTree, verify: Callable) -> void:
+	var hud: TrainingHud = HudScript.new()
+	tree.root.add_child(hud)
+	hud.size = Vector2(1280, 720)
+	hud.configure({"weapon_id": "pulse", "sound_enabled": false})
+	await tree.process_frame
+	for tracking: bool in [false, true]:
+		hud.present_live(10.0, 30.0, 8, 10, tracking, 6.0, 10.0, 2.0)
+		var score_text := "Score 600" if tracking else "Score 256"
+		var metric_text := "60 %" if tracking else "8 · 80 %"
+		verify.call(hud.score_label.text == score_text and hud.metric_label.text == metric_text and hud.timer_label.text == "0:20", "Le HUD conserve les valeurs de référence clic et tracking du score V1.")
+		for definition in WeaponCatalog.DEFINITIONS:
+			hud.weapon_feedback.configure(definition, false, 0.0, true, false)
+			hud.weapon_feedback.play_shot()
+			hud.weapon_feedback.set_inspection_mode(true)
+			hud.weapon_feedback.play_shot()
+			hud.weapon_feedback.set_hud_mode(true)
+			hud.weapon_feedback.set_continuous(true)
+			hud.weapon_feedback._process(0.037)
+			hud.weapon_feedback.stop()
+			verify.call(hud.score_label.text == score_text and hud.metric_label.text == metric_text and hud.timer_label.text == "0:20" and hud.progress.value == 10.0, "Changer de profil, inspecter et tirer ne modifie aucun score, mesure ou temps du HUD.")
+	hud.queue_free()
+	await tree.process_frame
+
+
+func capture_inspection_weapons() -> void:
+	var directory := OS.get_environment("AIM_LOCAL_WEAPON_CAPTURE_DIR")
+	if directory.is_empty():
+		directory = "/tmp/aimlocal-weapon-inspection"
+	check(DirAccess.make_dir_recursive_absolute(directory) == OK, "Le dossier isolé des captures d’inspection est disponible.")
+	root.size = Vector2i(1280, 720)
+	var background := ColorRect.new()
+	background.color = Color("dedbd4")
+	root.add_child(background)
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var feedback: WeaponFeedback = FeedbackScript.new()
+	root.add_child(feedback)
+	for dimensions: Vector2i in [Vector2i(250, 125), Vector2i(360, 200), Vector2i(960, 540)]:
+		feedback.size = Vector2(dimensions)
+		feedback.position = (Vector2(root.size) - feedback.size) * 0.5
+		for definition in WeaponCatalog.DEFINITIONS:
+			feedback.configure(definition, false, 0.0, true, false)
+			await RenderingServer.frame_post_draw
+			await RenderingServer.frame_post_draw
+			var capture := root.get_texture().get_image().get_region(Rect2i(Vector2i(feedback.position), dimensions))
+			var path := directory.path_join("%d-inspection-%s.png" % [dimensions.x, definition.weapon_id])
+			check(capture.save_png(path) == OK, "Le profil nu a été capturé : " + path)
+	feedback.queue_free()
+	background.queue_free()
+	await process_frame
+	print("WEAPON INSPECTION CAPTURES : 9 rendus isolés dans " + directory)
+
+
 func capture_weapons() -> void:
 	var directory := OS.get_environment("AIM_LOCAL_WEAPON_CAPTURE_DIR")
 	if directory.is_empty():
@@ -583,7 +728,9 @@ func capture_live_weapons() -> void:
 	check(DirAccess.make_dir_recursive_absolute(directory) == OK, "Le dossier isolé des captures live est disponible.")
 	var main_scene := load("res://scenes/app/Main.tscn") as PackedScene
 	var app := main_scene.instantiate()
-	app.store = LocalStore.new("user://tests/weapon-live-" + LocalStore.new().identifier())
+	var store_script := load("res://scripts/persistence/local_store.gd") as GDScript
+	var store: RefCounted = store_script.new()
+	app.store = store_script.new("user://tests/weapon-live-" + str(store.call("identifier")))
 	var previous_mouse_mode := Input.mouse_mode
 	root.add_child(app)
 	app.start_practice("C03", 30.0)

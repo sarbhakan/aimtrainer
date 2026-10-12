@@ -27,7 +27,8 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	test_records()
 	for definition_index in ScenarioCatalog.DEFINITIONS.size():
 		var definition: ScenarioDefinition = ScenarioCatalog.DEFINITIONS[definition_index]
-		expect(definition.revision == (4 if definition.scenario_id in ["D01", "D02", "S02"] else 3) and definition.fingerprint() == fingerprints[definition_index], "L’audit ne doit pas modifier la difficulté publiée ou l’empreinte de " + definition.scenario_id + ".")
+		var expected_revision: int = 5 if definition.scenario_id in ["C03", "M01", "T10"] else 4 if definition.scenario_id in ["D01", "D02", "S02"] else 3
+		expect(definition.revision == expected_revision and definition.fingerprint() == fingerprints[definition_index], "L’audit ne doit pas modifier la difficulté publiée ou l’empreinte de " + definition.scenario_id + ".")
 	return true
 
 
@@ -52,6 +53,10 @@ func test_preview_definitions() -> void:
 		expect(live.targets == live_targets and live.rng.state == live_rng_state and live.elapsed_s == 0.0 and live.shots == 0 and live.timeline.event_count == 0 and definition.fingerprint() == source_fingerprint, "Jouer l'aperçu ne doit modifier ni la ressource, ni le RNG, ni les mesures d'un exercice réel.")
 		var revised: ScenarioDefinition = definition.duplicate() as ScenarioDefinition
 		revised.angular_diameter_deg *= 0.9
+		if revised.has_diameter_variation():
+			revised.angular_diameter_min_deg *= 0.9
+			revised.angular_diameter_max_deg *= 0.9
+		expect(revised.validate().is_empty(), definition.scenario_id + " : la fixture de taille réduite doit conserver une enveloppe cohérente avant de reconfigurer l'aperçu.")
 		preview.configure(revised)
 		expect(preview.preview_error.is_empty() and preview.elapsed_s == 0.0 and preview.engine.definition.fingerprint() == revised.fingerprint() and preview.engine.definition.angular_diameter_deg == revised.angular_diameter_deg and preview.engine.definition.distance_m == revised.distance_m, "Reconfigurer l'aperçu doit relire taille et profondeur depuis la définition, sans cache d'ancienne difficulté.")
 		preview.free()
@@ -169,7 +174,7 @@ func test_countdown_preparation(tree: SceneTree) -> void:
 				expect(app.target_pool.spheres[target_index].global_transform.is_equal_approx(transforms[target_index]), "La sphère préparée doit garder sa direction mondiale et son rayon pendant le décompte et les mouvements souris.")
 			expect(app.engine != preparation and app.engine.definition == null and app.engine.shots == 0 and app.engine.elapsed_s == 0.0 and app.engine.timeline.event_count == 0 and preparation.shots == 0 and preparation.elapsed_s == 0.0 and preparation.on_target_s == 0.0 and preparation.timeline.event_count == 0, "La préparation doit utiliser un second moteur, sans tirs, temps actif ni mesures de visée.")
 		app.begin_training(Time.get_ticks_usec())
-		expect(app.screen == AppScript.Screen.TRAINING and app.engine.definition.fingerprint() == definition.fingerprint() and app.engine.rng.state == initial_rng_state and app.engine.spawned == definition.active_targets, "Le départ doit recréer le moteur mesuré à zéro avec la même graine et la difficulté de révision 3.")
+		expect(app.screen == AppScript.Screen.TRAINING and app.engine.definition.fingerprint() == definition.fingerprint() and app.engine.rng.state == initial_rng_state and app.engine.spawned == definition.active_targets, "Le départ doit recréer le moteur mesuré à zéro avec la même graine et la difficulté publiée.")
 		expect(app.engine.elapsed_s == 0.0 and app.engine.integrated_s == 0.0 and app.engine.shots == 0 and app.engine.timeline.event_count == 0 and app.engine.timeline.angular_path_deg == 0.0, "Aucune mesure du décompte ne doit être transférée dans la séance.")
 		expect(app.aim_camera.received_x_counts == 7.0 and app.aim_camera.received_y_counts == -5.0 and app.initial_x_counts == 7.0 and app.initial_y_counts == -5.0 and app.engine.timeline.last_yaw_deg == app.aim_camera.yaw_deg and app.engine.timeline.last_pitch_deg == app.aim_camera.pitch_deg, "Les counts du décompte doivent orienter la caméra et servir de référence initiale, sans être supprimés ni ajoutés au trajet mesuré.")
 		for target_index in transforms.size():

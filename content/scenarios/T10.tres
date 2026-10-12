@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="ScenarioDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/training/scenario_definition.gd" id="1"]
+
+[resource]
+script=ExtResource("1")
+scenario_id="T10"
+revision=5
+title="Suivi multidirectionnel"
+instructions="Suivre sans cliquer une sphère en déplacements latéraux, verticaux, diagonaux et avant/arrière entre 3 et 5 m. Les destinations sont seedées, les virages continus et la vitesse angulaire bornée à 18°/s. La sphère garde son rayon physique ; sa silhouette varie avec la profondeur."
+family="tracking"
+motion="waypoints"
+layout="scatter"
+angular_diameter_deg=4.0
+angular_diameter_min_deg=3.0
+angular_diameter_max_deg=5.5
+diameter_motion="perspective"
+distance_m=4.0
+distance_min_m=3.0
+distance_max_m=5.0
+yaw_extent_deg=20
+pitch_extent_deg=12
+speed_deg_s=18.0
+depth_speed_m_s=1.2
+waypoint_min_duration_s=0.6

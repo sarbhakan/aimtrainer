@@ -5,6 +5,9 @@ signal calibration_requested
 signal guided_calibration_requested
 signal guided_resume_requested
 signal calibration_resume_requested
+signal progressive_requested(exploration: bool, duration_s: float)
+signal progressive_resume_requested
+signal routine_requested(duration_s: float)
 signal training_requested(scenario_id: String, duration_s: float)
 signal profile_save_requested
 signal reference_import_requested(profile: Dictionary)
@@ -37,6 +40,15 @@ var calibration_button: Button
 var guided_calibration_button: Button
 var guided_resume_button: Button
 var resume_calibration_button: Button
+var progressive_button: Button
+var progressive_exploration_button: Button
+var progressive_resume_button: Button
+var calibration_duration_input: OptionButton
+var progressive_effort_label: Label
+var novice_input: OptionButton
+var routine_button: Button
+var routine_duration_input: OptionButton
+var routine_effort_label: Label
 var status_label: Label
 var conversion_label: Label
 var conversion_value: float = 0.0
@@ -230,10 +242,10 @@ func build_home(content: VBoxContainer) -> void:
 	var layout := AimUI.row(hero, AimUI.SPACE_XL)
 	var introduction := AimUI.column(layout)
 	introduction.add_child(AimUI.label("Votre première séance", 28))
-	introduction.add_child(AimUI.label("Cliquez sur les cibles de la grille pendant 30 s.", 15))
+	introduction.add_child(AimUI.label("Cliquez sur les cibles réparties devant vous pendant 30 s.", 15))
 	introduction.add_child(AimUI.label("Résultats : précision (%) et cibles touchées par minute.", 13, AimUI.MUTED))
 	var actions := AimUI.flow(introduction)
-	home_start_button = AimUI.button("Lancer la grille · 30 s", func() -> void: training_requested.emit("C03", 30.0), true)
+	home_start_button = AimUI.button("Lancer les multicibles · 30 s", func() -> void: training_requested.emit("C03", 30.0), true)
 	actions.add_child(home_start_button)
 	actions.add_child(AimUI.button("Configurer ma souris", func() -> void: show_page(2)))
 	var preview := ScenarioPreview.new()
@@ -242,6 +254,15 @@ func build_home(content: VBoxContainer) -> void:
 	preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	layout.add_child(preview)
 	preview.configure(ScenarioCatalog.find("C03"), true)
+	var routine := AimUI.card(content, AimUI.SPACE_LG)
+	routine.add_child(AimUI.label("Entraînement complet", 20))
+	routine.add_child(AimUI.label("1 · %s   →   2 · %s   →   3 · %s" % [ScenarioCopy.TITLES.M01, ScenarioCopy.TITLES.T10, ScenarioCopy.TITLES.S02], 14, AimUI.MUTED))
+	routine_duration_input = build_measured_duration(routine, "routineDuration")
+	routine_effort_label = AimUI.label("", 12, AimUI.MUTED)
+	routine.add_child(routine_effort_label)
+	routine_button = AimUI.button("Entraînement complet  →", func() -> void: routine_requested.emit(measured_duration_s(routine_duration_input)), true)
+	AimUI.flow(routine).add_child(routine_button)
+	routine_duration_input.item_selected.connect(func(_index: int) -> void: update_measured_effort())
 	var activity_heading := AimUI.row(content)
 	activity_heading.add_child(AimUI.label("Travailler un geste", 18))
 	activity_heading.add_child(AimUI.button("Toutes les activités", func() -> void: show_page(1)))
@@ -343,14 +364,40 @@ func _input(event: InputEvent) -> void:
 
 
 func build_calibration(content: VBoxContainer) -> void:
-	calibration_choices = AimUI.column(page_host, AimUI.SPACE_SM)
-	page_host.move_child(calibration_choices, content.get_parent().get_index())
+	calibration_choices = AimUI.column(content, AimUI.SPACE_SM)
+	calibration_duration_input = build_measured_duration(calibration_choices, "calibrationDuration")
+	progressive_effort_label = AimUI.label("", 12, AimUI.MUTED)
+	calibration_choices.add_child(progressive_effort_label)
+	calibration_duration_input.item_selected.connect(func(_index: int) -> void: update_measured_effort())
+	progressive_resume_button = AimUI.button("Reprendre ma calibration", func() -> void: progressive_resume_requested.emit())
+	progressive_resume_button.hide()
+	AimUI.flow(calibration_choices).add_child(progressive_resume_button)
 	calibration_choice_grid = GridContainer.new()
 	calibration_choice_grid.columns = 2
 	calibration_choice_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	AimUI.grid_spacing(calibration_choice_grid)
 	calibration_choices.add_child(calibration_choice_grid)
-	var guided := AimUI.card(calibration_choice_grid, AimUI.SPACE_LG)
+	var known := AimUI.card(calibration_choice_grid, AimUI.SPACE_LG)
+	known.add_child(AimUI.label("Réglage connu", 18))
+	known.add_child(AimUI.label("Partez de votre profil actuel, essayez plus rapide, puis affinez selon vos scores.", 13, AimUI.MUTED))
+	progressive_button = AimUI.button("Réglage connu  →", func() -> void: progressive_requested.emit(false, measured_duration_s(calibration_duration_input)), true)
+	AimUI.flow(known).add_child(progressive_button)
+	var newcomer := AimUI.card(calibration_choice_grid, AimUI.SPACE_LG)
+	newcomer.add_child(AimUI.label("Nouveau réglage", 18))
+	newcomer.add_child(AimUI.label("Choisissez vos DPI et un point de départ, puis explorez selon vos scores.", 13, AimUI.MUTED))
+	novice_input = OptionButton.new()
+	for caption in ["Profil actuel", "Plus lent", "Équilibré", "Plus rapide"]:
+		novice_input.add_item(caption)
+	novice_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	novice_input.item_selected.connect(func(index: int) -> void:
+		if index > 0:
+			distance_input.set_precise_value([50.0, 35.0, 25.0][index - 1]))
+	newcomer.add_child(novice_input)
+	progressive_exploration_button = AimUI.button("Nouveau réglage  →", func() -> void: progressive_requested.emit(true, measured_duration_s(calibration_duration_input)), true)
+	AimUI.flow(newcomer).add_child(progressive_exploration_button)
+	var legacy_controls := AimUI.column(content)
+	legacy_controls.hide()
+	var guided := AimUI.card(legacy_controls, AimUI.SPACE_LG)
 	guided.add_theme_constant_override("separation", AimUI.SPACE_SM)
 	guided.add_child(AimUI.label("Je cherche un point de départ", 18))
 	guided.add_child(AimUI.label("Explorez, puis affinez selon votre confort.", 13, AimUI.MUTED))
@@ -359,11 +406,12 @@ func build_calibration(content: VBoxContainer) -> void:
 	guided.add_child(guided_effort_label)
 	var guided_actions := AimUI.flow(guided)
 	guided_calibration_button = AimUI.button("Trouver mon réglage", func() -> void: guided_calibration_requested.emit(), true)
+	guided_calibration_button.hide()
 	guided_actions.add_child(guided_calibration_button)
 	guided_resume_button = AimUI.button("Reprendre la recherche", func() -> void: guided_resume_requested.emit())
 	guided_resume_button.hide()
 	guided_actions.add_child(guided_resume_button)
-	var quick := AimUI.card(calibration_choice_grid, AimUI.SPACE_LG)
+	var quick := AimUI.card(legacy_controls, AimUI.SPACE_LG)
 	quick.add_theme_constant_override("separation", AimUI.SPACE_SM)
 	quick.add_child(AimUI.label("J’ai déjà un réglage", 18))
 	quick.add_child(AimUI.label("Comparez trois réglages à ±10 % de vitesse.", 13, AimUI.MUTED))
@@ -371,6 +419,7 @@ func build_calibration(content: VBoxContainer) -> void:
 	quick.add_child(quick_effort_label)
 	var quick_actions := AimUI.flow(quick)
 	calibration_button = AimUI.button("Comparer mon réglage", func() -> void: calibration_requested.emit())
+	calibration_button.hide()
 	quick_actions.add_child(calibration_button)
 	resume_calibration_button = AimUI.button("Reprendre", func() -> void: calibration_resume_requested.emit())
 	resume_calibration_button.hide()
@@ -414,7 +463,7 @@ func build_calibration(content: VBoxContainer) -> void:
 		for field in ["cm_per_360", "reference_game"]:
 			applied[field] = profile[field]
 		reference_import_requested.emit(applied))
-	var details := AimUI.foldout(content, "Les cinq activités de la comparaison")
+	var details := AimUI.foldout(content, "Les cinq exercices de calibration")
 	protocol_grid = GridContainer.new()
 	AimUI.grid_spacing(protocol_grid, AimUI.SPACE_MD)
 	details.add_child(protocol_grid)
@@ -423,7 +472,32 @@ func build_calibration(content: VBoxContainer) -> void:
 		var block := AimUI.card(protocol_grid, AimUI.SPACE_LG)
 		block.add_child(AimUI.label("%02d · %s" % [scenario_index + 1, ScenarioCopy.title(definition)], 14))
 		block.add_child(AimUI.label(ScenarioCopy.description(definition), 12, AimUI.MUTED))
-	details.add_child(AimUI.label("Par activité : 3 échauffements exclus du score, puis 3 passages par réglage. Le conseil porte sur les valeurs essayées ; confirmez-le un autre jour.", 13, AimUI.MUTED))
+	details.add_child(AimUI.label("Cinq sensibilités différentes par exercice, soit 25 mesures. Les scores orientent les prochains essais et l’affinage du point faible. Vous pouvez faire une pause et reprendre.", 13, AimUI.MUTED))
+	update_measured_effort()
+
+
+func build_measured_duration(parent: Node, control_name: String) -> OptionButton:
+	var duration_row := AimUI.row(parent)
+	duration_row.add_child(AimUI.label("Durée par essai", 14))
+	var duration := OptionButton.new()
+	duration.name = control_name
+	duration.add_item("45 s", 45)
+	duration.add_item("60 s", 60)
+	duration.select(1)
+	duration.custom_minimum_size.x = AimUI.FIELD_WIDTH_PX
+	duration_row.add_child(duration)
+	return duration
+
+
+func measured_duration_s(duration: OptionButton) -> float:
+	return float(duration.get_selected_id())
+
+
+func update_measured_effort() -> void:
+	if progressive_effort_label != null:
+		progressive_effort_label.text = "5 exercices × 5 essais · 25 mesures · environ %d min avec pauses · reprise possible" % (28 if measured_duration_s(calibration_duration_input) == 60.0 else 22)
+	if routine_effort_label != null:
+		routine_effort_label.text = "3 étapes · %s min de mesure · même sensibilité" % AimUI.number(3.0 * measured_duration_s(routine_duration_input) / 60.0, 2 if measured_duration_s(routine_duration_input) == 45.0 else 0)
 
 
 func build_conversion(content: VBoxContainer) -> void:
@@ -650,6 +724,11 @@ func sync_sensitivity() -> void:
 	sensitivity_input.set_precise_value(SensitivityService.game_sensitivity(dpi_input.value, current_distance_cm, SensitivityService.APP_YAW_DEG))
 	for index in preset_buttons.size():
 		preset_buttons[index].set_pressed_no_signal(is_equal_approx(distance_input.value, [50.0, 35.0, 25.0][index]))
+	if novice_input != null:
+		novice_input.select(0)
+		for index in 3:
+			if is_equal_approx(current_distance_cm, [50.0, 35.0, 25.0][index]):
+				novice_input.select(index + 1)
 	var custom_start := not is_equal_approx(distance_input.value, 50.0) and not is_equal_approx(distance_input.value, 35.0) and not is_equal_approx(distance_input.value, 25.0)
 	start_help_label.text = "Réglage personnalisé conservé. Gardez les mêmes DPI pendant la comparaison." if custom_start else "Gardez les mêmes DPI pendant la comparaison."
 	profile_badge.text = "%s · %d DPI" % [AimUI.sensitivity(sensitivity_input.value), int(dpi_input.value)]
@@ -765,6 +844,7 @@ func update_layout() -> void:
 	conversion_label.add_theme_font_size_override("font_size", 34 if compact else 42)
 	game_input.custom_minimum_size.x = 240.0 if not compact else AimUI.FIELD_WIDTH_PX
 	calibration_grid.columns = 2 if size.x >= 1180.0 else 1
+	calibration_choice_grid.columns = 2 if available_width_px >= 640.0 else 1
 	protocol_grid.columns = 5 if size.x >= 1700.0 else 3 if size.x >= 1180.0 else 2
 	progress_board.update_layout()
 

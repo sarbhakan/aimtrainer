@@ -5,36 +5,16 @@ var environment_meshes: Array[MeshInstance3D] = []
 
 
 func _ready() -> void:
-	var pearl := material(Color("b0afa4"), 0.94)
-	var ivory := material(Color("bdb8a9"), 0.88)
-	var graphite := material(Color("33434d"), 0.68)
-	var cobalt := material(Color("345d79"), 0.72)
-	var steel := material(Color("717c83"), 0.48, 0.35)
-	var glass := material(Color("a9c5d3"), 0.32)
+	var pearl := material(Color("c9ccc9"), 0.94)
+	var slate := material(Color("788991"), 0.9)
+	var trim := material(Color("9fa8ab"), 0.92)
 	for side in [-1.0, 1.0]:
-		add_block(Vector3(side * 10.2, 4.45, -11.7), Vector3(3.5, 8.8, 0.4), cobalt)
-		add_block(Vector3(side * 8.35, 4.45, -11.55), Vector3(0.18, 9.0, 0.55), graphite)
-		add_block(Vector3(side * 12.0, 4.45, -11.55), Vector3(0.18, 9.0, 0.55), graphite)
-		add_block(Vector3(side * 10.15, 0.3, -11.4), Vector3(3.7, 0.32, 0.3), steel)
-		add_block(Vector3(side * 13.5, 4.5, -5.5), Vector3(0.3, 9.0, 13.0), pearl)
-		add_block(Vector3(side * 13.29, 5.9, -6.0), Vector3(0.12, 3.5, 7.0), glass)
-		add_block(Vector3(side * 13.18, 4.05, -6.0), Vector3(0.3, 0.16, 7.2), steel)
-		add_block(Vector3(side * 12.8, 0.06, -6.5), Vector3(0.13, 0.12, 13.0), graphite)
-	for panel_index in 5:
-		var horizontal_m := float(panel_index - 2) * 2.85
-		var vertical_m: float = [4.0, 4.8, 4.35, 4.0, 4.6][panel_index]
-		add_block(Vector3(horizontal_m, vertical_m, -11.72), Vector3(2.55, 5.8, 0.3), ivory if panel_index % 2 == 0 else pearl)
-	add_block(Vector3(0.0, 0.16, -11.63), Vector3(26.8, 0.3, 0.5), graphite)
-	add_block(Vector3(0.0, 8.95, -11.35), Vector3(27.0, 0.3, 0.9), steel)
-	for side in [-1.0, 1.0]:
-		add_block(Vector3(side * 10.2, 9.2, -6.0), Vector3(6.4, 0.3, 13.0), ivory)
-	for roof_depth_m in [-11.4, -0.6]:
-		add_block(Vector3(0.0, 9.2, roof_depth_m), Vector3(14.0, 0.3, 2.2), ivory)
-	for beam_depth_m in [-2.5, -6.5, -10.5]:
-		add_block(Vector3(0.0, 8.98, beam_depth_m), Vector3(27.0, 0.3, 0.24), graphite)
-	add_block(Vector3(0.0, 9.0, -6.5), Vector3(14.0, 0.08, 7.6), glass)
-	environment_meshes.back().cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_block(Vector3(side * 10.8, 4.2, -11.8), Vector3(2.6, 7.8, 0.16), slate)
+		add_block(Vector3(side * 13.5, 4.5, -5.5), Vector3(0.4, 9.0, 12.0), pearl)
+		add_block(Vector3(side * 13.24, 0.12, -5.5), Vector3(0.16, 0.24, 12.0), trim)
+	add_block(Vector3(0.0, 0.12, -11.8), Vector3(26.6, 0.24, 0.16), trim)
 	set_process(false)
+	set_physics_process(false)
 
 
 func material(color: Color, roughness: float, metallic: float = 0.0) -> StandardMaterial3D:
@@ -46,11 +26,76 @@ func material(color: Color, roughness: float, metallic: float = 0.0) -> Standard
 
 
 func add_block(center: Vector3, dimensions: Vector3, surface: Material) -> void:
-	var mesh := BoxMesh.new()
-	mesh.size = dimensions
-	mesh.material = surface
+	var mesh := beveled_box(dimensions)
+	mesh.surface_set_material(0, surface)
 	var instance := MeshInstance3D.new()
 	instance.mesh = mesh
 	instance.position = center
 	add_child(instance)
 	environment_meshes.append(instance)
+
+
+func beveled_box(dimensions_m: Vector3) -> ArrayMesh:
+	var half_m := dimensions_m * 0.5
+	var bevel_m := minf(0.06, minf(half_m.x, minf(half_m.y, half_m.z)) * 0.3)
+	var inset_m := half_m - Vector3.ONE * bevel_m
+	var builder := SurfaceTool.new()
+	builder.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for axis_index in 3:
+		var next_axis := (axis_index + 1) % 3
+		var last_axis := (axis_index + 2) % 3
+		for side in [-1.0, 1.0]:
+			var polygon := PackedVector3Array()
+			for corner in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
+				var point_m := Vector3.ZERO
+				point_m[axis_index] = side * half_m[axis_index]
+				point_m[next_axis] = corner.x * inset_m[next_axis]
+				point_m[last_axis] = corner.y * inset_m[last_axis]
+				polygon.append(point_m)
+			append_face(builder, polygon)
+	for first_axis in 3:
+		for second_axis in range(first_axis + 1, 3):
+			var edge_axis := 3 - first_axis - second_axis
+			for first_side in [-1.0, 1.0]:
+				for second_side in [-1.0, 1.0]:
+					var first_m := Vector3.ZERO
+					first_m[first_axis] = first_side * half_m[first_axis]
+					first_m[second_axis] = second_side * inset_m[second_axis]
+					first_m[edge_axis] = -inset_m[edge_axis]
+					var second_m := Vector3.ZERO
+					second_m[first_axis] = first_side * inset_m[first_axis]
+					second_m[second_axis] = second_side * half_m[second_axis]
+					second_m[edge_axis] = -inset_m[edge_axis]
+					var third_m := second_m
+					third_m[edge_axis] = inset_m[edge_axis]
+					var fourth_m := first_m
+					fourth_m[edge_axis] = inset_m[edge_axis]
+					append_face(builder, PackedVector3Array([first_m, second_m, third_m, fourth_m]))
+	for horizontal_side in [-1.0, 1.0]:
+		for vertical_side in [-1.0, 1.0]:
+			for depth_side in [-1.0, 1.0]:
+				var signs := Vector3(horizontal_side, vertical_side, depth_side)
+				append_face(builder, PackedVector3Array([
+					signs * Vector3(half_m.x, inset_m.y, inset_m.z),
+					signs * Vector3(inset_m.x, half_m.y, inset_m.z),
+					signs * Vector3(inset_m.x, inset_m.y, half_m.z)]))
+	return builder.commit()
+
+
+func append_face(builder: SurfaceTool, polygon: PackedVector3Array) -> void:
+	var normal := (polygon[1] - polygon[0]).cross(polygon[2] - polygon[0]).normalized()
+	var center_m := Vector3.ZERO
+	for point_m in polygon:
+		center_m += point_m
+	if normal.dot(center_m) < 0.0:
+		normal = -normal
+	for triangle_index in range(1, polygon.size() - 1):
+		var second_m := polygon[triangle_index]
+		var third_m := polygon[triangle_index + 1]
+		if (second_m - polygon[0]).cross(third_m - polygon[0]).dot(normal) > 0.0:
+			var previous_second_m := second_m
+			second_m = third_m
+			third_m = previous_second_m
+		for point_m in [polygon[0], second_m, third_m]:
+			builder.set_normal(normal)
+			builder.add_vertex(point_m)

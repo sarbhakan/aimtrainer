@@ -4,6 +4,7 @@ extends TextureRect
 const MAX_RENDER_SIZE_PX := Vector2i(960, 540)
 const VIEW_FOV_DEG: float = 50.0
 const AIM_DEPTH_M: float = 18.0
+const INSPECTION_PADDING_FRACTION: float = 0.10
 
 var viewport: SubViewport
 var camera: Camera3D
@@ -16,11 +17,14 @@ var flash_material: StandardMaterial3D
 var models: Dictionary = {}
 var meshes: Array[MeshInstance3D] = []
 var materials: Dictionary = {}
+var hand_roots: Array[Node3D] = []
+var inspection_bounds_m: Dictionary[String, AABB] = {}
 var region_px := Rect2()
 var control_size_px := Vector2.ZERO
 var aim_point_m := Vector3.ZERO
 var mount_position_m := Vector3.ZERO
 var hud_mode: bool = false
+var inspection_mode: bool = true
 var rendering_enabled: bool = false
 var animated: bool = false
 var selected_id: String = ""
@@ -40,7 +44,7 @@ func _ready() -> void:
 	viewport.transparent_bg = true
 	viewport.gui_disable_input = true
 	viewport.physics_object_picking = false
-	viewport.msaa_3d = Viewport.MSAA_2X
+	viewport.msaa_3d = Viewport.MSAA_4X
 	viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	viewport.process_mode = Node.PROCESS_MODE_DISABLED
 	add_child(viewport)
@@ -71,6 +75,9 @@ func _ready() -> void:
 	build_vector()
 	build_classic()
 	build_flash()
+	cache_inspection_bounds()
+	for hand_root in hand_roots:
+		hand_root.hide()
 	weapon_root.hide()
 	hide()
 
@@ -103,11 +110,16 @@ func set_profile(weapon_id: String, color: Color) -> void:
 	flash_material.emission = color
 	weapon_root.show()
 	apply_pose(0.0, 0.0)
+	if inspection_mode:
+		frame_inspection()
 
 
 func set_layout(dimensions_px: Vector2, in_hud: bool, clearance_px: float) -> void:
 	control_size_px = dimensions_px
 	hud_mode = in_hud
+	inspection_mode = not in_hud
+	for hand_root in hand_roots:
+		hand_root.visible = in_hud
 	region_px = Rect2(Vector2.ZERO, dimensions_px)
 	if hud_mode:
 		var margin_px := maxf(clearance_px, 18.0) + 8.0
@@ -120,6 +132,13 @@ func set_layout(dimensions_px: Vector2, in_hud: bool, clearance_px: float) -> vo
 		return
 	var resolution_scale := minf(1.0, minf(float(MAX_RENDER_SIZE_PX.x) / size.x, float(MAX_RENDER_SIZE_PX.y) / size.y))
 	viewport.size = Vector2i(maxi(roundi(size.x * resolution_scale), 2), maxi(roundi(size.y * resolution_scale), 2))
+	if inspection_mode:
+		apply_pose(0.0, 0.0)
+		frame_inspection()
+		request_render()
+		return
+	camera.transform = Transform3D.IDENTITY
+	camera.keep_aspect = Camera3D.KEEP_HEIGHT
 	var near_height_m := 2.0 * camera.near * tan(deg_to_rad(VIEW_FOV_DEG * 0.5))
 	var offset_px := region_px.get_center() - dimensions_px * 0.5
 	var offset_m := Vector2(offset_px.x, -offset_px.y) * near_height_m / dimensions_px.y
@@ -128,6 +147,42 @@ func set_layout(dimensions_px: Vector2, in_hud: bool, clearance_px: float) -> vo
 	var anchor_uv := Vector2(0.84, 0.80) if hud_mode else Vector2(0.70, 0.96)
 	mount_position_m = unproject_from_control(dimensions_px * anchor_uv, 2.0 if hud_mode else 1.45)
 	apply_pose(0.0, 0.0)
+	request_render()
+
+
+func cache_inspection_bounds() -> void:
+	for weapon_id: String in models:
+		var model: Node3D = models[weapon_id]
+		var inverse_model := model.global_transform.affine_inverse()
+		var bounds_m := AABB()
+		var has_bounds: bool = false
+		for instance in meshes:
+			if not model.is_ancestor_of(instance) or is_hand_mesh(instance):
+				continue
+			var mesh_bounds_m := (inverse_model * instance.global_transform) * instance.mesh.get_aabb()
+			bounds_m = bounds_m.merge(mesh_bounds_m) if has_bounds else mesh_bounds_m
+			has_bounds = true
+		inspection_bounds_m[weapon_id] = bounds_m
+
+
+func is_hand_mesh(instance: MeshInstance3D) -> bool:
+	for hand_root in hand_roots:
+		if hand_root.is_ancestor_of(instance):
+			return true
+	return false
+
+
+func frame_inspection() -> void:
+	if not inspection_bounds_m.has(selected_id) or region_px.size.x < 2.0 or region_px.size.y < 2.0:
+		return
+	var bounds_m: AABB = inspection_bounds_m[selected_id]
+	var center_m := weapon_root.global_transform * bounds_m.get_center()
+	camera.position = center_m + Vector3.RIGHT * (bounds_m.size.x * 0.5 + 2.0)
+	camera.basis = Basis.looking_at(Vector3.LEFT, Vector3.UP)
+	camera.keep_aspect = Camera3D.KEEP_HEIGHT
+	var aspect := float(viewport.size.x) / float(viewport.size.y)
+	var height_m := maxf(bounds_m.size.y, bounds_m.size.z / aspect) / (1.0 - 2.0 * INSPECTION_PADDING_FRACTION)
+	camera.set_orthogonal(height_m, camera.near, camera.far)
 	request_render()
 
 
@@ -157,6 +212,11 @@ func muzzle_axis() -> Vector3:
 
 func apply_pose(recoil_weight: float, flash_weight: float) -> void:
 	if muzzle == null:
+		return
+	if inspection_mode:
+		weapon_root.transform = Transform3D.IDENTITY
+		slide.position = Vector3.ZERO
+		flash.hide()
 		return
 	var weight := clampf(recoil_weight, 0.0, 1.0)
 	var origin_m := mount_position_m + Vector3(0.022, -0.036, 0.10) * weight
@@ -404,7 +464,9 @@ func build_grip(parent: Node3D, surface: Material) -> void:
 	hand.name = "GrippingHand"
 	hand.position = grip_origin_m
 	hand.rotation = grip_rotation_rad
+	hand.set_meta("weapon_hand_root", true)
 	parent.add_child(hand)
+	hand_roots.append(hand)
 	var glove := _finish(Color("414649"), 0.0, 0.94)
 	var palm_centers_m: PackedVector3Array = [Vector3(0.038, -0.135, 0.132), Vector3(0.038, -0.10, 0.132), Vector3(0.035, -0.04, 0.13), Vector3(0.03, 0.035, 0.122), Vector3(0.02, 0.082, 0.112), Vector3(0.014, 0.112, 0.10)]
 	var palm_radii_m: PackedVector2Array = [Vector2(0.055, 0.041), Vector2(0.075, 0.052), Vector2(0.089, 0.057), Vector2(0.087, 0.054), Vector2(0.077, 0.042), Vector2(0.046, 0.027)]
@@ -436,7 +498,9 @@ func build_grip(parent: Node3D, surface: Material) -> void:
 func _support_hand(parent: Node3D) -> void:
 	var hand := Node3D.new()
 	hand.name = "SupportHand"
+	hand.set_meta("weapon_hand_root", true)
 	parent.add_child(hand)
+	hand_roots.append(hand)
 	var glove := _finish(Color("414649"), 0.0, 0.94)
 	var palm_centers_m: PackedVector3Array = [Vector3(-0.01, -0.122, -0.585), Vector3(-0.006, -0.125, -0.638), Vector3(-0.005, -0.126, -0.72), Vector3(-0.006, -0.123, -0.80), Vector3(-0.012, -0.12, -0.854)]
 	var palm_radii_m: PackedVector2Array = [Vector2(0.05, 0.036), Vector2(0.087, 0.052), Vector2(0.098, 0.06), Vector2(0.089, 0.053), Vector2(0.053, 0.036)]

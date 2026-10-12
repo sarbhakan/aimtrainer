@@ -201,10 +201,13 @@ static func run_suite(tree: SceneTree, verify: Callable) -> void:
 				dashboard.guided_resume_button.show()
 				dashboard.resume_calibration_button.show()
 				await settle(tree)
-				var choices_bottom_px := dashboard.calibration_choices.get_global_rect().end.y
-				verify.call(dashboard.pages[2].get_global_rect().position.y - choices_bottom_px >= AimUI.SPACE_MD, "Les choix et le formulaire sont séparés à %s." % dimensions)
+				var calibration_content := dashboard.calibration_choices.get_parent() as VBoxContainer
+				verify.call(calibration_content.get_theme_constant("separation") >= AimUI.SPACE_MD and dashboard.calibration_choices.get_global_rect().size.x <= dashboard.pages[2].size.x + 1.0, "Choix et formulaire partagent une colonne défilante correctement espacée à %s." % dimensions)
 				verify.call(dashboard.pages[2].size.y >= 80.0, "Le formulaire conserve un défilement utilisable avec les reprises à %s." % dimensions)
-				verify.call(viewport_rect.encloses(dashboard.guided_resume_button.get_global_rect()) and viewport_rect.encloses(dashboard.resume_calibration_button.get_global_rect()), "Les reprises restent visibles à %s." % dimensions)
+				dashboard.progressive_resume_button.show()
+				dashboard.progressive_resume_button.grab_focus()
+				await settle(tree)
+				verify.call(not dashboard.guided_resume_button.is_visible_in_tree() and not dashboard.resume_calibration_button.is_visible_in_tree() and (dashboard.pages[2] as ScrollContainer).get_global_rect().encloses(dashboard.progressive_resume_button.get_global_rect()), "Seule la reprise progressive est visible et révélée au focus à %s." % dimensions)
 			else:
 				var scroll := dashboard.pages[page_index] as ScrollContainer
 				verify_scroll(scroll, verify, "page %d à %s" % [page_index, dimensions])

@@ -98,6 +98,19 @@ func record_frame(delta_s: float) -> void:
 
 
 func spawn_target(target_index: int, time_s: float) -> void:
+	if definition.spawn_pattern == "mixed":
+		spawn_mixed_target(target_index, time_s)
+		return
+	if definition.motion == "waypoints":
+		spawn_waypoint_target(target_index, time_s)
+		return
+	if definition.revision >= 5 and definition.layout == "scatter" and definition.active_targets > 1:
+		var angles_deg: Vector2 = scatter_spawn_angles_deg(target_index, time_s)
+		if not angles_deg.is_finite():
+			invalid_reason = "Réserve de dispersion incompatible : aucune cible remplacée."
+			return
+		initialize_new_target(target_index, time_s, angles_deg)
+		return
 	var target: Dictionary = targets[target_index]
 	var old_direction := AimGeometry.direction(float(target.yaw_deg), float(target.pitch_deg))
 	var candidate_yaw_deg: float = 0.0
@@ -147,8 +160,157 @@ func spawn_target(target_index: int, time_s: float) -> void:
 		AimGeometry.direction(timeline.last_yaw_deg, timeline.last_pitch_deg), target_direction(target_index, time_s))
 
 
+func scatter_candidate_is_safe(target_index: int, time_s: float, angles_deg: Vector2) -> bool:
+	var candidate: Vector3 = AimGeometry.direction(angles_deg.x, angles_deg.y)
+	var target: Dictionary = targets[target_index]
+	var old_direction: Vector3 = AimGeometry.direction(float(target.yaw_deg), float(target.pitch_deg))
+	if AimGeometry.angular_error_deg(candidate, old_direction) < definition.min_transition_deg:
+		return false
+	for other_index in targets.size():
+		if other_index != target_index and int(targets[other_index].get("id", 0)) > 0:
+			if AimGeometry.angular_error_deg(candidate, target_direction(other_index, time_s)) < definition.maximum_angular_diameter_deg() * 1.7:
+				return false
+	return true
+
+
+func scatter_spawn_angles_deg(target_index: int, time_s: float, random_attempts: int = 128) -> Vector2:
+	for attempt in clampi(random_attempts, 0, 128):
+		var candidate_deg := Vector2(rng.randf_range(-definition.yaw_extent_deg, definition.yaw_extent_deg),
+			rng.randf_range(-definition.pitch_extent_deg, definition.pitch_extent_deg))
+		if scatter_candidate_is_safe(target_index, time_s, candidate_deg):
+			return candidate_deg
+	var reserve: Array[Vector2] = definition.scatter_reserve_angles_deg()
+	var first_index: int = rng.randi_range(0, reserve.size() - 1)
+	for offset in reserve.size():
+		var candidate_deg: Vector2 = reserve[(first_index + offset) % reserve.size()]
+		if scatter_candidate_is_safe(target_index, time_s, candidate_deg):
+			return candidate_deg
+	return Vector2(INF, INF)
+
+
+func initialize_new_target(target_index: int, time_s: float, angles_deg: Vector2) -> void:
+	var target: Dictionary = targets[target_index]
+	target.yaw_deg = float(angles_deg.x)
+	target.pitch_deg = float(angles_deg.y)
+	target.born_s = time_s
+	target.attempts = 0
+	target.phase_rad = 0.0
+	if definition.has_diameter_variation() and definition.diameter_motion != "perspective":
+		target.angular_diameter_deg = rng.randf_range(definition.angular_diameter_min_deg, definition.angular_diameter_max_deg)
+	if definition.has_distance_variation() and definition.motion != "waypoints":
+		target.distance_m = rng.randf_range(definition.distance_min_m, definition.distance_max_m)
+	target.path_start_deg = timeline.angular_path_deg
+	spawned += 1
+	target.id = spawned
+	target.initial_error_deg = AimGeometry.angular_error_deg(
+		AimGeometry.direction(timeline.last_yaw_deg, timeline.last_pitch_deg), target_direction(target_index, time_s))
+
+
+func angles_from_direction_deg(direction: Vector3) -> Vector2:
+	return Vector2(rad_to_deg(atan2(-direction.x, -direction.z)), rad_to_deg(asin(clampf(direction.y, -1.0, 1.0))))
+
+
+func spawn_mixed_target(target_index: int, time_s: float) -> void:
+	var target: Dictionary = targets[target_index]
+	var old_direction: Vector3 = AimGeometry.direction(float(target.yaw_deg), float(target.pitch_deg))
+	var small_transition: bool = rng.randf() < definition.small_transition_probability
+	var minimum_deg: float = definition.small_transition_min_deg if small_transition else definition.large_transition_min_deg
+	var maximum_deg: float = definition.small_transition_max_deg if small_transition else definition.large_transition_max_deg
+	var angles_deg := Vector2(INF, INF)
+	var horizontal: Vector3 = old_direction.cross(Vector3.UP).normalized()
+	var vertical: Vector3 = horizontal.cross(old_direction).normalized()
+	for attempt in 128:
+		var candidate_deg: Vector2
+		if small_transition:
+			var offset_rad: float = deg_to_rad(rng.randf_range(minimum_deg, maximum_deg))
+			var bearing_rad: float = rng.randf_range(0.0, TAU)
+			candidate_deg = angles_from_direction_deg(old_direction * cos(offset_rad) +
+				(horizontal * cos(bearing_rad) + vertical * sin(bearing_rad)) * sin(offset_rad))
+		else:
+			candidate_deg = Vector2(rng.randf_range(-definition.yaw_extent_deg, definition.yaw_extent_deg),
+				rng.randf_range(-definition.pitch_extent_deg, definition.pitch_extent_deg))
+		var separation_deg: float = AimGeometry.angular_error_deg(old_direction, AimGeometry.direction(candidate_deg.x, candidate_deg.y))
+		if absf(candidate_deg.x) <= definition.yaw_extent_deg and absf(candidate_deg.y) <= definition.pitch_extent_deg and separation_deg >= minimum_deg and separation_deg <= maximum_deg:
+			angles_deg = candidate_deg
+			break
+	if not angles_deg.is_finite():
+		var goal: Vector3 = Vector3.FORWARD
+		if not small_transition or AimGeometry.angular_error_deg(old_direction, goal) < maximum_deg:
+			goal = AimGeometry.direction(-definition.yaw_extent_deg if float(target.yaw_deg) >= 0.0 else definition.yaw_extent_deg, 0.0)
+		var goal_error_deg: float = AimGeometry.angular_error_deg(old_direction, goal)
+		var offset_deg: float = minf((minimum_deg + maximum_deg) * 0.5, (minimum_deg + goal_error_deg) * 0.5)
+		angles_deg = angles_from_direction_deg(old_direction.slerp(goal, offset_deg / goal_error_deg).normalized())
+	target.transition_kind = "small" if small_transition else "large"
+	initialize_new_target(target_index, time_s, angles_deg)
+
+
+func opposite_waypoint_value(current_value: float, minimum_value: float, maximum_value: float) -> float:
+	var midpoint: float = (minimum_value + maximum_value) * 0.5
+	var margin: float = (maximum_value - minimum_value) * 0.1
+	return rng.randf_range(midpoint + margin, maximum_value) if current_value <= midpoint else rng.randf_range(minimum_value, midpoint - margin)
+
+
+func spawn_waypoint_target(target_index: int, time_s: float) -> void:
+	var target: Dictionary = targets[target_index]
+	var pose := Vector3(rng.randf_range(-definition.yaw_extent_deg, definition.yaw_extent_deg),
+		rng.randf_range(-definition.pitch_extent_deg, definition.pitch_extent_deg),
+		rng.randf_range(definition.distance_min_m, definition.distance_max_m))
+	var poses: Array[Vector3] = [pose]
+	var times_s := PackedFloat64Array([0.0])
+	var kinds := PackedStringArray()
+	var segment_end_s: float = 0.0
+	while segment_end_s < MAX_DURATION_S:
+		var order: Array[int] = [0, 1, 2, 3]
+		for shuffle_index in range(order.size() - 1, 0, -1):
+			var swap_index: int = rng.randi_range(0, shuffle_index)
+			var previous_kind: int = order[shuffle_index]
+			order[shuffle_index] = order[swap_index]
+			order[swap_index] = previous_kind
+		for kind in order:
+			var next_pose: Vector3 = pose
+			if kind == 0 or kind == 2:
+				next_pose.x = opposite_waypoint_value(pose.x, -definition.yaw_extent_deg, definition.yaw_extent_deg)
+			if kind == 1 or kind == 2:
+				next_pose.y = opposite_waypoint_value(pose.y, -definition.pitch_extent_deg, definition.pitch_extent_deg)
+			if kind == 3:
+				next_pose.z = opposite_waypoint_value(pose.z, definition.distance_min_m, definition.distance_max_m)
+			var angular_path_deg: float = Vector2(next_pose.x - pose.x, next_pose.y - pose.y).length()
+			var segment_duration_s: float = maxf(definition.waypoint_min_duration_s,
+				maxf(1.5 * angular_path_deg / definition.speed_deg_s, 1.5 * absf(next_pose.z - pose.z) / definition.depth_speed_m_s))
+			segment_end_s += segment_duration_s
+			poses.append(next_pose)
+			times_s.append(segment_end_s)
+			kinds.append(["horizontal", "vertical", "diagonal", "depth"][kind])
+			pose = next_pose
+			if segment_end_s >= MAX_DURATION_S:
+				break
+	target.waypoint_poses = poses
+	target.waypoint_times_s = times_s
+	target.waypoint_kinds = kinds
+	initialize_new_target(target_index, time_s, Vector2(poses[0].x, poses[0].y))
+
+
+func waypoint_pose(target: Dictionary, time_s: float) -> Vector3:
+	var poses: Array[Vector3] = target.waypoint_poses
+	var times_s: PackedFloat64Array = target.waypoint_times_s
+	var age_s: float = clampf(time_s - float(target.born_s), 0.0, times_s[times_s.size() - 1])
+	var lower_index: int = 0
+	var upper_index: int = times_s.size() - 1
+	while upper_index - lower_index > 1:
+		var midpoint_index: int = (lower_index + upper_index) / 2
+		if times_s[midpoint_index] <= age_s:
+			lower_index = midpoint_index
+		else:
+			upper_index = midpoint_index
+	var fraction: float = (age_s - times_s[lower_index]) / (times_s[upper_index] - times_s[lower_index])
+	return poses[lower_index].lerp(poses[upper_index], smoothstep(0.0, 1.0, fraction))
+
+
 func target_direction(target_index: int, time_s: float) -> Vector3:
 	var target: Dictionary = targets[target_index]
+	if definition.motion == "waypoints":
+		var pose: Vector3 = waypoint_pose(target, time_s)
+		return AimGeometry.direction(pose.x, pose.y)
 	var yaw_deg: float = float(target.yaw_deg)
 	var pitch_deg: float = float(target.pitch_deg)
 	if definition.motion == "static":
@@ -211,6 +373,8 @@ func target_geometry(target_index: int, time_s: float) -> Dictionary:
 func target_distance_m(target_index: int, time_s: float) -> float:
 	if definition == null or target_index < 0 or target_index >= targets.size() or not is_finite(time_s) or time_s < 0.0:
 		return 0.0
+	if definition.motion == "waypoints":
+		return waypoint_pose(targets[target_index], time_s).z
 	return float(targets[target_index].get("distance_m", definition.distance_m))
 
 
@@ -218,6 +382,9 @@ func target_angular_diameter_deg(target_index: int, time_s: float) -> float:
 	if definition == null or target_index < 0 or target_index >= targets.size() or not is_finite(time_s) or time_s < 0.0:
 		return 0.0
 	var target: Dictionary = targets[target_index]
+	if definition.diameter_motion == "perspective":
+		var sphere_radius_m: float = definition.distance_m * sin(deg_to_rad(definition.angular_diameter_deg * 0.5))
+		return rad_to_deg(2.0 * asin(sphere_radius_m / target_distance_m(target_index, time_s)))
 	var initial_diameter_deg: float = float(target.get("angular_diameter_deg", definition.angular_diameter_deg))
 	if definition.diameter_motion == "shrink":
 		var age_fraction: float = clampf((time_s - float(target.born_s)) / definition.lifetime_s, 0.0, 1.0)

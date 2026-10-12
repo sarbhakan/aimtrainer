@@ -95,11 +95,18 @@ func configure(source: WeaponDefinition, enabled: bool, volume: float, visible_s
 
 
 func set_hud_mode(enabled: bool) -> void:
+	if hud_mode != enabled:
+		clear_visuals()
 	hud_mode = enabled
 	if not enabled:
 		tracer_remaining_s = 0.0
+	update_processing()
 	sync_layout()
 	queue_redraw()
+
+
+func set_inspection_mode(enabled: bool) -> void:
+	set_hud_mode(not enabled)
 
 
 func play_shot() -> void:
@@ -193,7 +200,7 @@ func _process(delta_s: float) -> void:
 
 
 func begin_pulse() -> void:
-	if not show_sprite or reduced_motion:
+	if not show_sprite or reduced_motion or not hud_mode:
 		return
 	flash_remaining_s = FLASH_DURATION_S
 	recoil_elapsed_s = 0.0
@@ -201,7 +208,7 @@ func begin_pulse() -> void:
 
 
 func update_processing() -> void:
-	set_process(feedback_available() and show_sprite and not reduced_motion and (recoil_elapsed_s < RECOIL_DURATION_S or flash_remaining_s > 0.0 or tracer_remaining_s > 0.0 or continuous_active))
+	set_process(feedback_available() and hud_mode and show_sprite and not reduced_motion and (recoil_elapsed_s < RECOIL_DURATION_S or flash_remaining_s > 0.0 or tracer_remaining_s > 0.0 or continuous_active))
 
 
 func sync_layout() -> void:

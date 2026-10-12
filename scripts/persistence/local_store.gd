@@ -380,6 +380,77 @@ func sessions() -> Array[Dictionary]:
 	return results
 
 
+func save_progressive_checkpoint(data: Dictionary) -> bool:
+	var verifier := ProgressiveCalibrationService.new()
+	if not verifier.restore(data):
+		last_error = verifier.error
+		return false
+	var path := root_path + "/progressive_calibration_checkpoint.json"
+	var previous := read_json(path)
+	if not previous.missing:
+		var existing := ProgressiveCalibrationService.new()
+		if not previous.ok or not existing.restore(previous.data):
+			last_error = "Parcours progressif existant incohérent conservé ; écriture refusée."
+			return false
+		if existing.calibration_id == verifier.calibration_id:
+			var expected := existing.checkpoint()
+			expected.trials = verifier.trials.duplicate(true)
+			if verifier.trials.size() < existing.trials.size() or not verifier.same_value(existing.trials, verifier.trials.slice(0, existing.trials.size())) or not verifier.same_value(expected, verifier.checkpoint()):
+				last_error = "Historique existant conservé ; remplacement rétroactif refusé."
+				return false
+		if existing.calibration_id != verifier.calibration_id:
+			var archive_path := root_path + "/archives/progressive-" + existing.calibration_id + ".json"
+			var absolute := ProjectSettings.globalize_path(archive_path)
+			var contents := checkpoint_bytes(path)
+			var parser := JSON.new()
+			if parser.parse(contents.get_string_from_utf8()) != OK or not parser.data is Dictionary or not verifier.same_value(parser.data, previous.data):
+				last_error = "Parcours modifié pendant l’archivage ; remplacement refusé."
+				return false
+			if contents.is_empty() or DirAccess.make_dir_recursive_absolute(absolute.get_base_dir()) != OK:
+				last_error = "Impossible de préparer l’archive ; parcours conservé."
+				return false
+			var lock_path := absolute + ".lock"
+			if DirAccess.make_dir_absolute(lock_path) != OK:
+				last_error = "Archive occupée ; parcours conservé."
+				return false
+			var archived := publish_checkpoint_archive(absolute, contents)
+			if DirAccess.remove_absolute(lock_path) != OK:
+				last_error = "Impossible de libérer l’archive ; parcours conservé."
+				return false
+			if not archived:
+				return false
+	return write_json(path, data)
+
+
+func load_progressive_checkpoint() -> Dictionary:
+	var loaded := read_json(root_path + "/progressive_calibration_checkpoint.json")
+	if not loaded.ok:
+		return {}
+	var verifier := ProgressiveCalibrationService.new()
+	if not verifier.restore(loaded.data):
+		last_error = verifier.error
+		return {}
+	return loaded.data
+
+
+func save_progressive_recommendation(report: Dictionary) -> bool:
+	if not report.get("checkpoint", null) is Dictionary:
+		last_error = "Bilan progressif sans historique."
+		return false
+	var verifier := ProgressiveCalibrationService.new()
+	if not verifier.restore(report.checkpoint) or not verifier.completed() or not verifier.same_value(report, verifier.recommendation()):
+		last_error = "Bilan progressif incohérent ; sauvegarde refusée."
+		return false
+	var path := root_path + "/calibrations/progressive-" + verifier.calibration_id + ".json"
+	if FileAccess.file_exists(path):
+		var existing := read_json(path)
+		if existing.ok and verifier.same_value(existing.data, report):
+			return true
+		last_error = "Bilan progressif existant différent conservé."
+		return false
+	return write_json(path, report, true)
+
+
 func archive_checkpoint(data: Dictionary) -> bool:
 	last_error = ""
 	if not valid_identifier(data.get("calibration_id", null)):

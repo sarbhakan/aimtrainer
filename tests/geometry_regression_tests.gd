@@ -111,20 +111,27 @@ func test_definition_policy() -> void:
 	var defaults := ScenarioDefinition.new()
 	check(defaults.angular_diameter_deg == 1.5 and defaults.yaw_extent_deg == 12.0 and defaults.pitch_extent_deg == 6.0 and defaults.min_transition_deg == 2.5 and defaults.speed_deg_s == 12.0 and defaults.reference_hits_s == 2.0, "Les valeurs implicites historiques doivent rester inchangées ; les nouvelles difficultés sont explicites dans les ressources.")
 	var depths: Array[float] = []
+	check(ScenarioCatalog.DEFINITIONS.size() == 18, "Le catalogue géométrique doit couvrir dix-huit exercices.")
 	for definition in ScenarioCatalog.DEFINITIONS:
-		check(definition.revision == (4 if definition.scenario_id in VARIABLE_IDS else 3) and definition.validate().is_empty(), definition.scenario_id + " : chaque difficulté publiée doit avoir sa révision explicite et valide.")
+		var expected_revision: int = 5 if definition.scenario_id in ["C03", "M01", "T10"] else 4 if definition.scenario_id in VARIABLE_IDS else 3
+		check(definition.revision == expected_revision and definition.validate().is_empty(), definition.scenario_id + " : chaque difficulté publiée doit avoir sa révision explicite et valide.")
 		check(definition.distance_m >= 3.0 and definition.distance_m <= 8.0 and definition.minimum_surface_height_m() > 0.25, definition.scenario_id + " : la profondeur nominale doit garder la silhouette entière à plus de 25 cm du sol, même aux extrêmes déclarés.")
 		check(definition.fits_view(75.0, 16.0 / 9.0), definition.scenario_id + " : tout l'exercice doit tenir dans le cadrage minimal 16:9 au FOV vertical par défaut de 75°.")
 		if definition.scenario_id in ["C05", "T09"]:
 			check(definition.angular_diameter_deg < 1.0 and definition.title.contains("avancé") and definition.instructions.contains("facultatif"), "Les petites cibles C05/T09 doivent être explicitement avancées et facultatives.")
 		elif definition.scenario_id == "C03":
-			check(definition.layout == "grid" and definition.angular_diameter_deg >= 4.5 and definition.active_targets == 6, "La grille d'entrée doit conserver six cibles nettement plus grandes dans neuf cellules.")
+			check(definition.layout == "scatter" and is_equal_approx(definition.angular_diameter_deg, 4.8) and definition.active_targets == 6 and definition.yaw_extent_deg == 22.0 and definition.pitch_extent_deg == 13.0, "C03 doit répartir six cibles de 4,8 degrés dans son champ libre de 44 sur 26 degrés.")
 		else:
 			check(definition.angular_diameter_deg >= 2.5 and definition.angular_diameter_deg <= 4.0, definition.scenario_id + " : la difficulté normale doit avoir une silhouette lisible de 2,5 à 4 degrés.")
 		if not definition.distance_m in depths:
 			depths.append(definition.distance_m)
 	check(depths.size() >= 5, "Les distances nominales doivent varier selon l'intention des exercices.")
 	var grid: ScenarioDefinition = ScenarioCatalog.find("C03").duplicate() as ScenarioDefinition
+	grid.revision = 3
+	grid.layout = "grid"
+	grid.yaw_extent_deg = 18.0
+	grid.pitch_extent_deg = 10.0
+	check(grid.validate().is_empty(), "La fixture explicite de grille r3 doit être valide avant le resserrement des cellules.")
 	grid.pitch_extent_deg = 4.0
 	check(not grid.validate().is_empty(), "Une grosse cible de grille ne doit pas être acceptée dans des cellules qui se chevauchent.")
 	var below_floor: ScenarioDefinition = ScenarioCatalog.find("C07").duplicate() as ScenarioDefinition
@@ -268,7 +275,8 @@ func test_catalog_bounds() -> void:
 					transforms_valid = transforms_valid and sphere.global_basis.get_scale().is_equal_approx(Vector3.ONE * float(geometry.radius_m))
 					transforms_valid = transforms_valid and sphere.global_position.z - float(geometry.radius_m) > wall_front_m
 					transforms_valid = transforms_valid and float(geometry.distance_m) - float(geometry.radius_m) > camera.near and float(geometry.distance_m) + float(geometry.radius_m) < camera.far
-		check(definition.validate().is_empty() and definition.revision == (4 if definition.scenario_id in VARIABLE_IDS else 3), definition.scenario_id + " : la nouvelle difficulté doit être versionnée.")
+		var expected_revision: int = 5 if definition.scenario_id in ["C03", "M01", "T10"] else 4 if definition.scenario_id in VARIABLE_IDS else 3
+		check(definition.validate().is_empty() and definition.revision == expected_revision, definition.scenario_id + " : la nouvelle difficulté doit être versionnée.")
 		check(definition.distance_m >= 3.0 and definition.distance_m <= 8.0, definition.scenario_id + " : la profondeur nominale doit rester dans l'arène de 3 à 8 mètres.")
 		check(bounds_valid, definition.scenario_id + " : toutes les positions seedées doivent rester dans les bornes angulaires déclarées.")
 		check(transforms_valid, definition.scenario_id + " : positions visibles, rayon logique, near/far et mur doivent être cohérents.")
@@ -454,18 +462,36 @@ func test_replays() -> void:
 				check(reference_metrics == report.metrics and reference_targets == engine.targets and reference_rng_state == engine.rng.state, definition.scenario_id + " : mêmes métriques, trajet, événements, cibles et RNG à 60/144/240 FPS pour les mêmes événements horodatés.")
 		var alternative_depth: ScenarioDefinition = definition.duplicate() as ScenarioDefinition
 		alternative_depth.distance_m = 2.0
+		var depth_scale: float = alternative_depth.distance_m / definition.distance_m
 		if definition.has_distance_variation():
-			alternative_depth.distance_min_m *= alternative_depth.distance_m / definition.distance_m
-			alternative_depth.distance_max_m *= alternative_depth.distance_m / definition.distance_m
+			alternative_depth.distance_min_m *= depth_scale
+			alternative_depth.distance_max_m *= depth_scale
+		if definition.motion == "waypoints":
+			alternative_depth.depth_speed_m_s *= depth_scale
 		var previous_engine: ScenarioEngine = ScenarioEngine.new()
 		var current_engine: ScenarioEngine = ScenarioEngine.new()
 		check(previous_engine.start(alternative_depth, 42, 2.0) and current_engine.start(definition, 42, 2.0), "Les deux profondeurs du test doivent être valides.")
 		var previous_targets: Array[Dictionary] = previous_engine.targets.duplicate(true)
 		var current_targets: Array[Dictionary] = current_engine.targets.duplicate(true)
 		for target_index in previous_targets.size():
+			if definition.motion == "waypoints":
+				var previous_poses: Array[Vector3] = previous_targets[target_index].waypoint_poses
+				var current_poses: Array[Vector3] = current_targets[target_index].waypoint_poses
+				check(previous_poses.size() == current_poses.size() and previous_targets[target_index].waypoint_kinds == current_targets[target_index].waypoint_kinds, "Changer l'échelle physique doit conserver toutes les destinations et leurs types de mouvement.")
+				for waypoint_index in previous_poses.size():
+					var scaled_pose: Vector3 = current_poses[waypoint_index]
+					scaled_pose.z *= depth_scale
+					check(previous_poses[waypoint_index].is_equal_approx(scaled_pose) and is_equal_approx(previous_targets[target_index].waypoint_times_s[waypoint_index], current_targets[target_index].waypoint_times_s[waypoint_index]), "Les destinations doivent garder leurs angles et leurs instants lorsque profondeur et vitesse physique sont mises à la même échelle.")
+				previous_targets[target_index].erase("waypoint_poses")
+				current_targets[target_index].erase("waypoint_poses")
+				previous_targets[target_index].erase("waypoint_times_s")
+				current_targets[target_index].erase("waypoint_times_s")
 			previous_targets[target_index].erase("distance_m")
 			current_targets[target_index].erase("distance_m")
-			check(previous_engine.target_direction(target_index, 0.5).is_equal_approx(current_engine.target_direction(target_index, 0.5)), "La profondeur seule ne change pas le parcours angulaire du viseur.")
+			for time_s in ([0.0, 0.5, 1.0, 2.0] if definition.motion == "waypoints" else [0.5]):
+				check(previous_engine.target_direction(target_index, time_s).is_equal_approx(current_engine.target_direction(target_index, time_s)), "L'échelle des profondeurs et de leur vitesse physique ne change pas le parcours angulaire du viseur.")
+				if definition.motion == "waypoints":
+					check(is_equal_approx(previous_engine.target_distance_m(target_index, time_s), current_engine.target_distance_m(target_index, time_s) * depth_scale) and is_equal_approx(previous_engine.radius_m(target_index, time_s), current_engine.radius_m(target_index, time_s) * depth_scale), "La sphère et son déplacement en profondeur doivent suivre exactement l'échelle physique déclarée.")
 		check(previous_targets == current_targets and previous_engine.rng.state == current_engine.rng.state, definition.scenario_id + " : changer uniquement l'échelle des profondeurs ne change ni positions angulaires, ni phases, ni RNG.")
 		check(alternative_depth.fingerprint() != definition.fingerprint(), definition.scenario_id + " : une autre profondeur doit créer un contexte distinct sans prétendre être une fixture historique.")
 

@@ -82,9 +82,11 @@ func test_geometry() -> void:
 
 
 func test_catalog() -> void:
-	expect(ScenarioCatalog.DEFINITIONS.size() == 16, "Le catalogue doit comporter 16 exercices exécutables.")
+	expect(ScenarioCatalog.DEFINITIONS.size() == 18, "Le catalogue doit comporter 18 exercices exécutables.")
 	var identifiers: Dictionary = {}
 	for definition in ScenarioCatalog.DEFINITIONS:
+		var expected_revision: int = 5 if definition.scenario_id in ["C03", "M01", "T10"] else 4 if definition.scenario_id in ["D01", "D02", "S02"] else 3
+		expect(definition.revision == expected_revision, definition.scenario_id + " doit conserver sa révision mécanique publiée.")
 		expect(definition.validate().is_empty(), definition.scenario_id + " doit avoir une définition valide.")
 		expect(definition.fits_view(75, 16.0 / 9.0), definition.scenario_id + " doit tenir dans le FOV par défaut.")
 		expect(not identifiers.has(definition.scenario_id), "Les identifiants de scénario doivent être uniques.")
@@ -109,10 +111,17 @@ func test_catalog() -> void:
 	broken.active_targets = 2
 	expect(not broken.validate().is_empty(), "Le tracking v1 exige une seule cible.")
 	expect(not ScenarioCatalog.find("C04").fits_view(40, 0.5), "Une arène trop étroite doit être refusée, pas masquer les cibles.")
+	var scatter: ScenarioDefinition = ScenarioCatalog.find("C03")
+	expect(scatter.revision == 5 and scatter.layout == "scatter" and scatter.motion == "static" and scatter.active_targets == 6 and is_equal_approx(scatter.angular_diameter_deg, 4.8), "C03 doit proposer six cibles statiques de 4,8 degrés en dispersion libre, révision 5.")
+	var grid_definition: ScenarioDefinition = scatter.duplicate() as ScenarioDefinition
+	grid_definition.revision = 3
+	grid_definition.layout = "grid"
+	grid_definition.yaw_extent_deg = 18.0
+	grid_definition.pitch_extent_deg = 10.0
 	var grid := ScenarioEngine.new()
-	grid.start(ScenarioCatalog.find("C03"), 42, 1.0)
+	expect(grid.start(grid_definition, 42, 1.0), "La fixture explicite de grille r3 doit rester exécutable.")
 	for target in grid.targets:
-		expect(float(target.yaw_deg) in [-grid.definition.yaw_extent_deg, 0.0, grid.definition.yaw_extent_deg] and float(target.pitch_deg) in [-grid.definition.pitch_extent_deg, 0.0, grid.definition.pitch_extent_deg], "Grid Targets doit réellement utiliser les cellules d’une grille 3×3 dans son champ versionné.")
+		expect(float(target.yaw_deg) in [-grid.definition.yaw_extent_deg, 0.0, grid.definition.yaw_extent_deg] and float(target.pitch_deg) in [-grid.definition.pitch_extent_deg, 0.0, grid.definition.pitch_extent_deg], "La fixture de grille r3 doit réellement utiliser les cellules d’une grille 3×3 dans son champ versionné.")
 
 
 func test_click_metrics() -> void:
@@ -162,7 +171,7 @@ func test_click_metrics() -> void:
 
 
 func test_tracking_replay() -> void:
-	for scenario_id in ["T01", "T02", "T03", "T04", "T05", "T09"]:
+	for scenario_id in ["T01", "T02", "T03", "T04", "T05", "T09", "T10"]:
 		var baseline_metrics: Dictionary = {}
 		for frame_rate in [60, 144, 240]:
 			var engine := ScenarioEngine.new()

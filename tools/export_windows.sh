@@ -38,9 +38,9 @@ crosshairs_completed=false
 while IFS= read -r log_line; do
     case "$log_line" in
         ERROR:*|"SCRIPT ERROR:"*) printf 'Erreur dans les exercices exportés : %s\n' "$log_line" >&2; exit 1 ;;
-        "EXPORT SMOKE : 16 exercices embarqués, 0 échecs.") smoke_completed=true ;;
+        "EXPORT SMOKE : 18 exercices embarqués, 0 échecs.") smoke_completed=true ;;
         "EXPORT ASSETS : 3 profils d’arme embarqués, 0 échecs.") assets_completed=true ;;
-        "EXPORT PROFILES : 3 imports, protocole 3 et recherche guidée embarqués, 0 échecs.") profiles_completed=true ;;
+        "EXPORT PROFILES : 3 imports, protocole 4, 25 essais de 60 s et routine 3 phases embarqués, 0 échecs.") profiles_completed=true ;;
         "EXPORT CROSSHAIRS : 4 styles embarqués, 0 échecs.") crosshairs_completed=true ;;
     esac
 done < "$export_validation_dir/exercises.log"

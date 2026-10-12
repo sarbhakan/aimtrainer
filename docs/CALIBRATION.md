@@ -1,4 +1,32 @@
-# Sensibilité repère et exercices — protocole 3, application 0.5.0
+# Sensibilité progressive — protocole 4, application 0.7.0
+
+## Parcours actuel
+
+**Cinq activités, cinq sensibilités par activité, 60 secondes par essai** (45 s au choix). Le DPI déclaré ne change pas. Ordre : C02 micro-précision → C04 grands mouvements → S01 transitions → T01 suivi horizontal → T05 suivi réactif. Les résultats affichent score, touches/ratés, précision et temps sur cible ; aucun questionnaire de confort ne conditionne la recherche.
+
+Le profil lent/normal/rapide ou la sensibilité importée fixe la référence. « Réglage connu » explore initialement les facteurs de vitesse 1/1,2 à 1,2 ; « Nouveau réglage » explore 1/1,6 à 1,6. Les bornes physiques restent 5–150 cm/360°. Une vitesse supérieure correspond à une distance cm/360° inférieure.
+
+1. Essai 1 au réglage de référence ; essai 2 au bord plus rapide. À la borne rapide physique, on teste le côté encore disponible.
+2. Si l’essai 2 est meilleur, essai 3 entre les deux vitesses, en espace logarithmique. Sinon, essai 3 plus lent que **l’essai 1**, pas seulement que l’essai 2.
+3. Les essais 4 et 5 remplissent les intervalles non testés autour du meilleur score. Dans la première activité novice, un meilleur score au bord peut élargir ce côté une fois, avant d’affiner. Tous les réglages d’un bloc sont distincts.
+4. Après cinq essais, le meilleur réglage devient la référence de l’activité suivante. Ses voisins testés délimitent la nouvelle zone, limitée à 70 % de la largeur logarithmique précédente. Les activités suivantes ne réélargissent pas cette zone.
+5. Après 25 mesures, **Votre sensibilité** fournit le meilleur réglage testé dans la dernière activité, avec **Appliquer**. Ce bouton enregistre la valeur canonique exacte, actualise la caméra et ouvre la conversion ; l’affichage à deux décimales ne quantifie pas l’input.
+
+Les comparaisons utilisent l’utilité **non arrondie**, uniquement à l’intérieur d’une activité : clic/switching = touches par seconde × précision² ; tracking = temps sur cible / temps exposé. Le score visible V1 conserve sa formule et son arrondi. En cas d’égalité numérique, la référence du bloc est privilégiée ; un écart minuscule ne provoque pas une décision différente après lecture JSON. Les mesures inactives, incomplètes, invalides ou trop saccadées sont rejetées et rejouées.
+
+Chaque essai a 3 s de préparation sonore, puis une durée mesurée entière, puis au moins 3 s de repos avec validation explicite. Minimum : 27 min 30 à 60 s, 21 min 15 à 45 s, hors pauses supplémentaires/rejoués. Aucune donnée de préparation n’entre dans le score. Une graine commune par activité rend son départ reproductible ; des touches à des instants différents peuvent ensuite déclencher des respawns différents. Il ne s’agit pas de cinq vidéos identiques.
+
+`progressive_calibration_checkpoint.json` contient référence, durée, ratio, graines, empreintes et rapports acceptés. La reprise rejoue ces rapports validés pour reconstruire les décisions, sans faire confiance à une fenêtre dérivée sérialisée. Une panne d’écriture restaure l’état précédent et garde le passage en mémoire. Un nouveau parcours archive exactement les octets du précédent ; fichiers corrompus, archives contradictoires et verrous ne sont pas écrasés. Le bilan immuable est revérifié depuis son historique avant sauvegarde/application. Les anciens fichiers de protocoles 1–3 ne sont ni remplacés ni convertis en protocole 4.
+
+## Portée du réglage retenu
+
+Ce parcours fournit **un réglage concret**, pas une plage à interpréter. C’est une recherche adaptative successive, dépendante de l’ordre des activités, de l’apprentissage et de la fatigue. Le réglage final a été mesuré dans la dernière activité ; il n’a pas été retesté dans toutes les activités précédentes. Cinq sensibilités testées une seule fois chacune ne constituent pas cinq répétitions statistiques par sensibilité. La réduction de fenêtre est une heuristique documentée, pas un intervalle de confiance ni une preuve d’optimum universel.
+
+L’application ne détecte pas le DPI réel, ne modifie aucun jeu et ne prouve pas le transfert d’un score vers un FPS. La conversion conserve la rotation physique, pas une équivalence ADS/FOV/ressenti. La réception souris et le contrôle physique cm/360° restent nécessaires.
+
+## Historique conservé — protocole 3
+
+Les sections suivantes décrivent les anciens services conservés pour les données et leurs régressions. Ces parcours courts et leurs commandes ne sont plus proposés par l’interface publique 0.7.
 
 ## Deux parcours
 

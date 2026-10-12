@@ -75,6 +75,7 @@ func run_tests() -> void:
 	test_frame_rate_replays()
 	test_tracking_semantics()
 	test_bounds_and_invalid()
+	test_scatter_respawns()
 	test_grid_respawns()
 	viewport.queue_free()
 	await process_frame
@@ -111,9 +112,10 @@ func test_calibration_contract() -> void:
 
 
 func test_catalog_and_fingerprints() -> void:
-	check(ScenarioCatalog.DEFINITIONS.size() == 16, "Le catalogue doit conserver exactement seize exercices.")
+	check(ScenarioCatalog.DEFINITIONS.size() == 18, "Le catalogue doit comporter exactement dix-huit exercices.")
 	for definition in ScenarioCatalog.DEFINITIONS:
-		check(definition.revision == (4 if definition.scenario_id in PATTERN_IDS else 3) and definition.validate().is_empty(), definition.scenario_id + " : seules les trois mécaniques choisies passent en révision 4.")
+		var expected_revision: int = 5 if definition.scenario_id in ["C03", "M01", "T10"] else 4 if definition.scenario_id in PATTERN_IDS else 3
+		check(definition.revision == expected_revision and definition.validate().is_empty(), definition.scenario_id + " : la mécanique publiée doit conserver sa révision explicite.")
 		check(definition.fits_view(75.0, 16.0 / 9.0), definition.scenario_id + " : l'enveloppe maximale doit tenir dans le frustum nominal.")
 	for scenario_id in PATTERN_IDS:
 		var source: ScenarioDefinition = ScenarioCatalog.find(scenario_id)
@@ -456,11 +458,50 @@ func test_bounds_and_invalid() -> void:
 	check(engine.target_geometry(-1, 0.0).is_empty() and engine.target_geometry(1, 0.0).is_empty() and engine.target_geometry(0, NAN).is_empty() and engine.target_geometry(0, -1.0).is_empty(), "Indices et instants de géométrie invalides sont refusés.")
 
 
-func test_grid_respawns() -> void:
+func test_scatter_respawns() -> void:
 	var definition: ScenarioDefinition = ScenarioCatalog.find("C03")
-	check(definition.layout == "grid" and definition.motion == "static" and definition.active_targets == 6 and definition.revision == 3, "C03 conserve sa vraie grille de neuf cellules et six cibles.")
+	check(definition.layout == "scatter" and definition.motion == "static" and definition.active_targets == 6 and definition.revision == 5 and is_equal_approx(definition.angular_diameter_deg, 4.8), "C03 propose six cibles de 4,8 degrés dans des positions libres en révision 5.")
+	var signatures: Dictionary = {}
+	for seed_value in SEEDS:
+		var engine := ScenarioEngine.new()
+		var replay := ScenarioEngine.new()
+		check(engine.start(definition, seed_value, 8.0) and replay.start(definition, seed_value, 120.0), "La dispersion doit démarrer avec la même graine pour des durées différentes.")
+		check(engine.targets == replay.targets and engine.rng.state == replay.rng.state, "Une même graine doit reproduire toutes les positions initiales et le RNG de la dispersion.")
+		signatures[JSON.stringify(engine.targets).sha256_text()] = true
+		var positions: Dictionary = {}
+		var off_grid: bool = false
+		var valid: bool = true
+		for shot_index in 128:
+			var time_s: float = float(shot_index + 1) * 0.04
+			var target_index: int = shot_index % engine.targets.size()
+			var previous_direction: Vector3 = engine.target_direction(target_index, time_s)
+			valid = engine.shoot(time_s, previous_direction) and replay.shoot(time_s, previous_direction) and valid
+			check(engine.targets == replay.targets and engine.rng.state == replay.rng.state, "Chaque impact doit reproduire le respawn seedé et l'état RNG de C03.")
+			valid = valid and AimGeometry.angular_error_deg(previous_direction, engine.target_direction(target_index, time_s)) >= definition.min_transition_deg - 0.00001
+			for first_index in engine.targets.size():
+				var target: Dictionary = engine.targets[first_index]
+				var angles_deg := Vector2(float(target.yaw_deg), float(target.pitch_deg))
+				positions[angles_deg] = true
+				off_grid = off_grid or not (angles_deg.x in [-definition.yaw_extent_deg, 0.0, definition.yaw_extent_deg] and angles_deg.y in [-definition.pitch_extent_deg, 0.0, definition.pitch_extent_deg])
+				var geometry: Dictionary = engine.target_geometry(first_index, time_s)
+				valid = valid and absf(angles_deg.x) <= definition.yaw_extent_deg and absf(angles_deg.y) <= definition.pitch_extent_deg
+				valid = valid and AimGeometry.sphere_fits_view(geometry.direction, geometry.angular_diameter_deg, 75.0, 16.0 / 9.0)
+				valid = valid and ScenarioDefinition.CAMERA_ORIGIN_HEIGHT_M + Vector3(geometry.center_offset_m).y - float(geometry.radius_m) > 0.0
+				for second_index in range(first_index + 1, engine.targets.size()):
+					valid = valid and AimGeometry.angular_error_deg(geometry.direction, engine.target_direction(second_index, time_s)) >= definition.maximum_angular_diameter_deg() * 1.7 - 0.00001
+		check(valid and off_grid and positions.size() > 9 and engine.targets.size() == 6 and engine.hits == 128 and engine.spawned == 134 and engine.invalid_reason.is_empty() and replay.invalid_reason.is_empty(), "Les 128 respawns de C03 doivent dépasser neuf positions, garder six cibles séparées dans leurs bornes et respecter chaque transition.")
+	check(signatures.size() == SEEDS.size(), "Des graines différentes doivent produire des dispersions initiales différentes sous la même difficulté.")
+
+
+func test_grid_respawns() -> void:
+	var definition: ScenarioDefinition = ScenarioCatalog.find("C03").duplicate() as ScenarioDefinition
+	definition.revision = 3
+	definition.layout = "grid"
+	definition.yaw_extent_deg = 18.0
+	definition.pitch_extent_deg = 10.0
+	check(definition.validate().is_empty(), "La fixture explicite de grille r3 conserve neuf cellules et six cibles valides.")
 	var engine := ScenarioEngine.new()
-	engine.start(definition, 42, 8.0)
+	check(engine.start(definition, 42, 8.0), "La fixture de grille r3 doit démarrer avant les remplacements.")
 	var cells: Dictionary = {}
 	var valid: bool = true
 	for shot_index in 128:
@@ -472,4 +513,4 @@ func test_grid_respawns() -> void:
 		valid = valid and yaw_cell in [-1.0, 0.0, 1.0] and pitch_cell in [-1.0, 0.0, 1.0]
 		cells[Vector2(yaw_cell, pitch_cell)] = true
 		valid = engine.shoot(time_s, engine.target_direction(target_index, time_s)) and valid
-	check(valid and cells.size() == 9 and engine.invalid_reason.is_empty(), "Les respawns de C03 choisissent librement les cellules disponibles, sans abandonner la grille.")
+	check(valid and cells.size() == 9 and engine.hits == 128 and engine.invalid_reason.is_empty(), "Les respawns de la fixture r3 doivent couvrir les neuf cellules sans quitter la grille.")

@@ -1,4 +1,12 @@
-# Interface et présentation — 0.6.0
+# Interface et présentation — 0.7.0
+
+## Parcours long, rendu cohérent
+
+La calibration publique propose cinq activités × cinq sensibilités, 60 s par essai (45 s au choix), recherche locale ou départ novice lent/normal/rapide. Les résultats montrent seulement les indicateurs pertinents pour la famille : touches/ratés et précision pour le clic, temps réellement suivi et écart pour le tracking. Les cinq essais du bloc ont chacun une carte ; la sensibilité finale est une seule valeur avec Appliquer. Les calculs et intervalles de recherche restent repliés. Pas de questionnaire de confort ni d’échauffement court noté comme une comparaison complète.
+
+L’accueil propose aussi l’entraînement M01 → T10 → S02 en trois phases. Scores séparés et même profil ; la perte de focus pendant la transition exige Continuer. Les anciens boutons de protocole 3 restent cachés même si une ancienne sauvegarde existe.
+
+Réglages : aperçu orthographique de l’arme entière de profil, sans main/manche ; cadrage calculé depuis les bounds avec marge et réutilisé pour les trois tailles de fenêtre. Le HUD garde l’arme tenue et alignée vers le viseur. MSAA 4×, décor biseauté, une source directionnelle commune aux ombres et ambient diffus ; les lumières du viewmodel isolé n’éclairent pas le monde. Hitmarker ambre à quatre traits orthogonaux courts, contour contrasté. Décompte sonore 3/2/1 puis GO, volume/silence respectés ; Animations réduites n’annule pas le son.
 
 ## Une seule échelle visuelle
 
@@ -26,7 +34,7 @@ Viseur : point, croix, cercle et T, taille 1–32 px, épaisseur 1–8 px, espac
 
 Si le joueur détourne trop la caméra pendant le compte à rebours, le départ attend le réalignement. Repère et flèche indiquent la zone ; aucun count ni angle supprimé, aucun temps d’entraînement mesuré pendant l’attente.
 
-Recherche guidée : explorer largement, recentrer et affiner selon des comparaisons complètes. Maximum quatre comparaisons, généralement 51–68 minutes minimum pour un conseil stable, avec pauses et reprise. Incertitude/inconfort peuvent arrêter plus tôt sans application. Raisons détaillées repliées ; essai du conseil avec consentement puis confirmation un autre jour. Voir `docs/CALIBRATION.md` et `docs/PROFESSIONAL_POLISH.md`.
+Calibration progressive : scores non arrondis comparés dans chaque activité, essais suivants ajustés et zone transmise resserrée. 25 mesures, environ 28 min à 60 s ou 22 min à 45 s, avec pauses et reprise. Le bilan fournit une sensibilité testée unique, sans prétendre prouver un optimum universel. Voir `docs/CALIBRATION.md`.
 
 ## Une action, puis les détails
 
@@ -38,7 +46,7 @@ Le thème est bleu nuit et turquoise, avec un accent violet réservé à certain
 |---|---|
 | Accueil | S’entraîner ou trouver son réglage |
 | Entraînement | Filtrer, découvrir une carte, choisir la durée et lancer |
-| Ma sensibilité | Modifier le réglage actif, importer celui d’un jeu ou comparer trois sensibilités |
+| Ma sensibilité | Modifier le réglage actif, importer celui d’un jeu ou lancer les cinq activités de calibration |
 | Conversion | Traduire le réglage actif vers un jeu et copier la valeur |
 | Progression | Lire ses résultats comparables ou exporter ses données |
 | Réglages | Personnaliser la présentation et enregistrer ses préférences |
@@ -68,7 +76,9 @@ Changer ensuite les DPI ou la sensibilité active ne réécrit pas silencieuseme
 
 La page **Conversion** part du réglage AIM/LOCAL actif et des DPI utilisés dans le jeu de destination. Elle affiche une valeur à recopier et garde six décimales pour la copie. Un profil mesuré doit rester identifié par son titre/version ; une destination non renseignée ne reçoit pas arbitrairement un coefficient CoD universel. Les hypothèses restent visibles : rotation sans zoom, coefficient documentaire, personnalisé ou issu de la mesure. Le FOV, l’ADS, l’accélération et les différences entre jeux peuvent modifier le ressenti ; la conversion exige une vérification en jeu.
 
-## Calibration par blocs, protocole 3
+## Historique conservé — protocole 3
+
+Les descriptions suivantes concernent les anciens services, toujours vérifiés pour protéger les données, mais absents des actions publiques 0.7.
 
 Le joueur choisit son objectif et compare trois réglages autour du départ actuel : **A · lent**, **B · départ**, **C · rapide**, soit 90 %, 100 % et 110 % de sa vitesse de rotation. Le parcours annonce cinq exercices : `C02`, `C04`, `S01`, `T01` et `T05`. Il termine un bloc avant de passer à l’exercice suivant ; les candidats restent les mêmes pendant toute la comparaison.
 

@@ -9,7 +9,8 @@ const DEFINITIONS: Array[ScenarioDefinition] = [
 	preload("res://content/scenarios/T01.tres"), preload("res://content/scenarios/T02.tres"),
 	preload("res://content/scenarios/T03.tres"), preload("res://content/scenarios/T04.tres"),
 	preload("res://content/scenarios/T05.tres"), preload("res://content/scenarios/T09.tres"),
-	preload("res://content/scenarios/S01.tres"), preload("res://content/scenarios/S02.tres")
+	preload("res://content/scenarios/S01.tres"), preload("res://content/scenarios/S02.tres"),
+	preload("res://content/scenarios/M01.tres"), preload("res://content/scenarios/T10.tres")
 ]
 
 
