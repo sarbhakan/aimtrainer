@@ -39,10 +39,13 @@ static func title(definition: ScenarioDefinition) -> String:
 
 static func description(definition: ScenarioDefinition) -> String:
 	var text: String = str(DESCRIPTIONS.get(definition.scenario_id, definition.instructions))
+	if definition.has_tracking_rhythm():
+		text = text.replace("petite cible lente", "petite cible")
+		text += " Vitesse variable, pauses et reprises."
 	if temporal(definition):
 		if definition.scenario_id == "D01":
 			text = "Touchez la cible avant son échéance."
-		text += " La cible rétrécit puis est remplacée à son échéance." if definition.family == "tracking" else " Les cibles rétrécissent puis expirent."
+		text += (" Elle rétrécit puis est remplacée." if definition.has_tracking_rhythm() else " La cible rétrécit puis est remplacée à son échéance.") if definition.family == "tracking" else " Les cibles rétrécissent puis expirent."
 	return text
 
 
@@ -56,7 +59,9 @@ static func report_definition(report: Dictionary) -> ScenarioDefinition:
 		var definition := ScenarioCatalog.resolve(scenario_id, str(report.scenario_fingerprint))
 		if definition != null:
 			return definition
-	if int(report.get("scenario_revision", 1)) >= 6:
+	if int(report.get("scenario_revision", 1)) == 6:
+		return ScenarioCatalog.find_lifecycle(scenario_id)
+	if int(report.get("scenario_revision", 1)) >= 7:
 		return ScenarioCatalog.find_practice(scenario_id)
 	return ScenarioCatalog.find(scenario_id)
 

@@ -1,6 +1,7 @@
 from hashlib import sha256
 from pathlib import Path
 import json
+import math
 import os
 import re
 import struct
@@ -18,6 +19,87 @@ EXERCISES = {
     "S02": "Transitions mobiles", "M01": "Flicks mixtes", "T10": "Suivi varié",
 }
 WEAPONS = ("pulse", "vector", "classic")
+TRACKING = {"T01", "T02", "T03", "T04", "T05", "T09", "T10"}
+
+
+def finite_number(value):
+    return type(value) in (int, float) and math.isfinite(value)
+
+
+def validate_tracking_motion(scenario_id, motion, project_root):
+    if not isinstance(motion, dict) or motion.get("model") != "bounded_tracking_rhythm_v1":
+        raise ValueError(f"modèle de rythme absent : {scenario_id}")
+    minimum = motion.get("tracking_speed_min_deg_s")
+    maximum = motion.get("tracking_speed_max_deg_s")
+    acceleration = motion.get("tracking_ramp_acceleration_deg_s2")
+    lifetime_s = motion.get("lifetime_s")
+    if (not all(finite_number(value) for value in (minimum, maximum, acceleration, lifetime_s))
+            or not 0 < minimum < maximum <= 120 or not 0 < acceleration <= 600
+            or not 8.5 <= lifetime_s <= 11.5):
+        raise ValueError(f"bornes du rythme invalides : {scenario_id}")
+    source = (project_root / "content" / "scenarios" / f"{scenario_id}.tres").read_text(encoding="utf-8")
+    speed_match = re.search(r"^speed_deg_s\s*=\s*([0-9.]+)\s*$", source, re.MULTILINE)
+    if speed_match is None:
+        raise ValueError(f"vitesse nominale absente : {scenario_id}")
+    nominal = float(speed_match.group(1))
+    if not all(math.isclose(actual, expected, rel_tol=1e-12, abs_tol=1e-12) for actual, expected in (
+            (minimum, nominal * 0.45), (maximum, nominal * 1.35), (acceleration, nominal * 1.35 * 4.0))):
+        raise ValueError(f"déclaration de rythme différente du contrat r7 : {scenario_id}")
+    if motion.get("seed") != 42 or type(motion.get("target_id")) is not int or motion["target_id"] < 1:
+        raise ValueError(f"identité du rythme seedé invalide : {scenario_id}")
+    times_s = motion.get("times_s")
+    speeds = motion.get("speeds_deg_s")
+    kinds = motion.get("kinds")
+    if (not all(isinstance(values, list) for values in (times_s, speeds, kinds))
+            or not 2 <= len(times_s) <= 128 or len(times_s) != len(speeds) or len(kinds) != len(times_s) - 1
+            or not all(finite_number(value) for value in times_s + speeds)
+            or times_s[0] != 0 or times_s[-1] < lifetime_s
+            or any(value != 0 and not minimum <= abs(value) <= maximum for value in speeds)
+            or speeds[0] == 0 or any(not isinstance(kind, str) for kind in kinds)
+            or set(kinds) != {"hold", "accelerate", "brake", "pause", "restart"}
+            or not any(value > 0 for value in speeds) or not any(value < 0 for value in speeds)):
+        raise ValueError(f"chronologie du rythme absente ou incohérente : {scenario_id}")
+    previous_sign = 1 if speeds[0] > 0 else -1
+    for index, kind in enumerate(kinds):
+        duration_s = times_s[index + 1] - times_s[index]
+        before, after = speeds[index:index + 2]
+        if duration_s <= 0 or 1.5 * abs(after - before) / duration_s > acceleration * (1.0 + 1e-12):
+            raise ValueError(f"rampe de rythme non bornée : {scenario_id}")
+        if ((kind == "hold" and (before == 0 or before != after))
+                or (kind == "accelerate" and (before * after <= 0 or abs(after) <= abs(before)))
+                or (kind == "brake" and (before * after < 0 or abs(after) >= abs(before)))
+                or (kind == "pause" and (before != 0 or after != 0))
+                or (kind == "restart" and (before != 0 or after == 0 or after * previous_sign >= 0))):
+            raise ValueError(f"phase de rythme contradictoire : {scenario_id}")
+        if after != 0:
+            previous_sign = 1 if after > 0 else -1
+
+
+def validate_current(current, version, project_root):
+    if (version != "0.9.0" or not isinstance(current, dict) or current.get("app_version") != version
+            or current.get("protocol_version") != 6):
+        raise ValueError("la galerie CURRENT doit correspondre à AIM/LOCAL 0.9.0, protocole 6")
+    revisions = current.get("scenario_revisions")
+    fingerprints = current.get("scenario_fingerprints")
+    lifecycle = current.get("lifecycle_fingerprints")
+    motion = current.get("tracking_motion")
+    if (not all(isinstance(values, dict) and set(values) == set(EXERCISES)
+                for values in (revisions, fingerprints, lifecycle))
+            or not isinstance(motion, dict) or set(motion) != TRACKING):
+        raise ValueError("les 18 définitions et les 7 déclarations de rythme doivent être présentes")
+    for scenario_id in EXERCISES:
+        expected_revision = 7 if scenario_id in TRACKING else 6
+        if type(revisions[scenario_id]) is not int or revisions[scenario_id] != expected_revision:
+            raise ValueError(f"révision courante incorrecte : {scenario_id}")
+        if any(not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None
+               for value in (fingerprints[scenario_id], lifecycle[scenario_id])):
+            raise ValueError(f"empreinte absente ou invalide : {scenario_id}")
+        if (fingerprints[scenario_id] != lifecycle[scenario_id]) != (scenario_id in TRACKING):
+            raise ValueError(f"empreinte historique r6 altérée ou suivi r7 non versionné : {scenario_id}")
+        if scenario_id in TRACKING:
+            validate_tracking_motion(scenario_id, motion[scenario_id], project_root)
+    if len(set(fingerprints.values())) != 18 or len(set(lifecycle.values())) != 18:
+        raise ValueError("les empreintes doivent identifier chacune des 18 difficultés")
 
 
 def validate_png(capture):
@@ -111,14 +193,15 @@ try:
     current = json.loads(current_marker.read_text(encoding="utf-8"))
 except (OSError, ValueError) as error:
     raise SystemExit(f"Marqueur CURRENT absent ou invalide dans {preview_dir}. Relancer la validation visuelle actuelle.") from error
-if (not isinstance(current, dict) or current.get("app_version") != version
-        or current.get("protocol_version") != 5 or current.get("scenario_revision") != 6):
-    raise SystemExit("La galerie CURRENT ne correspond pas à cette version, au protocole 5 et aux variantes r6.")
+try:
+    validate_current(current, version, project_root)
+except (OSError, ValueError) as error:
+    raise SystemExit(f"Manifeste CURRENT invalide : {error}. Relancer la validation visuelle actuelle.") from error
 capture_names = current.get("captures", [])
-if (not isinstance(capture_names, list) or not capture_names or len(capture_names) >= 180
+if (not isinstance(capture_names, list) or len(capture_names) != 177
         or any(not isinstance(name, str) or Path(name).name != name or not name.endswith(".png") for name in capture_names)
         or len(set(capture_names)) != len(capture_names)):
-    raise SystemExit("La liste des captures CURRENT est invalide ou dépasse le budget de moins de 180 images.")
+    raise SystemExit("La galerie CURRENT doit conserver exactement les 177 captures, sous le budget de 180 images.")
 captures = sorted(preview_dir / name for name in capture_names)
 required = {
     "1280-07-entrainement.png", "800-16-survol.png", "1280-25-impact.png",
@@ -166,6 +249,12 @@ if (not isinstance(lifecycle_states, list) or len(lifecycle_states) != 10
                or state.get("shots") != 0 or state.get("input_events") != 0 for state in lifecycle_states)
         or {state.get("capture") for state in lifecycle_states} != expected_lifecycle):
     raise SystemExit("Les dix captures temporelles CURRENT doivent provenir d’exercices actifs sans input.")
+for state in lifecycle_states:
+    scenario_id = "C03" if "-42-lifeC03-" in state["capture"] else "T10"
+    if (state.get("scenario_id") != scenario_id
+            or state.get("scenario_revision") != current["scenario_revisions"][scenario_id]
+            or state.get("scenario_fingerprint") != current["scenario_fingerprints"][scenario_id]):
+        raise SystemExit("Les états capturés doivent utiliser les empreintes et révisions publiques r6/r7 déclarées.")
 for capture in captures:
     try:
         validate_png(capture)
@@ -191,7 +280,8 @@ with ZipFile(archive, "w", ZIP_DEFLATED) as output:
         "17/19-import, 18/20-conversion : exemples d’import physique et conversion.\n"
         "34-sensibilite-en-pause : modification sans mélanger les scores.\n"
         "35-pattern-D01/D02 : instantanés de tailles et mouvements variables.\n\n"
-        "Calibration progressive 0.8, protocole 5 : cinq exercices temporels r6,\n"
+        "Calibration progressive 0.9.0, protocole 6 : trois activités r6 et deux\n"
+        "suivis r7 à rythme variable borné,\n"
         "chacun avec cinq essais de\n"
         "60 secondes, soit 25 essais. Les scores guident les cinq sensibilités\n"
         "testées et resserrent la zone avant le bloc suivant. Le bilan présente\n"
@@ -203,6 +293,9 @@ with ZipFile(archive, "w", ZIP_DEFLATED) as output:
         "41-calibration-mesures-exemple : calculs et intervalles dépliés.\n"
         "Clics et transitions : score V2, réussite = touches / (tirs + expirations).\n"
         "Les suivis conservent le score V1 et leur vrai temps sur cible.\n"
+        "Les sept suivis actuels alternent accélérations, freinages, pauses et\n"
+        "reprises seedés, avec vitesse maximale bornée et rampes de cadence limitées.\n"
+        "Les onze autres variantes conservent exactement leur difficulté r6.\n"
         "45-calibration-protocole4-exemple : ancien bilan 0.7, vingt-cinq essais\n"
         "V1 et définitions historiques conservés, avec mention visible.\n"
         "Les anciens noms guide sont conservés pour compatibilité des captures.\n\n"
@@ -221,7 +314,10 @@ with ZipFile(archive, "w", ZIP_DEFLATED) as output:
         "Le HUD reste actif et ses expirations et son score sont actualisés.\n"
         "44-expirations-score-v2-exemple : 36 touches, 48 tirs, 12 expirations ;\n"
         "précision brute 75 %, réussite effective V2 60 %, données synthétiques.\n"
-        "CURRENT identifie cette galerie 0.8 et ses états temporels seedés.\n\n"
+        "CURRENT identifie la galerie 0.9.0, ses empreintes r6/r7 et ses états\n"
+        "temporels seedés. Il conserve les chronologies de rythme du moteur ;\n"
+        "les images fixes ne mesurent pas les vitesses ni les accélérations.\n"
+        "Les protocoles historiques 4/5 gardent leurs conditions et leurs scores.\n\n"
         "Les bilans, blocs, repos de routine, records et historiques portent une\n"
         "mention visible de données synthétiques. Le résultat 09 utilise une\n"
         "visée et une durée simulées. Aucun score n’est présenté comme une\n"

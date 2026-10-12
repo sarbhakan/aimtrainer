@@ -34,17 +34,19 @@ GODOT_PROJECT_PATH="$export_validation_dir" bash tools/godot.sh \
 smoke_completed=false
 assets_completed=false
 profiles_completed=false
+history_completed=false
 crosshairs_completed=false
 while IFS= read -r log_line; do
     case "$log_line" in
         ERROR:*|"SCRIPT ERROR:"*) printf 'Erreur dans les exercices exportés : %s\n' "$log_line" >&2; exit 1 ;;
         "EXPORT SMOKE : 18 exercices embarqués, 0 échecs.") smoke_completed=true ;;
         "EXPORT ASSETS : 3 profils d’arme embarqués, 0 échecs.") assets_completed=true ;;
-        "EXPORT PROFILES : 3 imports, protocole 5, 25 essais de 60 s et routine 3 phases embarqués, 0 échecs.") profiles_completed=true ;;
+        "EXPORT PROFILES : 3 imports, protocole 6, 25 essais de 60 s et routine 3 phases embarqués, 0 échecs.") profiles_completed=true ;;
+        "EXPORT HISTORY : protocoles 4/5 préservés, archives inconnues protégées, 0 échecs.") history_completed=true ;;
         "EXPORT CROSSHAIRS : 4 styles embarqués, 0 échecs.") crosshairs_completed=true ;;
     esac
 done < "$export_validation_dir/exercises.log"
-if [ "$smoke_completed" != true ] || [ "$assets_completed" != true ] || [ "$profiles_completed" != true ] || [ "$crosshairs_completed" != true ]; then
+if [ "$smoke_completed" != true ] || [ "$assets_completed" != true ] || [ "$profiles_completed" != true ] || [ "$history_completed" != true ] || [ "$crosshairs_completed" != true ]; then
     printf 'Les exercices exportés n’ont pas terminé leur contrôle.\n' >&2
     exit 1
 fi

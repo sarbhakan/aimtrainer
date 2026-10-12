@@ -108,17 +108,18 @@ func test_conditions() -> void:
 
 
 func test_protocol_compatibility() -> void:
-	check(ProgressiveCalibrationService.PROTOCOL_VERSION == 5 and ScoringService.VERSION == 1 and ScoringService.EXPIRY_VERSION == 2,
-		"Le parcours public passe au protocole 5 sans réécrire le score historique V1.")
-	for protocol in [4, 5]:
+	check(ProgressiveCalibrationService.PROTOCOL_VERSION == 6 and ScoringService.VERSION == 1 and ScoringService.EXPIRY_VERSION == 2,
+		"Le parcours public passe au protocole 6 sans réécrire les scores historiques V1/V2.")
+	for protocol in [4, 5, 6]:
 		var service := ProgressiveCalibrationService.new()
 		check(service.begin(SensitivityService.default_profile(), 16.0 / 9.0, 42, "protocol-%d" % protocol, 60.0, true, protocol),
-			"Les protocoles progressifs 4 et 5 démarrent explicitement.")
+			"Les protocoles progressifs 4, 5 et 6 démarrent explicitement.")
 		for trial_index in ProgressiveCalibrationService.TOTAL_TRIALS:
 			var stage := service.current_stage()
 			var definition := service.definition_for(stage.scenario_id)
-			var expected := ScenarioCatalog.find(stage.scenario_id) if protocol == 4 else ScenarioCatalog.find_practice(stage.scenario_id)
-			check(definition == expected and definition.has_lifecycle() == (protocol == 5),
+			var expected := ScenarioCatalog.find(stage.scenario_id) if protocol == 4 else ScenarioCatalog.find_lifecycle(stage.scenario_id) if protocol == 5 else ScenarioCatalog.find_practice(stage.scenario_id)
+			var expected_revision: int = 3 if protocol == 4 else 7 if protocol == 6 and expected.family == "tracking" else 6
+			check(definition == expected and definition.revision == expected_revision and definition.has_lifecycle() == (protocol >= 5),
 				"La version du protocole choisit la difficulté historique ou temporelle de chaque activité.")
 			var report := synthetic_report(service)
 			check(report.score_version == ScoringService.version_for(expected) and service.accept(report),

@@ -127,6 +127,8 @@ func spawn_target(target_index: int, time_s: float) -> void:
 					target.phase_rad = 0.0 if previous_angles.x >= 0.0 else PI
 				else:
 					target.phase_rad = -PI * 0.5 if (previous_angles.y if definition.motion == "vertical" else previous_angles.x) >= 0.0 else PI * 0.5
+	if definition.has_tracking_rhythm():
+		target.tracking_rhythm = TrackingRhythm.build(definition, scenario_seed, int(target.id), float(target.lifetime_s))
 
 
 func spawn_target_geometry(target_index: int, time_s: float) -> void:
@@ -326,10 +328,17 @@ func spawn_waypoint_target(target_index: int, time_s: float) -> void:
 	initialize_new_target(target_index, time_s, Vector2(poses[0].x, poses[0].y))
 
 
+func motion_time_s(target: Dictionary, time_s: float) -> float:
+	var local_s := time_s - float(target.born_s) if definition.has_lifecycle() else time_s
+	if definition.has_tracking_rhythm() and target.has("tracking_rhythm"):
+		return TrackingRhythm.distance_deg(target.tracking_rhythm, local_s) / definition.speed_deg_s
+	return local_s
+
+
 func waypoint_pose(target: Dictionary, time_s: float) -> Vector3:
 	var poses: Array[Vector3] = target.waypoint_poses
 	var times_s: PackedFloat64Array = target.waypoint_times_s
-	var age_s: float = clampf(time_s - float(target.born_s), 0.0, times_s[times_s.size() - 1])
+	var age_s: float = clampf(absf(motion_time_s(target, time_s)) if definition.has_tracking_rhythm() else time_s - float(target.born_s), 0.0, times_s[times_s.size() - 1])
 	var lower_index: int = 0
 	var upper_index: int = times_s.size() - 1
 	while upper_index - lower_index > 1:
@@ -360,7 +369,7 @@ func target_direction(target_index: int, time_s: float) -> Vector3:
 		amplitude_deg = sqrt(amplitude_yaw_deg * amplitude_yaw_deg + amplitude_pitch_deg * amplitude_pitch_deg)
 	elif definition.motion == "circle":
 		amplitude_deg = maxf(amplitude_yaw_deg, amplitude_pitch_deg)
-	var local_s := time_s - float(target.born_s) if definition.has_lifecycle() else time_s
+	var local_s := motion_time_s(target, time_s)
 	var phase_rad := float(target.phase_rad) + definition.speed_deg_s / amplitude_deg * local_s
 	if definition.family == "tracking":
 		yaw_deg = 0.0

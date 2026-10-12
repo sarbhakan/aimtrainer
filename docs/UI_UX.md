@@ -1,10 +1,14 @@
-# Interface et présentation — 0.8.0
+# Interface et présentation — 0.9.0
+
+## Rythmes de suivi
+
+Les sept suivis gardent leur trajectoire mais alternent accélérations, freinages, pauses et reprises. Une seule phrase courte annonce ce rythme avant le départ ; aucun compteur de vitesse ou consigne supplémentaire ne surcharge le HUD. Les aperçus jouent le même moteur que l’exercice. Les captures fixes ne valident pas les variations de vitesse.
 
 ## Cibles temporaires
 
-Les cartes et bulles publiques montrent exactement les variantes r6 jouées : cibles rétrécissantes, échéances et remplacement. Le résultat de clic affiche Touches, Ratées et Réussite, avec tirs ratés/expirations distincts ; le score est versionné dans les détails, pas dans les libellés courants. Le suivi garde son temps sur cible et explique que ses remplacements programmés ne sont pas des tirs ratés. Le HUD indique une expiration de clic sans ajouter une liste de chiffres devant la visée.
+Les cartes et bulles publiques montrent exactement les variantes jouées : onze clics/transitions r6 et sept suivis r7, cibles rétrécissantes, échéances et remplacement. Le résultat de clic affiche Touches, Ratées et Réussite, avec tirs ratés/expirations distincts ; le score est versionné dans les détails, pas dans les libellés courants. Le suivi garde son temps sur cible et explique que ses remplacements programmés ne sont pas des tirs ratés. Le HUD indique une expiration de clic sans ajouter une liste de chiffres devant la visée.
 
-Le nouveau hitmarker X n’est plus une extension du viseur. Décor plus riche en périphérie, source directionnelle unique de côté et ombres des sphères conservées pour la profondeur. La nouvelle calibration est protocole5 ; les reprises 0.7 gardent leur protocole4 et leurs règles historiques. Les options d’objectif historiques non utilisées par la recherche progressive restent cachées.
+Le hitmarker X n’est plus une extension du viseur. Décor plus riche en périphérie, source directionnelle unique de côté et ombres des sphères conservées pour la profondeur. La nouvelle calibration est protocole 6 ; les reprises 0.7/0.8 gardent leurs protocoles 4/5 et leurs règles historiques. Les options d’objectif historiques non utilisées par la recherche progressive restent cachées.
 
 ## Parcours long, rendu cohérent
 
@@ -12,7 +16,7 @@ La calibration publique propose cinq activités × cinq sensibilités, 60 s par 
 
 L’accueil propose aussi l’entraînement M01 → T10 → S02 en trois phases. Scores séparés et même profil ; la perte de focus pendant la transition exige Continuer. Les anciens boutons de protocole 3 restent cachés même si une ancienne sauvegarde existe.
 
-Réglages : aperçu orthographique de l’arme entière de profil, sans main/manche ; cadrage calculé depuis les bounds avec marge et réutilisé pour les trois tailles de fenêtre. Le HUD garde l’arme tenue et alignée vers le viseur. MSAA 4×, décor biseauté, une source directionnelle commune aux ombres et ambient diffus ; les lumières du viewmodel isolé n’éclairent pas le monde. Hitmarker ambre à quatre traits orthogonaux courts, contour contrasté. Décompte sonore 3/2/1 puis GO, volume/silence respectés ; Animations réduites n’annule pas le son.
+Réglages : aperçu orthographique de l’arme entière de profil, sans main/manche ; cadrage calculé depuis les bounds avec marge et réutilisé pour les trois tailles de fenêtre. Le HUD garde l’arme tenue et alignée vers le viseur. MSAA 4×, décor biseauté, une source directionnelle commune aux ombres et ambient diffus ; les lumières du viewmodel isolé n’éclairent pas le monde. Hitmarker ambre à quatre traits diagonaux courts, contour contrasté. Décompte sonore 3/2/1 puis GO, volume/silence respectés ; Animations réduites n’annule pas le son.
 
 ## Une seule échelle visuelle
 

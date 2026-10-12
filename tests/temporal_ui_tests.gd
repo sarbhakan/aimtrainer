@@ -26,8 +26,8 @@ func settle() -> void:
 		await process_frame
 
 
-func counted_report(scenario_id: String, practice: bool = true, hits_count: int = 4, shots_count: int = 5) -> Dictionary:
-	var definition := ScenarioCatalog.find_practice(scenario_id) if practice else ScenarioCatalog.find(scenario_id)
+func counted_report(scenario_id: String, practice: bool = true, hits_count: int = 4, shots_count: int = 5, explicit_definition: ScenarioDefinition = null) -> Dictionary:
+	var definition := explicit_definition if explicit_definition != null else ScenarioCatalog.find_practice(scenario_id) if practice else ScenarioCatalog.find(scenario_id)
 	var engine := ScenarioEngine.new()
 	check(engine.start(definition, 1337, 60.0), "Le moteur accepte la définition du bilan : " + scenario_id)
 	for action_index in shots_count:
@@ -83,10 +83,12 @@ func trial_context(report: Dictionary) -> Dictionary:
 
 func summary_fixture() -> Dictionary:
 	var blocks: Array = []
+	var calibration := ProgressiveCalibrationService.new()
+	check(calibration.begin(SensitivityService.default_profile(), 16.0 / 9.0, 42, "temporal-ui-summary") and calibration.protocol_version == 6, "Les rapports du bilan utilisent les difficultés du protocole 6.")
 	for scenario_id in ProgressiveCalibrationService.SCENARIOS:
-		var report: Dictionary = counted_report(scenario_id)
+		var report: Dictionary = counted_report(scenario_id, true, 4, 5, calibration.definition_for(scenario_id))
 		blocks.append({"scenario_id": scenario_id, "trials": history_fixture(report)})
-	return {"protocol_version": 5, "recommended_sensitivity": 1.623456789,
+	return {"protocol_version": calibration.protocol_version, "recommended_sensitivity": 1.623456789,
 		"tested_trials": 25, "blocks": blocks, "status": "complete", "apply_allowed": true}
 
 
@@ -150,8 +152,10 @@ func test_dashboard() -> void:
 	check(not dashboard.goal_input.is_visible_in_tree() and dashboard.goal_input.item_count == 3 and dashboard.read_profile().goal == profile.goal, "La priorité legacy reste dans l’API et disparaît du parcours progressif.")
 	check(dashboard.calibration_duration_input.get_selected_id() == 60 and dashboard.progressive_effort_label.text.contains("25"), "La calibration conserve cinq activités, cinq essais et 60 s par défaut.")
 	var protocol_copy: String = labels_text(dashboard.protocol_grid)
+	var calibration := ProgressiveCalibrationService.new()
+	check(calibration.begin(profile, 16.0 / 9.0, 42, "temporal-ui-current"), "La présentation utilise le protocole de calibration courant.")
 	for scenario_id in ProgressiveCalibrationService.SCENARIOS:
-		var definition := ScenarioCatalog.find_practice(scenario_id) if ProgressiveCalibrationService.PROTOCOL_VERSION >= 5 else ScenarioCatalog.find(scenario_id)
+		var definition := calibration.definition_for(scenario_id)
 		check(protocol_copy.contains(ScenarioCopy.description(definition)), "Les consignes de calibration correspondent au protocole courant : " + scenario_id)
 	for dimensions in DIMENSIONS:
 		root.size = dimensions

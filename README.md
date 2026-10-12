@@ -2,7 +2,7 @@
 
 Aim trainer 3D hors ligne pour Windows, en **Godot 4.7.2 stable + GDScript**.
 
-La **0.8.0 — Precision Lab** ajoute des **cibles temporaires dans les dix-huit exercices** : rétrécissement lisible, expiration et nouvelle apparition ailleurs. Les cibles oubliées pénalisent le score de clic ; en suivi, le plancher de taille reste visable et le cycle suivant demande une réacquisition. Calibration en cinq activités × cinq sensibilités × 45/60 s, hitmarker X distinct du viseur, décor plus détaillé et une seule lumière directionnelle ombrant cibles/décor. La [spécification originale](docs/SPECIFICATION.md) reste la cible complète : les 55 exercices, le déplacement du joueur, l’ADS et les routines personnalisées ne sont pas encore implémentés.
+La **0.9.0 — Precision Lab** ajoute des **rythmes de suivi variables** : accélérations progressives, freinages plus courts, pauses et reprises dans l’autre sens, avec vitesse maximale bornée. Les sept suivis gardent leurs trajectoires propres ; cibles temporaires, rétrécissement et réacquisition restent actifs. Calibration en cinq activités × cinq sensibilités × 45/60 s, hitmarker X distinct du viseur et éclairage directionnel unique. La [spécification originale](docs/SPECIFICATION.md) reste la cible complète : les 55 exercices, le déplacement du joueur, l’ADS et les routines personnalisées ne sont pas encore implémentés.
 
 Priorités : fidélité des mouvements de souris, pertinence des exercices, mesure réelle de la progression.
 
@@ -10,11 +10,11 @@ Priorités : fidélité des mouvements de souris, pertinence des exercices, mesu
 
 [Voir la bibliothèque d’exercices](docs/screenshots/exercices.png) · [Voir le parcours de sensibilité](docs/screenshots/sensibilite.png) · [Choix d’interface et équipements](docs/UI_UX.md)
 
-**Sur Mac :** [voir la galerie](docs/screenshots/README.md) ou [télécharger les captures PNG](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.8.0-visuels.zip), menus, calibration, dix-huit exercices, cycles de vie et armes 3D. [Direction artistique et concepts](docs/art-direction/README.md). Le ZIP est une galerie, pas un exécutable Mac. Pour le régénérer : `bash tools/visual_smoke.sh`, puis `python3 tools/package_visuals.py`.
+**Sur Mac :** [voir la galerie](docs/screenshots/README.md) ou [télécharger les captures PNG](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.9.0-visuels.zip), menus, calibration, dix-huit exercices, cycles de vie et armes 3D. [Direction artistique et concepts](docs/art-direction/README.md). Le ZIP est une galerie, pas un exécutable Mac ; ses images fixes ne montrent pas l’évolution de vitesse. Pour le régénérer : `bash tools/visual_smoke.sh`, puis `python3 tools/package_visuals.py`.
 
 ## Ouvrir sous Windows
 
-Télécharger [AimLocal-0.8.0-windows-x64.zip](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.8.0-windows-x64.zip), puis extraire **tout** le dossier et lancer `AimLocal.exe` : **aucune installation de Godot nécessaire**. Vérification facultative : [somme SHA-256](downloads/AimLocal-0.8.0-windows-x64.zip.sha256), ou `Get-FileHash .\AimLocal-0.8.0-windows-x64.zip -Algorithm SHA256` sous PowerShell. Seule la dernière distribution est conservée dans `downloads/`.
+Télécharger [AimLocal-0.9.0-windows-x64.zip](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.9.0-windows-x64.zip), puis extraire **tout** le dossier et lancer `AimLocal.exe` : **aucune installation de Godot nécessaire**. Vérification facultative : [somme SHA-256](downloads/AimLocal-0.9.0-windows-x64.zip.sha256), ou `Get-FileHash .\AimLocal-0.9.0-windows-x64.zip -Algorithm SHA256` sous PowerShell. Seule la dernière distribution est conservée dans `downloads/`.
 
 Pour ouvrir les sources, installer l'édition standard de Godot **4.7.2 stable** et ses export templates de la même version depuis les [releases officielles](https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable). Importer `project.godot`, puis lancer le projet avec F6 depuis `Main.tscn`, ou F5.
 
@@ -27,6 +27,7 @@ Pour ouvrir les sources, installer l'édition standard de Godot **4.7.2 stable**
 - **Entraînement** : cartes, filtres, recherche et bulle de démonstration au survol, au focus ou au clic ; 18 exercices de 15/30/60 secondes, avec consigne courte et bouton de lancement toujours accessible.
 - **Entraînement complet** : flicks mixtes → suivi multidirectionnel avec profondeur → transitions mobiles, 45 ou 60 s par étape. Même réglage, trois scores distincts ; pause entre les étapes et nouveau décompte.
 - **Cibles temporaires** : échéances seedées et bornées, rétrécissement commun au rendu/hitbox, nouvelle apparition à taille initiale. Une expiration ne fabrique pas un tir : elle compte séparément comme oubli et fait baisser le taux de réussite du clic. Les cycles de suivi demandent une nouvelle acquisition, sans disparaître à taille nulle.
+- **Suivi variable** : horizontal, vertical, diagonal, cercle, strafes, petite cible et suivi 3D alternent rythmes lents/rapides, pauses et reprises. Trajectoires continues, vitesses bornées et programme seedé, sans adaptation cachée à la réussite.
 - **Scores lisibles** : touches, ratées (tirs manqués + expirations) et réussite pour le clic ; temps réellement sur cible pour le suivi. Formules, précision des seuls tirs et versions de score restent dans les détails/exports.
 - **Conversion** : traduire le réglage actuel vers CS2, Valorant ou le profil mesuré de CoD/autre jeu ; choisir aussi les DPI destination. Valeurs à saisir dans le jeu, sans modification de fichiers ni interaction avec ses processus. L’ADS et le ressenti à FOV différent ne sont pas équivalents automatiquement.
 - **Progression** : courbes des 20 dernières séances comparables, score habituel (médiane récente), record, tendance après 10 séances et export CSV/JSON. Aucun résultat de démonstration n’est ajouté à vos données.
@@ -41,7 +42,7 @@ Défaut : **800 DPI, 35 cm/360°, FOV vertical 75°**, soit `914,4 / (800 × 35)
 
 Les données sont dans `user://aim_local`, soit **`%APPDATA%\AIM_LOCAL\aim_local` sous Windows**. Séances et bilans sont immuables ; profil et checkpoint utilisent un remplacement atomique avec backup. Un fichier corrompu est conservé et signalé, jamais écrasé silencieusement.
 
-Les **dix-huit pratiques r6** utilisent les cycles décrits dans [Mécaniques 0.8](docs/EXERCISE_DESIGN_080.md). Les références historiques r3/r4/r5 restent figées. Score V2 pour le clic temporel ; score de suivi V1 à difficulté différente. Les nouvelles calibrations utilisent le protocole 5 ; un parcours 0.7/protocole 4 se reprend avec ses définitions et son score d’origine. Chaque pratique rejouée renouvelle sa graine ; la calibration conserve celle prescrite par activité. Les anciens résultats/bilans ne sont jamais convertis en nouveaux records.
+Les **sept suivis r7** ajoutent les [rythmes variables 0.9](docs/EXERCISE_DESIGN_090.md) ; les onze clics/transitions r6 gardent les [cycles 0.8](docs/EXERCISE_DESIGN_080.md). Les références historiques r3/r4/r5 et les dix-huit variantes r6 restent figées. Score V2 pour le clic temporel ; formule de suivi V1 à difficulté différente. Les nouvelles calibrations utilisent le protocole 6 ; les parcours 0.7/protocole 4 et 0.8/protocole 5 se reprennent avec leurs définitions d’origine. Chaque pratique rejouée renouvelle sa graine ; la calibration conserve celle prescrite par activité. Les anciens résultats/bilans ne sont jamais convertis en nouveaux records.
 
 ## Développer dans le cloud Linux
 

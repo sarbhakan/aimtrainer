@@ -1,5 +1,40 @@
 # Plan de validation
 
+## Jalon 0.9.0 — 12 octobre 2026, UTC
+
+| Contrôle exécuté | Résultat |
+|---|---|
+| Input/UI/UX/imports/armes/archives/pause | 12 237 assertions, 0 échec ; capture physique du pointeur non exécutée en headless |
+| Géométrie et calibration historique | 2 355 + 906 assertions, 0 échec |
+| Espacement, aperçus et patterns | 385 + 9 042 + 2 711 assertions, 0 échec |
+| Relecture des scores JSON | 36 867 assertions, 0 échec |
+| Calibration progressive et reprise | 9 565 assertions, 0 échec ; protocoles 4/5/6 conservés |
+| Exercices C03/M01/T10 historiques | 139 747 assertions, 0 échec |
+| Cycles historiques r6 et compatibilité | 1 816 assertions, 0 échec |
+| Rythmes r7, géométrie, pauses et replays | 77 388 assertions, 0 échec ; sept suivis, bornes étroites et métriques à 60/144/240 FPS |
+| Présentation et UI temporelles | 540 + 205 assertions, 0 échec |
+| OpenGL/Mesa/Xorg dummy | 177 captures, 0 échec ; manifeste CURRENT avec sept programmes seedés réellement actifs |
+| Installation et import sans cache | Deux SHA-512 officiels vérifiés ; import/startup avec codes 0, aucun ERROR/SCRIPT ERROR et manifestes sources identiques |
+| Windows release/pack isolé ouvert sous Linux | 18 exercices, 3 armes/imports, protocole 6, reprises 4/5, archives inconnues protégées, routine et 4 viseurs ; 0 échec |
+| ZIP Windows et galerie PNG | Intégrité ZIP/SHA-256 vérifiée, EXE PE x64/PCK/notices et 177 PNG validés ; seuls les derniers ZIP sont distribués |
+| Windows natif, son entendu, souris/scaling/latence/GPU et ergonomie humaine | Non exécutés |
+
+Total final des treize runners : **293 764 assertions, zéro échec**. L’export final réexécute toutes les suites ; passages précédents et contrôles séparés des agents ne sont pas additionnés. Les PNG montrent l’interface et les états, pas une preuve de vitesse ou de progression humaine. Le pilote Mesa signale qu’il ne peut pas régler le V-Sync ; ce rendu logiciel n’est pas une réception GPU Windows.
+
+Contre-exemples traités : bornes de cadence proches où une bande calculée naïvement dépassait le plafond ; définition statique prétendant activer un rythme de suivi ; ancienne assertion UI exigeant le mot « échéance » alors que le texte plus court indique explicitement le rétrécissement et le remplacement. Les contrôles de longueur restent stricts et vérifient désormais aussi l’annonce des vitesses variables, pauses et reprises. Les empreintes/rendus/RNG historiques, la formule de score et les protections d’archive restent testés.
+
+## Réception 0.9 — variations de suivi
+
+Automatisation : programmes seedés immuables, intégrale analytique, limites de vitesse et pente des rampes, freinages continus, arrêts puis reprises inversées, nouvelles graines/identités. Enveloppes horizontal/vertical/diagonal/cercle/strafes/3D conservées ; même géométrie dans le rendu, la collision et les aperçus. Comparer lectures hors ordre, gros sauts et petits pas, pause et replays à 60/144/240 FPS. Conserver les dix-huit variantes r6 et les protocoles 4/5 ; nouvelles mesures r7/protocole 6 séparées des anciens records.
+
+À vérifier **sur Windows réel** :
+
+1. Suivre T01/T02/T03/T04 plusieurs cycles : accélérations perceptibles, freinages courts mais continus, pauses brèves et reprise inverse, sans sortir de la trajectoire annoncée.
+2. Vérifier les virages de T05, le contrôle fin de T09 et les mouvements/profondeurs de T10. La taille demeure visable ; une pause du mouvement n’interrompt pas le rétrécissement dans le temps actif.
+3. Rejouer avec une nouvelle graine : le tempo change sans devenir erratique. Échap/Alt+Tab suspend le rythme et les échéances ; Continuer reste explicite.
+4. Comparer aperçus et gameplay, et reprendre un parcours 0.8 : aucun rythme nouveau appliqué à un ancien protocole. Nouvelle calibration : mêmes rythmes entre les cinq sensibilités d’une activité, aucune adaptation au score.
+5. Vérifier fluidité et coût CPU/GPU sur la machine cible. Des images fixes ou un replay logiciel ne prouvent pas une vitesse perçue, une latence physique ou un progrès humain.
+
 ## Jalon 0.8.0 — 12 octobre 2026, UTC
 
 | Contrôle exécuté | Résultat |

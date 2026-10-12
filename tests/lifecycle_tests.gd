@@ -20,7 +20,7 @@ func check(condition: bool, description: String) -> void:
 
 func engine_for(scenario_id: String, seed_value: int = 42) -> ScenarioEngine:
 	var engine := ScenarioEngine.new()
-	check(engine.start(ScenarioCatalog.find_practice(scenario_id), seed_value, 30.0), "L’exercice temporel démarre : " + scenario_id + " " + engine.invalid_reason)
+	check(engine.start(ScenarioCatalog.find_lifecycle(scenario_id), seed_value, 30.0), "L’exercice temporel historique r6 démarre : " + scenario_id + " " + engine.invalid_reason)
 	return engine
 
 
@@ -38,12 +38,20 @@ func run_tests() -> void:
 
 
 func test_definitions() -> void:
-	check(ScenarioCatalog.practice_definitions().size() == 18, "Les dix-huit exercices publics disposent de cycles de vie explicites.")
-	for definition in ScenarioCatalog.practice_definitions():
-		check(definition.revision == 6 and definition.has_lifecycle() and definition.validate().is_empty(), "Variante r6 valide : " + definition.scenario_id + " " + definition.validate())
+	check(ScenarioCatalog.lifecycle_definitions().size() == 18, "Les dix-huit variantes temporelles historiques r6 sont conservées.")
+	check(ScenarioCatalog.practice_definitions().size() == 18, "Le catalogue public conserve dix-huit variantes actuelles.")
+	for definition in ScenarioCatalog.lifecycle_definitions():
+		check(definition.revision == 6 and definition.has_lifecycle() and not definition.has_tracking_rhythm() and definition.validate().is_empty(), "Variante r6 valide : " + definition.scenario_id + " " + definition.validate())
+		check(ScenarioCatalog.find_lifecycle(definition.scenario_id) == definition and ScenarioCatalog.resolve(definition.scenario_id, definition.fingerprint()) == definition, "La référence r6 historique reste accessible par identifiant et empreinte.")
+		var practice := ScenarioCatalog.find_practice(definition.scenario_id)
+		var expected_revision: int = 7 if definition.family == "tracking" else 6
+		check(practice.revision == expected_revision and practice.has_lifecycle() and practice.has_tracking_rhythm() == (definition.family == "tracking") and practice.validate().is_empty(), "La pratique actuelle publie r7 seulement pour le suivi : " + definition.scenario_id)
+		check((practice.fingerprint() != definition.fingerprint()) == (definition.family == "tracking"), "Les onze autres variantes conservent exactement leur empreinte r6.")
+		check(ScenarioCatalog.resolve(practice.scenario_id, practice.fingerprint()) == practice, "L’empreinte actuelle résout la variante publique.")
 		check(definition.fits_view(75.0, 16.0 / 9.0) and definition.lifecycle_shrink_ratio > 0.0, "Le cadrage initial et la taille finale sont visables.")
 		var base := ScenarioCatalog.find(definition.scenario_id)
 		check(base.revision < 6 and base.fingerprint() != definition.fingerprint(), "La difficulté historique et ses records ne sont pas réécrits.")
+		check(ScenarioCatalog.resolve(base.scenario_id, base.fingerprint()) == base, "La référence de base reste résolue sans migration.")
 		for mutation in [{"lifecycle_shrink_ratio": 0.0}, {"lifecycle_shrink_ratio": 1.0}, {"lifecycle_shrink_ratio": NAN}, {"lifetime_min_s": 0.01}, {"lifetime_max_s": INF}]:
 			var bad := definition.duplicate() as ScenarioDefinition
 			for field in mutation:
@@ -171,7 +179,7 @@ func test_tracking_renewal() -> void:
 
 
 func test_partial_boundary() -> void:
-	var definition := ScenarioCatalog.find_practice("T10").duplicate() as ScenarioDefinition
+	var definition := ScenarioCatalog.find_lifecycle("T10").duplicate() as ScenarioDefinition
 	definition.lifetime_s = 0.503
 	definition.lifetime_min_s = 0.503
 	definition.lifetime_max_s = 0.503
@@ -190,5 +198,13 @@ func test_old_protocol() -> void:
 	var current := ProgressiveCalibrationService.new()
 	check(current.restore(JSON.parse_string(JSON.stringify(legacy.checkpoint(), "\t", true, true))) and current.protocol_version == 4 and not current.definition_for("C02").has_lifecycle(), "La reprise 0.7 conserve les conditions et les scores anciens.")
 	var modern := ProgressiveCalibrationService.new()
-	check(modern.begin(SensitivityService.default_profile(), 16.0 / 9.0, 42, "modern-five") and modern.protocol_version == 5 and modern.definition_for("C02").has_lifecycle(), "Une nouvelle calibration utilise le protocole 5 temporel.")
+	check(modern.begin(SensitivityService.default_profile(), 16.0 / 9.0, 42, "legacy-five", 60.0, true, 5) and modern.protocol_version == 5, "Le protocole 5 temporel se reconstruit explicitement.")
+	var restored_five := ProgressiveCalibrationService.new()
+	check(restored_five.restore(JSON.parse_string(JSON.stringify(modern.checkpoint(), "\t", true, true))) and restored_five.protocol_version == 5, "La reprise 0.8 conserve le protocole 5.")
+	var latest := ProgressiveCalibrationService.new()
+	check(latest.begin(SensitivityService.default_profile(), 16.0 / 9.0, 42, "modern-six") and latest.protocol_version == 6, "Une nouvelle calibration utilise le protocole 6.")
+	for scenario_id in ProgressiveCalibrationService.SCENARIOS:
+		check(modern.definition_for(scenario_id) == ScenarioCatalog.find_lifecycle(scenario_id) and restored_five.definition_for(scenario_id).fingerprint() == modern.definition_for(scenario_id).fingerprint(), "Le protocole 5 conserve exactement chaque difficulté r6 après JSON.")
+		check(latest.definition_for(scenario_id) == ScenarioCatalog.find_practice(scenario_id), "Le protocole 6 choisit la variante actuelle de chaque activité.")
 	check(current.checkpoint().scenario_fingerprints != modern.checkpoint().scenario_fingerprints, "Les deux protocoles ne prétendent pas mesurer la même difficulté.")
+	check(modern.checkpoint().scenario_fingerprints != latest.checkpoint().scenario_fingerprints, "Les nouveaux rythmes de suivi séparent les difficultés des protocoles 5 et 6.")

@@ -78,7 +78,7 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	store.reject_checkpoint = false
 	app.home.progressive_button.pressed.emit()
 	expect(app.screen == app.Screen.COUNTDOWN and app.is_progressive and app.selected_duration_s == 60.0 and app.training_profile.cm_per_360 == profile.cm_per_360, "L’interface publique démarre un vrai essai de 60 s à la sensibilité exacte.")
-	expect(app.progressive.protocol_version == 5 and app.selected_definition == app.progressive.definition_for("C02") and app.selected_definition == ScenarioCatalog.find_practice("C02"), "Le parcours public associe le protocole 5 à sa définition temporelle.")
+	expect(app.progressive.protocol_version == 6 and app.selected_definition == app.progressive.definition_for("C02") and app.selected_definition == ScenarioCatalog.find_practice("C02"), "Le parcours public associe le protocole 6 à sa définition actuelle.")
 	var first_seed: int = app.selected_seed
 	complete_trial(app)
 	expect(app.screen == app.Screen.REST and not app.session_panel.comfort_row.visible and not app.last_report.warmup, "Le résultat présente les mesures, sans questionnaire de confort ni échauffement de 8 s.")

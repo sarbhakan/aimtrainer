@@ -36,6 +36,9 @@ const CAMERA_ORIGIN_HEIGHT_M: float = 1.6
 @export var lifecycle_shrink_ratio: float = 0.0
 @export var lifetime_min_s: float = 0.0
 @export var lifetime_max_s: float = 0.0
+@export var tracking_speed_min_deg_s: float = 0.0
+@export var tracking_speed_max_deg_s: float = 0.0
+@export var tracking_ramp_acceleration_deg_s2: float = 0.0
 
 
 func validate() -> String:
@@ -79,6 +82,14 @@ func validate() -> String:
 			return "Cycle de vie incompatible : durée bornée et taille finale visable requises."
 	elif lifetime_min_s != 0.0 or lifetime_max_s != 0.0 or lifecycle_shrink_ratio != 0.0:
 		return "Cycle de vie incomplet."
+	for value in [tracking_speed_min_deg_s, tracking_speed_max_deg_s, tracking_ramp_acceleration_deg_s2]:
+		if not is_finite(value):
+			return "Rythme de suivi non fini."
+	if has_tracking_rhythm():
+		if revision < 7 or family != "tracking" or not motion in ["horizontal", "vertical", "diagonal", "circle", "strafe", "waypoints"] or not has_lifecycle() or tracking_speed_min_deg_s <= 0.0 or tracking_speed_min_deg_s >= tracking_speed_max_deg_s or tracking_speed_max_deg_s > 120.0 or tracking_ramp_acceleration_deg_s2 <= 0.0 or tracking_ramp_acceleration_deg_s2 > 600.0:
+			return "Rythme de suivi incompatible : vitesses et rampes bornées requises."
+	elif tracking_speed_min_deg_s != 0.0 or tracking_speed_max_deg_s != 0.0 or tracking_ramp_acceleration_deg_s2 != 0.0:
+		return "Rythme de suivi incomplet."
 	var pattern_error: String = validate_patterns()
 	if not pattern_error.is_empty():
 		return pattern_error
@@ -97,6 +108,10 @@ func has_diameter_variation() -> bool:
 
 func has_lifecycle() -> bool:
 	return lifecycle_shrink_ratio > 0.0
+
+
+func has_tracking_rhythm() -> bool:
+	return tracking_speed_max_deg_s > 0.0
 
 
 func has_distance_variation() -> bool:
@@ -199,4 +214,6 @@ func fingerprint() -> String:
 		parameters.append("bounded_scatter_v1")
 	if has_lifecycle():
 		parameters.append(["lifecycle_v1", lifecycle_shrink_ratio, lifetime_min_s, lifetime_max_s])
+	if has_tracking_rhythm():
+		parameters.append(["bounded_tracking_rhythm_v1", tracking_speed_min_deg_s, tracking_speed_max_deg_s, tracking_ramp_acceleration_deg_s2])
 	return JSON.stringify(parameters).sha256_text()

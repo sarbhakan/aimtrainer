@@ -14,6 +14,7 @@ const DEFINITIONS: Array[ScenarioDefinition] = [
 ]
 
 static var temporal_definitions: Array[ScenarioDefinition] = []
+static var rhythm_definitions: Array[ScenarioDefinition] = []
 
 
 static func find(scenario_id: String) -> ScenarioDefinition:
@@ -23,7 +24,7 @@ static func find(scenario_id: String) -> ScenarioDefinition:
 	return null
 
 
-static func practice_definitions() -> Array[ScenarioDefinition]:
+static func lifecycle_definitions() -> Array[ScenarioDefinition]:
 	if temporal_definitions.is_empty():
 		for source in DEFINITIONS:
 			var definition := source.duplicate() as ScenarioDefinition
@@ -38,6 +39,28 @@ static func practice_definitions() -> Array[ScenarioDefinition]:
 	return temporal_definitions
 
 
+static func find_lifecycle(scenario_id: String) -> ScenarioDefinition:
+	for definition in lifecycle_definitions():
+		if definition.scenario_id == scenario_id:
+			return definition
+	return null
+
+
+static func practice_definitions() -> Array[ScenarioDefinition]:
+	if rhythm_definitions.is_empty():
+		for source in lifecycle_definitions():
+			if source.family != "tracking":
+				rhythm_definitions.append(source)
+				continue
+			var definition := source.duplicate() as ScenarioDefinition
+			definition.revision = 7
+			definition.tracking_speed_min_deg_s = source.speed_deg_s * 0.45
+			definition.tracking_speed_max_deg_s = source.speed_deg_s * 1.35
+			definition.tracking_ramp_acceleration_deg_s2 = definition.tracking_speed_max_deg_s * 4.0
+			rhythm_definitions.append(definition)
+	return rhythm_definitions
+
+
 static func find_practice(scenario_id: String) -> ScenarioDefinition:
 	for definition in practice_definitions():
 		if definition.scenario_id == scenario_id:
@@ -46,7 +69,7 @@ static func find_practice(scenario_id: String) -> ScenarioDefinition:
 
 
 static func resolve(scenario_id: String, fingerprint: String) -> ScenarioDefinition:
-	for definition in [find(scenario_id), find_practice(scenario_id)]:
+	for definition in [find(scenario_id), find_lifecycle(scenario_id), find_practice(scenario_id)]:
 		if definition != null and definition.fingerprint() == fingerprint:
 			return definition
 	return null

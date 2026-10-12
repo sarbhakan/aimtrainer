@@ -9,6 +9,9 @@ func _initialize() -> void:
 
 
 func smoke() -> void:
+	if ProjectSettings.get_setting("application/config/version") != "0.9.0":
+		push_error("Le pack exporté doit être AIM/LOCAL 0.9.0.")
+		failures += 1
 	var scene := load("res://scenes/app/Main.tscn") as PackedScene
 	if scene == null:
 		quit(1)
@@ -20,7 +23,7 @@ func smoke() -> void:
 	if DirAccess.dir_exists_absolute("res://tests"):
 		push_error("Le dossier de tests doit être absent du pack produit.")
 		failures += 1
-	for test_path in ["run_tests", "domain_tests", "ui_tests", "sensitivity_import_tests", "geometry_regression_tests", "browser_preview_tests", "weapon_animation_tests", "calibration_block_tests", "checkpoint_migration_tests", "ui_polish_tests", "ux_flow_tests", "crosshair_feedback_tests", "gameplay_quality_tests", "adaptive_calibration_tests", "guided_flow_tests", "record_flow_tests", "revision_archive_tests", "training_presentation_tests", "ui_spacing_tests", "preview_containment_tests", "pause_seed_tests", "pattern_variation_tests", "storage_roundtrip_tests", "exercise_070_tests", "presentation_070_tests", "presentation_080_tests", "temporal_ui_tests", "temporal_tests", "lifecycle_tests", "progressive_ui_tests", "progressive_calibration_tests", "progressive_calibration_flow_tests", "progressive_visual_fixtures", "export_smoke", "benchmark", "visual_smoke"]:
+	for test_path in ["run_tests", "domain_tests", "ui_tests", "sensitivity_import_tests", "geometry_regression_tests", "browser_preview_tests", "weapon_animation_tests", "calibration_block_tests", "checkpoint_migration_tests", "ui_polish_tests", "ux_flow_tests", "crosshair_feedback_tests", "gameplay_quality_tests", "adaptive_calibration_tests", "guided_flow_tests", "record_flow_tests", "revision_archive_tests", "training_presentation_tests", "ui_spacing_tests", "preview_containment_tests", "pause_seed_tests", "pattern_variation_tests", "storage_roundtrip_tests", "exercise_070_tests", "presentation_070_tests", "presentation_080_tests", "temporal_ui_tests", "temporal_tests", "lifecycle_tests", "tracking_rhythm_tests", "progressive_ui_tests", "progressive_calibration_tests", "progressive_calibration_flow_tests", "progressive_visual_fixtures", "export_smoke", "benchmark", "visual_smoke"]:
 		if ResourceLoader.exists("res://tests/" + test_path + ".gd"):
 			push_error("Ressource de test présente dans le pack : " + test_path)
 			failures += 1
@@ -48,6 +51,8 @@ func smoke() -> void:
 		failures += 1
 	smoke_progressive_calibration(app.home.read_profile())
 	smoke_progressive_calibration(app.home.read_profile(), 4)
+	smoke_progressive_calibration(app.home.read_profile(), 5)
+	smoke_progressive_archives(app.home.read_profile())
 	var routine := TrainingRoutineService.new()
 	for duration_s in [45.0, 60.0]:
 		if not routine.begin(duration_s) or routine.plan.size() != 3:
@@ -93,11 +98,20 @@ func smoke() -> void:
 		push_error("La préparation explicite doit conserver la définition historique fournie.")
 		failures += 1
 	app.return_to_menu()
+	if ScenarioCatalog.lifecycle_definitions().size() != 18:
+		push_error("Le catalogue historique exporté doit conserver 18 variantes r6.")
+		failures += 1
+	for definition in ScenarioCatalog.lifecycle_definitions():
+		if definition.revision != 6 or not definition.has_lifecycle() or definition.has_tracking_rhythm() or not definition.validate().is_empty() or ScenarioCatalog.resolve(definition.scenario_id, definition.fingerprint()) != definition:
+			push_error("Variante historique r6 exportée invalide : " + definition.scenario_id)
+			failures += 1
 	if ScenarioCatalog.practice_definitions().size() != 18:
 		push_error("Le catalogue public exporté doit contenir 18 variantes temporelles.")
 		failures += 1
 	for definition in ScenarioCatalog.practice_definitions():
-		if definition.revision != 6 or not definition.has_lifecycle() or not definition.validate().is_empty() or definition.fingerprint() == ScenarioCatalog.find(definition.scenario_id).fingerprint():
+		var expected_revision: int = 7 if definition.family == "tracking" else 6
+		var lifecycle := ScenarioCatalog.find_lifecycle(definition.scenario_id)
+		if definition.revision != expected_revision or definition.has_tracking_rhythm() != (definition.family == "tracking") or not definition.has_lifecycle() or not definition.validate().is_empty() or definition.fingerprint() == ScenarioCatalog.find(definition.scenario_id).fingerprint() or (definition.fingerprint() != lifecycle.fingerprint()) != (definition.family == "tracking") or ScenarioCatalog.resolve(definition.scenario_id, definition.fingerprint()) != definition:
 			push_error("Variante temporelle exportée invalide : " + definition.scenario_id)
 			failures += 1
 		app.start_practice(definition.scenario_id, 1.0)
@@ -113,7 +127,7 @@ func smoke() -> void:
 			app.engine.shoot(0.1, app.engine.target_direction(0, 0.1))
 		app.clock.accumulated_us = 1000000
 		app.finish_training(true)
-		if not app.last_report.completed or not app.last_report.valid or app.last_report.scenario_id != definition.scenario_id or app.last_report.scenario_revision != 6 or app.last_report.scenario_fingerprint != definition.fingerprint() or app.last_report.score_version != ScoringService.version_for(definition) or not app.last_report.metrics.has("targets_expired") or (app.last_report.score_version == ScoringService.EXPIRY_VERSION and app.last_report.get("score_policy", "") != "expiry_accuracy_v2"):
+		if not app.last_report.completed or not app.last_report.valid or app.last_report.scenario_id != definition.scenario_id or app.last_report.scenario_revision != expected_revision or app.last_report.scenario_fingerprint != definition.fingerprint() or app.last_report.score_version != ScoringService.version_for(definition) or not app.last_report.metrics.has("targets_expired") or (app.last_report.score_version == ScoringService.EXPIRY_VERSION and app.last_report.get("score_policy", "") != "expiry_accuracy_v2"):
 			push_error("Exercice exporté invalide : " + definition.scenario_id + " · " + app.last_report.invalid_reason)
 			failures += 1
 		app.return_to_menu()
@@ -131,14 +145,15 @@ func smoke() -> void:
 	await process_frame
 	print("EXPORT SMOKE : 18 exercices embarqués, %d échecs." % failures)
 	print("EXPORT ASSETS : 3 profils d’arme embarqués, %d échecs." % failures)
-	print("EXPORT PROFILES : 3 imports, protocole 5, 25 essais de 60 s et routine 3 phases embarqués, %d échecs." % failures)
+	print("EXPORT PROFILES : 3 imports, protocole 6, 25 essais de 60 s et routine 3 phases embarqués, %d échecs." % failures)
+	print("EXPORT HISTORY : protocoles 4/5 préservés, archives inconnues protégées, %d échecs." % failures)
 	print("EXPORT CROSSHAIRS : 4 styles embarqués, %d échecs." % failures)
 	quit(0 if failures == 0 else 1)
 
 
 func smoke_progressive_calibration(profile: Dictionary, protocol: int = ProgressiveCalibrationService.PROTOCOL_VERSION) -> void:
 	var progressive := ProgressiveCalibrationService.new()
-	if not progressive.begin(profile, 16.0 / 9.0, 42, "export-progressive-%d" % protocol, 60.0, true, protocol) or ProgressiveCalibrationService.PROTOCOL_VERSION != 5 or progressive.protocol_version != protocol or ProgressiveCalibrationService.TOTAL_TRIALS != 25 or ProgressiveCalibrationService.TRIALS_PER_BLOCK != 5 or progressive.duration_s != 60.0:
+	if not progressive.begin(profile, 16.0 / 9.0, 42, "export-progressive-%d" % protocol, 60.0, true, protocol) or ProgressiveCalibrationService.PROTOCOL_VERSION != 6 or progressive.protocol_version != protocol or ProgressiveCalibrationService.TOTAL_TRIALS != 25 or ProgressiveCalibrationService.TRIALS_PER_BLOCK != 5 or progressive.duration_s != 60.0:
 		push_error("Calibration progressive exportée incohérente : " + progressive.error)
 		failures += 1
 		return
@@ -149,8 +164,9 @@ func smoke_progressive_calibration(profile: Dictionary, protocol: int = Progress
 			failures += 1
 			break
 		var definition: ScenarioDefinition = progressive.definition_for(stage.scenario_id)
-		var expected_definition: ScenarioDefinition = ScenarioCatalog.find(stage.scenario_id) if protocol == 4 else ScenarioCatalog.find_practice(stage.scenario_id)
-		if definition != expected_definition or definition.has_lifecycle() != (protocol == 5):
+		var expected_definition: ScenarioDefinition = ScenarioCatalog.find(stage.scenario_id) if protocol == 4 else ScenarioCatalog.find_lifecycle(stage.scenario_id) if protocol == 5 else ScenarioCatalog.find_practice(stage.scenario_id)
+		var expected_revision: int = 3 if protocol == 4 else 7 if protocol == 6 and definition.family == "tracking" else 6
+		if definition != expected_definition or definition.revision != expected_revision or definition.has_lifecycle() != (protocol >= 5) or definition.has_tracking_rhythm() != (protocol == 6 and definition.family == "tracking"):
 			push_error("Difficulté du protocole progressif exporté incohérente.")
 			failures += 1
 			break
@@ -185,3 +201,38 @@ func smoke_progressive_calibration(profile: Dictionary, protocol: int = Progress
 	if not restored.restore(checkpoint) or restored.protocol_version != protocol or not restored.same_value(restored.recommendation(), progressive.recommendation()):
 		push_error("Reprise du protocole progressif exporté incohérente : " + restored.error)
 		failures += 1
+
+
+func smoke_progressive_archives(profile: Dictionary) -> void:
+	var store := LocalStore.new("user://tests/export-archives-" + LocalStore.new().identifier())
+	var path := store.root_path + "/progressive_calibration_checkpoint.json"
+	for protocol in [4, 5]:
+		var legacy := ProgressiveCalibrationService.new()
+		var current := ProgressiveCalibrationService.new()
+		if not legacy.begin(profile, 16.0 / 9.0, 42, "export-archive-%d" % protocol, 60.0, true, protocol) or not current.begin(profile, 16.0 / 9.0, 42, "export-archive-current-%d" % protocol) or not store.save_progressive_checkpoint(legacy.checkpoint()):
+			push_error("Checkpoint historique exporté non sauvegardé : " + store.last_error)
+			failures += 1
+			return
+		var contents := FileAccess.get_file_as_bytes(path)
+		if not store.save_progressive_checkpoint(current.checkpoint()) or FileAccess.get_file_as_bytes(store.root_path + "/archives/progressive-" + legacy.calibration_id + ".json") != contents:
+			push_error("L’archive exportée doit préserver exactement les octets du protocole %d." % protocol)
+			failures += 1
+			return
+	var unsupported := ProgressiveCalibrationService.new()
+	if not unsupported.begin(profile, 16.0 / 9.0, 42, "export-unsupported"):
+		failures += 1
+		return
+	for protocol in [3, 7, 99]:
+		var checkpoint := unsupported.checkpoint()
+		checkpoint.protocol_version = protocol
+		var file := FileAccess.open(path, FileAccess.WRITE)
+		if file == null:
+			push_error("Fixture de protocole inconnu inaccessible.")
+			failures += 1
+			return
+		file.store_string(JSON.stringify(checkpoint, "\t", true, true))
+		file.close()
+		var contents := FileAccess.get_file_as_bytes(path)
+		if store.save_progressive_checkpoint(unsupported.checkpoint()) or FileAccess.get_file_as_bytes(path) != contents or FileAccess.file_exists(store.root_path + "/archives/progressive-export-unsupported.json"):
+			push_error("Un protocole progressif inconnu ne doit être ni écrasé ni archivé comme reconnu.")
+			failures += 1

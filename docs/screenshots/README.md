@@ -1,4 +1,4 @@
-# Visuels 0.8.0 — Precision Lab
+# Visuels 0.9.0 — Precision Lab
 
 Captures réelles de Godot 4.7.2, OpenGL Compatibility/Mesa logiciel. Les PNG sont lisibles sur Mac sans installer l’application.
 
@@ -9,6 +9,6 @@ Captures réelles de Godot 4.7.2, OpenGL Compatibility/Mesa logiciel. Les PNG so
 - [Suivi 3D](tracking.png) · [Arme Vector de profil](arme-vector.png) · [Tir et flash 3D](tir.png) · [Hitmarker ambre](impact.png).
 - [Sensibilité en pause](pause.png) · [Pause de calibration](calibration-pause.png) · [Taille évolutive](pattern-d01.png) · [Cible non cyclique](pattern-d02.png).
 
-[Télécharger les 177 captures](../../downloads/AimLocal-0.8.0-visuels.zip). Menus à trois tailles, dix-huit variantes temporaires r6, armes nues/tenues, calibration protocole5, bilan historique protocole4 et routine M01/T10/S02 à45/60s. Dix états temporels montrent le rétrécissement, le renouvellement à échéance et les cycles de suivi sans input. Le marqueur CURRENT identifie la galerie actuelle. Décompresser puis ouvrir les images ; aucun exécutable Mac n’est inclus. [Les deux planches de direction artistique](../art-direction/README.md) sont des concepts séparés de ces rendus réels.
+[Télécharger les 177 captures](../../downloads/AimLocal-0.9.0-visuels.zip). Menus à trois tailles, onze clics/transitions r6 et sept suivis r7, armes nues/tenues, calibration protocole 6, bilan historique protocole 4 et routine M01/T10/S02 à 45/60 s. Dix états temporels montrent le rétrécissement, le renouvellement à échéance et les cycles de suivi sans input. Le marqueur CURRENT identifie la galerie actuelle et ses rythmes ; **une image fixe ne montre pas la variation de vitesse**. Décompresser puis ouvrir les images ; aucun exécutable Mac n’est inclus. [Les deux planches de direction artistique](../art-direction/README.md) sont des concepts séparés de ces rendus réels.
 
 Les bilans, courbes, records et conseils du ZIP sont des exemples synthétiques isolés, pas des performances de joueur. Les effets très courts sont figés pour la capture ; ces rendus ne prouvent pas la fluidité GPU ni la fidélité d’une souris physique.

@@ -1,4 +1,4 @@
-# Architecture — 0.5.0
+# Architecture — 0.9.0
 
 ## Responsabilités
 
@@ -11,6 +11,7 @@
 | `scripts/training/scenario_definition.gd` | Paramètres angulaires validés et empreinte immuable du contexte |
 | `content/scenarios/*.tres` | 18 exercices pilotés par les données |
 | `scripts/training/scenario_engine.gd` | RNG local, cibles, trajectoires, tirs, intégration et métriques |
+| `scripts/training/tracking_rhythm.gd` | Programmes seedés, vitesses signées et intégrales analytiques des rampes de suivi |
 | `scripts/training/aim_geometry.gd` | Directions, erreur angulaire stable près de zéro, rayons/sphères |
 | `scripts/training/target_pool.gd` | Six instances de sphères, mesh/matériau partagés |
 | `scripts/sensitivity/` | Unités physiques, conversions, plan expérimental et recommandation |
@@ -49,7 +50,7 @@ Les événements peuvent être regroupés par Godot : l'horodatage reflète la r
 
 ## Présentation indépendante
 
-Les seize exercices historiques ont reçu leurs tailles angulaires et profondeurs explicites en révision 3. D01/D02/S02 ont ensuite évolué en r4 ; C03/M01/T10 sont maintenant r5, soit dix-huit ressources. Origine caméra réelle, C07 au-dessus du sol, S02 avec couloirs séparés, T03 avec vitesse totale normalisée et T05 retournant continûment en 160 ms. La sphère complète doit tenir dans le frustum ; son rayon rendu est celui de la collision. Les empreintes protègent les anciens résultats de toute comparaison trompeuse. Voir `EXERCISE_DESIGN_070.md`.
+Les ressources de base historiques conservent leurs tailles et profondeurs explicites : r3, puis D01/D02/S02 r4 et C03/M01/T10 r5, soit dix-huit ressources figées. Origine caméra réelle, C07 au-dessus du sol, S02 avec couloirs séparés, T03 avec vitesse totale normalisée. Le virage de T05 dure 160 ms dans son horloge historique ; les suivis r7 font varier cette horloge sans rupture de trajectoire. La sphère complète doit tenir dans le frustum ; son rayon rendu est celui de la collision. Les empreintes protègent les anciens résultats de toute comparaison trompeuse. Voir `EXERCISE_DESIGN_070.md` et `EXERCISE_DESIGN_090.md`.
 
 `ScenarioCopy` fournit les noms et consignes. Les aperçus utilisent une instance distincte de `ScenarioEngine` ; leur cadrage illustratif ne sert jamais au scoring. Les miniatures sont statiques, la bulle apparaît après 180 ms au survol/focus ou immédiatement au clic ; un seul aperçu est animé à 30 Hz par écran. La fermeture, le changement de page, la recherche ou le défilement coupent la bulle et les traitements masqués.
 
@@ -59,9 +60,9 @@ L’interface responsive conserve les boutons de lancement et d’enregistrement
 
 ## Recherche progressive 0.7.0
 
-En 0.8, `ScenarioCatalog.practice_definitions()` construit une fois les dix-huit variantes temporelles r6 ; `DEFINITIONS/find` restent les références figées. `resolve(id, fingerprint)` associe un rapport à sa vraie difficulté pour l’expliquer sans changer son score. `ScenarioEngine` choisit les échéances seedées à chaque apparition et traite les expirations dans leur ordre global, rétrécissement/rayon partagés. Le suivi scinde les samples240Hz traversant une échéance et repart sur un parcours d’âge zéro.
+En 0.9, `ScenarioCatalog.lifecycle_definitions/find_lifecycle` conserve les dix-huit variantes temporelles r6 de 0.8 ; `practice_definitions/find_practice` construit les sept suivis r7 et conserve les onze autres variantes r6. `DEFINITIONS/find` reste historique. `resolve(id, fingerprint)` associe un rapport à sa vraie difficulté sans changer son score. `TrackingRhythm` construit un programme immuable par apparition ; sa vitesse signée et son intégrale donnent une horloge locale, commune aux trajectoires, collisions, mesures et aperçus. Les lectures ne consomment pas de RNG. Le suivi scinde toujours les samples à 240 Hz traversant une échéance, avec vieillissement suspendu en pause.
 
-`ScoringService.VERSION=1` reste historique ; `EXPIRY_VERSION=2` ajoute la pénalité d’oubli pour le clic temporel. La clé inclut version et empreinte ; raw shots/misses ne reçoivent aucun tir fictif. `ProgressiveCalibrationService` démarre le protocole5 temporel mais restaure le protocole4 sur les références historiques, puis sauvegarde son protocole effectif dans le checkpoint/bilan. La vérification JSON accepte les versions numériques entières décodées en float, pas des versions inconnues.
+`ScoringService.VERSION=1` reste historique ; `EXPIRY_VERSION=2` ajoute la pénalité d’oubli pour le clic temporel. La clé inclut version et empreinte ; raw shots/misses ne reçoivent aucun tir fictif. `ProgressiveCalibrationService` démarre le protocole 6 mais restaure les protocoles 4/5 sur leurs références historiques, puis sauvegarde son protocole effectif dans le checkpoint/bilan. La vérification JSON accepte les versions numériques entières décodées en float, pas des versions inconnues.
 
 `ProgressiveCalibrationService` pilote 25 essais de 45/60 s dans cinq activités. Recherche en logarithme de vitesse, baseline/rapide puis branche guidée par l’utilité non arrondie ; contraction au bloc suivant, tie-breaks numériquement stables. La reprise rejoue les rapports validés depuis la référence ; ni gagnant ni intervalle sérialisé arbitraire ne gouverne les décisions. Le rapport final est reconstructible et correspond à un réglage testé dans la dernière activité. Cette heuristique est séquentielle, pas une validation statistique multisession.
 

@@ -159,3 +159,9 @@ En suivi, cycles de dix secondes nominales, réapparition ailleurs à taille ini
 ## D29 — Hitmarker distinct et décor périphérique
 
 Hitmarker original en X, quatre petits traits diagonaux, centre ouvert et séparation au-delà de tout viseur configurable ; aucun asset propriétaire de Call of Duty. Décor détaillé en périphérie/derrière la zone de tir, budget ≤32 meshes statiques, une seule source directionnelle mondiale avec ombres communes aux sphères et bâtiments. L’ambient diffus et le monde séparé du viewmodel n’ajoutent pas d’ombre mondiale contradictoire. Les contours et tests géométriques acceptent uniquement la précision subpixel des coordonnées Canvas, pas des bras de longueur arbitraire.
+
+## D30 — Rythmes variables mais bornés, 0.9.0
+
+Sept suivis r7 : programme seedé de vitesses signées, plateaux lents/rapides, accélérations progressives, freinages courts, arrêts puis reprises inversées. L’intégrale analytique des rampes smoothstep remplace l’horloge locale, pas la trajectoire ni la souris. Vitesses maximales bornées, trajectoires continues et RNG isolé par apparition ; aucune adaptation au score ou tirage par frame. La cadence basse décrit les plateaux, pas une borne physique aux demi-tours. Les choix provisoires de vitesses/pauses sont détaillés dans `EXERCISE_DESIGN_090.md` et demandent une réception humaine.
+
+Les onze clics/transitions et dix-huit références temporelles r6 sont inchangés. La nouvelle calibration est protocole 6 ; protocoles 4/5 repris sur leurs difficultés exactes. Scores et archives ne sont pas réécrits ; seules les nouvelles empreintes permettent des records dans le contexte variable. Les PNG ne prouvent pas le mouvement : tests temporels et réception Windows restent distincts.

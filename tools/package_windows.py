@@ -26,6 +26,8 @@ version_match = re.search(r'^config/version="([0-9]+\.[0-9]+\.[0-9]+)"$', (proje
 if version_match is None:
     raise SystemExit("Version du projet invalide.")
 version = version_match.group(1)
+if version != "0.9.0":
+    raise SystemExit("Cet empaquetage exige AIM/LOCAL 0.9.0 et le protocole 6.")
 archive = dist_dir / f"AimLocal-{version}-windows-x64.zip"
 with ZipFile(archive, "w", compression=ZIP_DEFLATED) as package:
     package.write(executable, "AimLocal/AimLocal.exe")
@@ -40,7 +42,7 @@ with ZipFile(archive, "w", compression=ZIP_DEFLATED) as package:
         "Ma sensibilité : DPI actuels, valeur AIM/LOCAL modifiable ou import d'un jeu.\n"
         "Import : DPI et sensibilité source, sans changer les DPI actuels de la souris.\n"
         "CS2/Valorant : coefficients documentaires ; CoD/autre : titre et mesure manuelle.\n"
-        "Calibration : 5 exercices, chacun 5 sensibilités différentes, protocole 5.\n"
+        "Calibration : 5 exercices, chacun 5 sensibilités différentes, protocole 6.\n"
         "25 essais de 60 s (ou 45 s), environ 28 min (ou 22 min) avec pauses.\n"
         "Réglage connu : recherche locale ; nouveau réglage : exploration plus large.\n"
         "Départ, essai plus rapide, puis ajustements guidés par les scores.\n"
@@ -56,7 +58,10 @@ with ZipFile(archive, "w", compression=ZIP_DEFLATED) as package:
         "Clic : une cible expirée compte comme échec, sans fabriquer un tir.\n"
         "Score V2 : cadence x (touches / (tirs + expirations)) au carré.\n"
         "Suivi : taille finale positive, nouvelle cible ailleurs, réacquisition mesurée.\n"
-        "Les anciens scores V1/calibrations protocole 4 conservent leurs conditions.\n"
+        "Les 7 suivis r7 alternent accélérations, freinages, pauses et reprises seedés,\n"
+        "avec vitesse maximale bornée et rampes de cadence limitées ; 11 autres r6.\n"
+        "Le score de suivi reste V1 ; aucun rythme n’est adapté aux performances.\n"
+        "Les anciens scores et calibrations protocoles 4/5 conservent leurs conditions.\n"
         "Réglages : 3 armes 3D originales avec sons. Cliquer pour un tir ; en suivi,\n"
         "maintenir le clic pour un son continu facultatif, sans effet sur le score.\n"
         "Volume, silence, arme masquée et animations réduites sont disponibles.\n"

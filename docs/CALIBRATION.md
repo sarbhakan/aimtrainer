@@ -1,8 +1,8 @@
-# Sensibilité progressive — protocole 5, application 0.8.0
+# Sensibilité progressive — protocole 6, application 0.9.0
 
-Les nouvelles calibrations suivent toujours cinq activités × cinq sensibilités × 45/60 s, avec les **variantes temporaires r6**. Clic/transitions : cible rétrécissante puis expiration pénalisante, score V2 = cadence × (touches/(tirs+expirations))² / référence. Suivi : cycles avec plancher de taille positif, réapparition ailleurs et réacquisition ; formule de temps sur cible inchangée à difficulté différente. Les cycles sont seedés et ne dépendent pas de la sensibilité, des scores ni des FPS. Voir `EXERCISE_DESIGN_080.md`.
+Les nouvelles calibrations suivent toujours cinq activités × cinq sensibilités × 45/60 s. Clic/transitions r6 : cible rétrécissante puis expiration pénalisante, score V2 = cadence × (touches/(tirs+expirations))² / référence. Suivis r7 : accélérations, freinages, pauses et reprises en sens inverse, cycles avec plancher de taille positif et réacquisition. La formule de temps sur cible reste inchangée à difficulté différente. Les rythmes sont seedés et ne dépendent pas de la sensibilité, des scores ni des FPS. Les cinq sensibilités d’une activité rencontrent le même programme. Voir `EXERCISE_DESIGN_090.md` et `EXERCISE_DESIGN_080.md`.
 
-Un checkpoint/bilan **protocole 4** de 0.7 se reconstruit sur ses références r3/r4/r5 et scores V1 d’origine. Le protocole fait partie de l’enveloppe, les empreintes sont contrôlées et la reprise n’adopte pas silencieusement les nouveaux cycles. Un nouveau départ utilise le protocole 5 et archive le parcours précédent selon les mêmes protections. Anciennes mesures et nouveaux records restent séparés.
+Un checkpoint/bilan **protocole 4** de 0.7 se reconstruit sur ses références r3/r4/r5 et scores V1 d’origine ; le **protocole 5** de 0.8 garde ses variantes r6 sans nouveau rythme. Le protocole fait partie de l’enveloppe, les empreintes sont contrôlées et la reprise ne modifie pas silencieusement une difficulté. Un nouveau départ utilise le protocole 6 et archive le parcours précédent selon les mêmes protections. Anciennes mesures et nouveaux records restent séparés.
 
 ## Parcours actuel
 

@@ -1,7 +1,7 @@
 class_name ProgressiveCalibrationService
 extends RefCounted
 
-const PROTOCOL_VERSION: int = 5
+const PROTOCOL_VERSION: int = 6
 const TRIALS_PER_BLOCK: int = 5
 const SCENARIOS: Array[String] = ["C02", "C04", "S01", "T01", "T05"]
 const TOTAL_TRIALS: int = 25
@@ -29,7 +29,7 @@ func begin(profile: Dictionary, viewport_aspect: float, seed_value: int, identif
 	error = SensitivityService.validate_profile(profile)
 	if not error.is_empty():
 		return false
-	if not protocol in [4, PROTOCOL_VERSION] or not SensitivityService.positive(viewport_aspect) or not trial_duration_s in [45.0, 60.0] or identifier.is_empty() or not identifier.is_valid_filename() or identifier in [".", ".."] or identifier.length() > 96 or absf(float(seed_value)) > 2147000000:
+	if not protocol in [4, 5, PROTOCOL_VERSION] or not SensitivityService.positive(viewport_aspect) or not trial_duration_s in [45.0, 60.0] or identifier.is_empty() or not identifier.is_valid_filename() or identifier in [".", ".."] or identifier.length() > 96 or absf(float(seed_value)) > 2147000000:
 		error = "Paramètres de calibration progressive invalides."
 		return false
 	protocol_version = protocol
@@ -60,7 +60,13 @@ func minimum_log() -> float:
 
 
 func definition_for(scenario_id: String) -> ScenarioDefinition:
-	return ScenarioCatalog.find(scenario_id) if protocol_version == 4 else ScenarioCatalog.find_practice(scenario_id)
+	return protocol_definition_for(scenario_id, protocol_version)
+
+
+static func protocol_definition_for(scenario_id: String, protocol: int) -> ScenarioDefinition:
+	if protocol == 4:
+		return ScenarioCatalog.find(scenario_id)
+	return ScenarioCatalog.find_lifecycle(scenario_id) if protocol == 5 else ScenarioCatalog.find_practice(scenario_id)
 
 
 func maximum_log() -> float:
@@ -271,7 +277,7 @@ func checkpoint() -> Dictionary:
 
 
 func restore(data: Dictionary) -> bool:
-	if data.get("schema_version", null) != 1 or not ScoringService.number(data.get("protocol_version", null)) or not float(data.protocol_version) in [4.0, float(PROTOCOL_VERSION)] or not data.get("baseline", null) is Dictionary or not data.get("trials", null) is Array or data.trials.size() > TOTAL_TRIALS:
+	if data.get("schema_version", null) != 1 or not ScoringService.number(data.get("protocol_version", null)) or not float(data.protocol_version) in [4.0, 5.0, float(PROTOCOL_VERSION)] or not data.get("baseline", null) is Dictionary or not data.get("trials", null) is Array or data.trials.size() > TOTAL_TRIALS:
 		error = "Version ou forme du parcours progressif invalide."
 		return false
 	if not ScoringService.number(data.get("aspect", null)) or not ScoringService.number(data.get("duration_s", null)) or not data.get("exploration", null) is bool or not CalibrationService.integer(data.get("calibration_seed", null)) or not data.get("calibration_id", null) is String:
@@ -281,7 +287,7 @@ func restore(data: Dictionary) -> bool:
 		error = "Empreintes de reprise absentes."
 		return false
 	for scenario_id in SCENARIOS:
-		var expected := ScenarioCatalog.find(scenario_id) if data.protocol_version == 4 else ScenarioCatalog.find_practice(scenario_id)
+		var expected := protocol_definition_for(scenario_id, int(data.protocol_version))
 		if data.scenario_fingerprints.get(scenario_id, "") != expected.fingerprint():
 			error = "La difficulté a changé : le parcours existant est conservé, pas réinterprété."
 			return false

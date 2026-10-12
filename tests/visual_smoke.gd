@@ -315,19 +315,57 @@ func run() -> void:
 	validate_gameplay("T05")
 	app.return_to_menu()
 	expect(lifecycle_states.size() == 10 and capture_count == 177 and capture_count < 180, "La galerie actuelle conserve dix captures temporelles dans une limite de moins de 180 images.")
+	var contract := gallery_contract()
+	expect(ProjectSettings.get_setting("application/config/version") == "0.9.0" and app.progressive.protocol_version == 6, "La galerie actuelle correspond à AIM/LOCAL 0.9.0 et au protocole 6.")
 	if not failed:
 		var marker := FileAccess.open(screenshot_dir.path_join("CURRENT"), FileAccess.WRITE)
 		expect(marker != null, "Le marqueur CURRENT de la galerie actuelle est accessible.")
 		if marker != null:
-			marker.store_string(JSON.stringify({"app_version": ProjectSettings.get_setting("application/config/version"),
-				"protocol_version": app.progressive.protocol_version, "scenario_revision": 6,
-				"captures": capture_names, "lifecycle_states": lifecycle_states}, "\t"))
+			contract.merge({"app_version": ProjectSettings.get_setting("application/config/version"),
+				"protocol_version": app.progressive.protocol_version,
+				"captures": capture_names, "lifecycle_states": lifecycle_states})
+			marker.store_string(JSON.stringify(contract, "\t", true, true))
 			marker.close()
-	print("VISUAL CURRENT : 0.8 · protocole 5 · 18 variantes r6 · %d captures temporelles, %s." % [lifecycle_states.size(), "échec" if failed else "0 échec"])
+	print("VISUAL CURRENT : 0.9.0 · protocole 6 · 11 variantes r6 / 7 suivis r7 · %d captures temporelles, %s." % [lifecycle_states.size(), "échec" if failed else "0 échec"])
 	print("VISUAL SMOKE : %d captures, %s." % [capture_count, "échec" if failed else "0 échec"])
 	app.queue_free()
 	await process_frame
 	quit(1 if failed else 0)
+
+
+func gallery_contract() -> Dictionary:
+	var revisions: Dictionary = {}
+	var fingerprints: Dictionary = {}
+	var lifecycle_fingerprints: Dictionary = {}
+	var tracking_motion: Dictionary = {}
+	for definition in ScenarioCatalog.practice_definitions():
+		var lifecycle := ScenarioCatalog.find_lifecycle(definition.scenario_id)
+		var expected_revision: int = 7 if definition.family == "tracking" else 6
+		expect(definition.revision == expected_revision and definition.validate().is_empty() and definition.has_tracking_rhythm() == (definition.family == "tracking"), "Le manifeste décrit la révision et le rythme réellement actifs : " + definition.scenario_id)
+		revisions[definition.scenario_id] = definition.revision
+		fingerprints[definition.scenario_id] = definition.fingerprint()
+		lifecycle_fingerprints[definition.scenario_id] = lifecycle.fingerprint()
+		expect((definition.fingerprint() != lifecycle.fingerprint()) == (definition.family == "tracking"), "Le manifeste conserve les onze empreintes r6 et sépare les sept suivis r7.")
+		if definition.family != "tracking":
+			continue
+		var engine := ScenarioEngine.new()
+		if not engine.start(definition, 42, 30.0):
+			expect(false, "Le manifeste ne peut reconstruire le suivi actuel : " + engine.invalid_reason)
+			continue
+		var target: Dictionary = engine.targets[0]
+		var schedule: Dictionary = target.get("tracking_rhythm", {})
+		if schedule.is_empty():
+			expect(false, "Le moteur doit fournir son rythme borné, pas seulement une nouvelle étiquette.")
+			continue
+		tracking_motion[definition.scenario_id] = {"model": "bounded_tracking_rhythm_v1", "seed": 42, "target_id": target.id,
+			"tracking_speed_min_deg_s": definition.tracking_speed_min_deg_s,
+			"tracking_speed_max_deg_s": definition.tracking_speed_max_deg_s,
+			"tracking_ramp_acceleration_deg_s2": definition.tracking_ramp_acceleration_deg_s2,
+			"lifetime_s": target.lifetime_s, "times_s": schedule.times_s,
+			"speeds_deg_s": schedule.speeds_deg_s, "kinds": schedule.kinds}
+	expect(revisions.size() == 18 and tracking_motion.size() == 7, "Le manifeste conserve les dix-huit identifiants et les sept rythmes de suivi.")
+	return {"scenario_revisions": revisions, "scenario_fingerprints": fingerprints,
+		"lifecycle_fingerprints": lifecycle_fingerprints, "tracking_motion": tracking_motion}
 
 
 func validate_gameplay(scenario_id: String) -> void:
@@ -353,7 +391,7 @@ func capture_progressive_workflow() -> void:
 	if not app.is_progressive or app.progressive.current_stage().is_empty():
 		expect(false, "Le parcours public de calibration progressive doit démarrer.")
 		return
-	expect(app.progressive.protocol_version == 5 and app.progressive.duration_s == 60.0 and ProgressiveCalibrationService.TOTAL_TRIALS == 25 and app.selected_definition == app.progressive.definition_for("C02"), "La calibration publique propose vingt-cinq essais de soixante secondes sous protocole 5 temporel.")
+	expect(app.progressive.protocol_version == 6 and app.progressive.duration_s == 60.0 and ProgressiveCalibrationService.TOTAL_TRIALS == 25 and app.selected_definition == app.progressive.definition_for("C02"), "La calibration publique propose vingt-cinq essais de soixante secondes sous protocole 6.")
 	app.set_process(false)
 	for dimensions in LAYOUTS:
 		root.size = dimensions
@@ -557,6 +595,7 @@ func capture_live_snapshot(caption: String, sample_s: float, reference: Scenario
 		target_ids.append(int(app.engine.targets[target_index].id))
 		diameters_deg.append(float(geometry.angular_diameter_deg))
 	lifecycle_states.append({"capture": caption + ".png", "scenario_id": app.selected_definition.scenario_id,
+		"scenario_revision": app.selected_definition.revision, "scenario_fingerprint": app.selected_definition.fingerprint(),
 		"seed": app.selected_seed, "elapsed_s": actual_s, "active": app.session_active, "shots": app.engine.shots,
 		"input_events": app.engine.timeline.event_count, "targets_expired": app.engine.expired,
 		"score_version": report.score_version, "score": report.score, "target_ids": target_ids, "diameters_deg": diameters_deg})
