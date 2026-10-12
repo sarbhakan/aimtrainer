@@ -353,7 +353,7 @@ func test_rendering(tree: SceneTree) -> void:
 	await RenderingServer.frame_post_draw
 	var hud_image := viewport.get_texture().get_image()
 	expect(hud_image.get_pixel(400, 225).r > 0.8, "Le viseur reste réellement visible au centre pendant le compte à rebours.")
-	expect(visible_hud.countdown_label.size.x >= 96.0 and visible_hud.countdown_label.size.y < 110.0, "Le compte à rebours natif affiche son chiffre sur une seule ligne.")
+	expect(visible_hud.countdown_label.size.x >= 128.0 and visible_hud.countdown_label.size.y <= 126.0, "Le compte à rebours natif affiche son grand chiffre sur une seule ligne.")
 	expect(hud_image.save_png(capture_directory.path_join("hud-countdown.png")) == OK, "Le HUD est capturé dans une fenêtre de 800 × 450.")
 	visible_hud.queue_free()
 	await tree.process_frame

@@ -123,9 +123,21 @@ func save_checkpoint(data: Dictionary) -> bool:
 				return false
 			if not archive_checkpoint(existing.data):
 				return false
-		elif not checkpoint_shape_is_valid(existing.data) or not verifier.restore(existing.data):
+		elif checkpoint_integer(existing.data.get("protocol_version", null)) and int(existing.data.protocol_version) == 2:
+			if not checkpoint_shape_is_valid(existing.data) or not CalibrationRevisionArchive.recognized_checkpoint(existing.data):
+				last_error = "Ancienne comparaison incohérente conservée ; sauvegarde refusée."
+				return false
+			if not archive_checkpoint(existing.data):
+				return false
+		elif not checkpoint_shape_is_valid(existing.data):
 			last_error = "Checkpoint existant incohérent conservé ; sauvegarde refusée."
 			return false
+		elif not verifier.restore(existing.data):
+			if not CalibrationRevisionArchive.recognized_checkpoint(existing.data):
+				last_error = "Checkpoint existant incohérent conservé ; sauvegarde refusée."
+				return false
+			if not archive_checkpoint(existing.data):
+				return false
 	return write_json(root_path + "/calibration_checkpoint.json", data)
 
 
@@ -237,22 +249,27 @@ func load_checkpoint() -> Dictionary:
 	if not checkpoint_shape_is_valid(loaded.data):
 		last_error = "Checkpoint incompatible ou invalide conservé."
 		return {}
+	if int(loaded.data.protocol_version) == 2:
+		last_error = "Exercices mis à jour : l’ancienne comparaison est conservée. Démarrez une nouvelle comparaison." if CalibrationRevisionArchive.recognized_checkpoint(loaded.data) else "Ancienne comparaison invalide conservée."
+		return {}
 	var verifier := CalibrationService.new()
 	if not verifier.restore(loaded.data):
-		last_error = "Checkpoint invalide conservé : " + verifier.error
+		last_error = "Exercices mis à jour : l’ancienne comparaison est conservée. Démarrez une nouvelle comparaison." if CalibrationRevisionArchive.recognized_checkpoint(loaded.data) else "Checkpoint invalide conservé : " + verifier.error
 		return {}
 	return loaded.data
 
 
-func validate_guided_checkpoint(data: Dictionary) -> String:
+func validate_guided_checkpoint(data: Dictionary, definitions: Dictionary = {}) -> String:
 	if not checkpoint_integer(data.get("schema_version", null)) or int(data.schema_version) != 1 or not data.get("phase", null) in ["comparing", "transition", "complete"]:
 		return "Recherche guidée de version inconnue ou invalide."
 	if not data.get("search_state", null) is Dictionary or not data.get("comparison", null) is Dictionary:
 		return "État de recherche ou comparaison absent."
 	var search := AdaptiveSensitivityService.new()
+	search.scenario_overrides = definitions.duplicate()
 	if not search.restore(data.search_state):
 		return search.error
 	var comparison := CalibrationService.new()
+	comparison.scenario_overrides = definitions.duplicate()
 	if not checkpoint_shape_is_valid(data.comparison) or not comparison.restore(data.comparison):
 		return "Comparaison guidée invalide : " + comparison.error
 	var spec: Dictionary
@@ -285,8 +302,11 @@ func save_guided_checkpoint(data: Dictionary) -> bool:
 	if existing.ok:
 		last_error = validate_guided_checkpoint(existing.data)
 		if not last_error.is_empty():
-			return false
-		if existing.data.search_state.state.search_id != data.search_state.state.search_id and not archive_guided_checkpoint(existing.data):
+			if not validate_guided_checkpoint(existing.data, CalibrationRevisionArchive.definitions()).is_empty():
+				return false
+			if not archive_guided_checkpoint(existing.data):
+				return false
+		elif existing.data.search_state.state.search_id != data.search_state.state.search_id and not archive_guided_checkpoint(existing.data):
 			return false
 	return write_json(path, data)
 
@@ -296,6 +316,8 @@ func load_guided_checkpoint() -> Dictionary:
 	if not loaded.ok:
 		return {}
 	last_error = validate_guided_checkpoint(loaded.data)
+	if not last_error.is_empty() and validate_guided_checkpoint(loaded.data, CalibrationRevisionArchive.definitions()).is_empty():
+		last_error = "Exercices mis à jour : l’ancienne recherche est conservée. Démarrez une nouvelle recherche."
 	return loaded.data if last_error.is_empty() else {}
 
 

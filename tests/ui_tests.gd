@@ -202,7 +202,7 @@ func test_results(app: Node) -> void:
 	var calibration := domain.completed_calibration([30, 40, 70])
 	var recommendation := calibration.recommendation()
 	app.session_panel.present_recommendation(recommendation, 800.0, "Formules et diagnostics réservés aux détails.")
-	expect(app.session_panel.hero_label.text == AimUI.number(SensitivityService.game_sensitivity(800.0, recommendation.recommended_cm_per_360, 0.022), 4), "Le bilan doit présenter une seule sensibilité conseillée, issue du vrai meilleur essai.")
+	expect(app.session_panel.hero_label.text == AimUI.sensitivity(SensitivityService.game_sensitivity(800.0, recommendation.recommended_cm_per_360, 0.022)), "Le bilan doit présenter une seule sensibilité conseillée à deux décimales, issue du vrai meilleur essai.")
 	expect(app.session_panel.stat_values[1].text == "45", "Le bilan doit compter les passages mesurés, sans inclure les quinze familiarisations.")
 	expect(app.session_panel.apply_button.visible and not app.session_panel.body_label.is_visible_in_tree(), "Le bilan doit montrer l’action utile et replier le bloc de données.")
 	app.session_panel.set_notice("Sauvegarde impossible")

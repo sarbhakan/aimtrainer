@@ -2,6 +2,8 @@ extends Node
 
 enum Screen { HOME, TEST, PAUSED, COUNTDOWN, TRAINING, RESULTS, REST }
 
+const COUNTDOWN_DURATION_S: float = 3.0
+
 var screen: Screen = Screen.HOME
 var paused_from: Screen = Screen.TEST
 var window_has_focus: bool = true
@@ -29,6 +31,7 @@ var rest_until_us: int = 0
 var initial_x_counts: float = 0.0
 var initial_y_counts: float = 0.0
 var start_pose_ready: bool = true
+var preparation_engine := ScenarioEngine.new()
 
 @onready var arena: Node3D = $Arena
 @onready var aim_camera: AimCamera = $Arena/AimCamera
@@ -124,7 +127,7 @@ func _process(delta_s: float) -> void:
 		return
 	if finish_queued:
 		return
-	if screen == Screen.COUNTDOWN and clock.elapsed_s(now_us) >= 2.0:
+	if screen == Screen.COUNTDOWN and clock.elapsed_s(now_us) >= COUNTDOWN_DURATION_S:
 		begin_training(now_us)
 	if screen == Screen.TRAINING:
 		if not is_equal_approx(current_aspect(), training_aspect):
@@ -184,6 +187,7 @@ func pause_test() -> void:
 	clock.pause(Time.get_ticks_usec())
 	engine.paused = true
 	hud.weapon_feedback.stop()
+	hud.stop()
 	screen = Screen.PAUSED
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	pause_panel.show()
@@ -281,7 +285,8 @@ func prepare_training(definition: ScenarioDefinition, duration_s: float, seed_va
 	hud.configure(profile)
 	aim_camera.reset_aim()
 	reference_sphere.hide()
-	target_pool.hide_targets()
+	preparation_engine.start(definition, seed_value, duration_s)
+	target_pool.sync(preparation_engine, 0.0)
 	Input.flush_buffered_events()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	clock.start(Time.get_ticks_usec())
@@ -327,6 +332,7 @@ func begin_training(now_us: int) -> void:
 	session_active = true
 	target_pool.sync(engine, 0.0)
 	update_telemetry()
+	hud.show_go()
 
 
 func queue_finish() -> void:
@@ -691,34 +697,29 @@ func export_history() -> void:
 
 func update_telemetry() -> void:
 	if screen == Screen.TEST:
+		hud.set_training_view(true, true)
 		hud.countdown_label.hide()
 		hud.progress.hide()
+		hud.timer_label.text = "TEST"
+		hud.stat_label.text = "ROTATION · COUNTS"
+		hud.score_label.text = ""
 		hud_title.text = "Vérification souris"
 		angles_label.text = "Yaw %+.2f° · Pitch %+.2f°\nCounts X %.0f / Y %.0f" % [aim_camera.yaw_deg, aim_camera.pitch_deg, aim_camera.received_x_counts, aim_camera.received_y_counts]
-		help_label.text = "Déplacez la souris pour mesurer un tour complet.  ·  Échap : pause"
+		help_label.text = "Faites un tour complet avec la souris."
 		hud.queue_redraw()
 		return
 	var prefix := ""
 	if is_calibrating:
 		var stage := calibration.current_stage()
-		prefix = "Exercice %d/5 · réglage %s · %s · " % [int(stage.block_index) + 1, ["A", "B", "C"][int(stage.candidate_index)], "Série %d/3" % (int(stage.repetition) + 1) if stage.scored else "Échauffement"]
-		if is_guided:
-			var spec := guided_search.current_spec()
-			prefix = "%s %d/4 · " % [{"explore": "Exploration", "refine": "Affinage", "validate": "Validation"}.get(spec.phase, "Recherche"), int(spec.round_index) + 1] + prefix
-	hud_title.text = prefix + ScenarioCopy.title(selected_definition)
+		prefix = "%s · %s · " % [["A", "B", "C"][int(stage.candidate_index)], "Série %d/3" % (int(stage.repetition) + 1) if stage.scored else "Échauffement"]
+	hud.set_training_view(screen == Screen.TRAINING, screen == Screen.COUNTDOWN)
 	hud.countdown_label.visible = screen == Screen.COUNTDOWN
-	hud.progress.visible = screen == Screen.TRAINING
 	if screen == Screen.COUNTDOWN:
-		hud.countdown_label.text = "%.0f" % ceil(maxf(2.0 - clock.elapsed_s(Time.get_ticks_usec()), 0.0)) if start_pose_ready else "↓" if aim_camera.pitch_deg > 0.0 else "↑" if aim_camera.pitch_deg < 0.0 else "→" if aim_camera.yaw_deg > 0.0 else "←"
-		angles_label.text = "Préparez-vous" if start_pose_ready else "Revenez vers la zone de tir"
-		help_label.text = ScenarioCopy.description(selected_definition) if start_pose_ready else "Orientez le viseur vers le repère. Le chronomètre n’a pas démarré."
+		hud_title.text = prefix + ScenarioCopy.title(selected_definition)
+		hud.countdown_label.text = "%.0f" % ceil(maxf(COUNTDOWN_DURATION_S - clock.elapsed_s(Time.get_ticks_usec()), 1.0)) if start_pose_ready else "↓" if aim_camera.pitch_deg > 0.0 else "↑" if aim_camera.pitch_deg < 0.0 else "→" if aim_camera.yaw_deg > 0.0 else "←"
+		help_label.text = ScenarioCopy.description(selected_definition) if start_pose_ready else "Revenez vers le repère pour démarrer."
 	else:
-		angles_label.text = "%ds  ·  %d touches" % [int(ceil(maxf(engine.duration_s - engine.elapsed_s, 0.0))), engine.hits]
-		if selected_definition.family == "tracking":
-			angles_label.text = "%ds  ·  %.0f %% sur cible" % [int(ceil(maxf(engine.duration_s - engine.elapsed_s, 0.0))), 100.0 * engine.on_target_s / maxf(engine.integrated_s, 0.000001)]
-		hud.progress.max_value = engine.duration_s
-		hud.progress.value = engine.elapsed_s
-		help_label.text = ScenarioCopy.interaction(selected_definition) + "  ·  Échap : pause"
+		hud.present_live(engine.elapsed_s, engine.duration_s, engine.hits, engine.shots, selected_definition.family == "tracking", engine.on_target_s, engine.integrated_s, selected_definition.reference_hits_s)
 	hud.queue_redraw()
 
 

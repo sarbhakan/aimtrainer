@@ -3,10 +3,14 @@ extends Control
 
 const HIT_DURATION_S: float = 0.11
 const COUNTDOWN_PULSE_DURATION_S: float = 0.16
+const GO_DURATION_S: float = 0.45
 const HIT_DIRECTIONS: PackedVector2Array = [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]
 
 var title_label: Label
 var metric_label: Label
+var timer_label: Label
+var stat_label: Label
+var score_label: Label
 var help_label: Label
 var countdown_label: Label
 var progress: ProgressBar
@@ -19,6 +23,11 @@ var countdown_remaining_s: float = 0.0
 var countdown_text: String = ""
 var window_has_focus: bool = true
 var configured_profile: Dictionary = {}
+var timer_card: PanelContainer
+var metric_card: PanelContainer
+var preparation: CenterContainer
+var go_label: Label
+var go_remaining_s: float = 0.0
 
 
 func _ready() -> void:
@@ -26,42 +35,77 @@ func _ready() -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for edge in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + edge, 24)
+		margin.add_theme_constant_override("margin_" + edge, AimUI.SPACE_XL)
 	add_child(margin)
-	var content := AimUI.column(margin, 8)
+	var content := AimUI.column(margin, AimUI.SPACE_MD)
 	var top := AimUI.row(content)
-	title_label = AimUI.label("", 14)
-	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top.add_child(title_label)
-	metric_label = AimUI.label("", 16, AimUI.ACCENT)
+	top.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	timer_card = make_metric_card(top)
+	var time_column := AimUI.column(timer_card, 4)
+	var time_heading := AimUI.label("TEMPS", 10, AimUI.MUTED)
+	time_heading.autowrap_mode = TextServer.AUTOWRAP_OFF
+	time_column.add_child(time_heading)
+	timer_label = AimUI.label("0:30", 28)
+	timer_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	time_column.add_child(timer_label)
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(spacer)
+	metric_card = make_metric_card(top)
+	var metric_column := AimUI.column(metric_card, 4)
+	stat_label = AimUI.label("TOUCHES · PRÉCISION", 10, AimUI.MUTED)
+	stat_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	stat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	metric_column.add_child(stat_label)
+	metric_label = AimUI.label("0 · —", 24, AimUI.ACCENT)
+	metric_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	metric_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	top.add_child(metric_label)
-	var space := Control.new()
-	space.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content.add_child(space)
-	help_label = AimUI.label("", 12, AimUI.MUTED)
-	content.add_child(help_label)
+	metric_column.add_child(metric_label)
+	score_label = AimUI.label("Score 0", 12, AimUI.MUTED)
+	score_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	metric_column.add_child(score_label)
 	progress = ProgressBar.new()
-	progress.custom_minimum_size.y = 4.0
+	progress.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	progress.offset_bottom = 2.0
+	progress.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	progress.show_percentage = false
-	content.add_child(progress)
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	center.offset_top = 64.0
-	center.offset_bottom = 144.0
-	add_child(center)
-	countdown_label = AimUI.label("", 68, AimUI.ACCENT)
+	add_child(progress)
+	preparation = CenterContainer.new()
+	preparation.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	preparation.offset_top = AimUI.SPACE_XL
+	preparation.offset_bottom = 220.0
+	add_child(preparation)
+	var countdown_content := AimUI.column(preparation, AimUI.SPACE_MD)
+	countdown_content.custom_minimum_size.x = 480.0
+	title_label = AimUI.label("", 16)
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	countdown_content.add_child(title_label)
+	countdown_label = AimUI.label("", 88, AimUI.ACCENT)
 	countdown_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	countdown_label.custom_minimum_size.x = 96.0
+	countdown_label.custom_minimum_size = Vector2(128.0, 112.0)
 	countdown_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	countdown_label.add_theme_color_override("font_outline_color", Color("09121d"))
 	countdown_label.add_theme_constant_override("outline_size", 3)
 	countdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	center.add_child(countdown_label)
+	countdown_content.add_child(countdown_label)
+	help_label = AimUI.label("", 14, AimUI.MUTED)
+	help_label.custom_minimum_size.x = 480.0
+	help_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	countdown_content.add_child(help_label)
 	countdown_label.hide()
 	countdown_label.visibility_changed.connect(sync_countdown)
 	countdown_label.draw.connect(sync_countdown)
 	countdown_label.resized.connect(func() -> void: countdown_label.pivot_offset = countdown_label.size * 0.5)
+	var go_center := CenterContainer.new()
+	go_center.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	go_center.offset_top = 24.0
+	go_center.offset_bottom = 76.0
+	add_child(go_center)
+	go_label = AimUI.label("GO", 28, AimUI.ACCENT)
+	go_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	go_label.hide()
+	go_center.add_child(go_label)
 	weapon_feedback = WeaponFeedback.new()
 	weapon_feedback.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	weapon_feedback.set_hud_mode(true)
@@ -74,6 +118,57 @@ func _ready() -> void:
 	add_child(crosshair_layer)
 	ignore_mouse(self)
 	configure(configured_profile)
+
+
+func make_metric_card(parent: Node) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.027, 0.046, 0.065, 0.88)
+	style.set_corner_radius_all(12)
+	style.content_margin_left = AimUI.SPACE_LG
+	style.content_margin_right = AimUI.SPACE_LG
+	style.content_margin_top = AimUI.SPACE_MD
+	style.content_margin_bottom = AimUI.SPACE_MD
+	style.border_color = Color(0.3, 0.55, 0.6, 0.2)
+	style.set_border_width_all(1)
+	panel.add_theme_stylebox_override("panel", style)
+	parent.add_child(panel)
+	return panel
+
+
+func set_training_view(active: bool, preparing: bool) -> void:
+	timer_card.visible = active
+	metric_card.visible = active
+	preparation.visible = preparing
+	progress.visible = active
+	if not preparing:
+		countdown_label.hide()
+		help_label.text = ""
+		title_label.text = ""
+
+
+func present_live(elapsed_s: float, duration_s: float, hits: int, shots: int, tracking: bool, on_target_s: float, exposed_s: float, reference_hits_s: float) -> void:
+	var remaining_s := int(ceil(maxf(duration_s - elapsed_s, 0.0)))
+	timer_label.text = "%d:%02d" % [remaining_s / 60, remaining_s % 60]
+	var accuracy := float(hits) / maxf(float(shots), 1.0)
+	var ratio := on_target_s / maxf(exposed_s, 0.000001)
+	stat_label.text = "SUR CIBLE" if tracking else "TOUCHES · PRÉCISION"
+	metric_label.text = "%s %%" % AimUI.number(ratio * 100.0, 0) if tracking else "%d · %s" % [hits, (AimUI.number(accuracy * 100.0, 0) + " %") if shots > 0 else "—"]
+	var metrics := {"accuracy_fraction": accuracy, "hits_per_s": float(hits) / maxf(elapsed_s, 0.000001), "on_target_ratio": ratio}
+	var score := int(ScoringService.score({"family": "tracking" if tracking else "click", "metrics": metrics}, reference_hits_s))
+	score_label.text = "Score %d" % score
+	progress.max_value = duration_s
+	progress.value = elapsed_s
+
+
+func show_go() -> void:
+	if reduced_motion or not feedback_available():
+		return
+	go_remaining_s = GO_DURATION_S
+	go_label.show()
+	go_label.modulate.a = 1.0
+	update_processing()
 
 
 func ignore_mouse(parent: Node) -> void:
@@ -115,6 +210,9 @@ func stop() -> void:
 func clear_feedback() -> void:
 	hit_remaining_s = 0.0
 	countdown_remaining_s = 0.0
+	go_remaining_s = 0.0
+	if go_label != null:
+		go_label.hide()
 	if countdown_label != null:
 		countdown_text = countdown_label.text if countdown_label.visible else ""
 		countdown_label.scale = Vector2.ONE
@@ -146,7 +244,7 @@ func sync_countdown() -> void:
 
 
 func update_processing() -> void:
-	set_process(feedback_available() and (hit_remaining_s > 0.0 or countdown_remaining_s > 0.0))
+	set_process(feedback_available() and (hit_remaining_s > 0.0 or countdown_remaining_s > 0.0 or go_remaining_s > 0.0))
 
 
 func _notification(what: int) -> void:
@@ -170,6 +268,9 @@ func _process(delta_s: float) -> void:
 	var elapsed_s := maxf(delta_s, 0.0)
 	hit_remaining_s = maxf(hit_remaining_s - elapsed_s, 0.0)
 	countdown_remaining_s = maxf(countdown_remaining_s - elapsed_s, 0.0)
+	go_remaining_s = maxf(go_remaining_s - elapsed_s, 0.0)
+	go_label.modulate.a = go_remaining_s / GO_DURATION_S
+	go_label.visible = go_remaining_s > 0.0
 	var pulse := countdown_remaining_s / COUNTDOWN_PULSE_DURATION_S
 	countdown_label.scale = Vector2.ONE * (1.0 + 0.08 * pulse)
 	countdown_label.modulate.a = 1.0 - 0.15 * pulse
@@ -179,6 +280,10 @@ func _process(delta_s: float) -> void:
 
 func _draw() -> void:
 	sync_countdown()
+	if countdown_label != null and countdown_label.is_visible_in_tree():
+		var ring_center := countdown_label.global_position - global_position + countdown_label.size * 0.5
+		var ring_radius := 58.0 + 4.0 * countdown_remaining_s / COUNTDOWN_PULSE_DURATION_S
+		draw_arc(ring_center, ring_radius, -PI * 0.5, PI * 1.5, 64, Color(0.39, 0.9, 0.85, 0.12), 2.0, true)
 	if crosshair_layer != null:
 		crosshair_layer.queue_redraw()
 

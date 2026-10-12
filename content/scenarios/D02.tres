@@ -5,14 +5,15 @@
 [resource]
 script=ExtResource("1")
 scenario_id="D02"
-revision=2
-distance_m=4.0
+revision=3
+distance_m=3.5
 title="Clic mobile"
-instructions="Cliquer sur la sphère mobile. Les collisions utilisent sa position au moment du clic."
+instructions="Rejoindre la sphère qui glisse horizontalement, garder le viseur dessus puis cliquer une fois. Le clic utilise sa position exacte à cet instant."
 family="click"
 motion="horizontal"
-angular_diameter_deg=1.8
-yaw_extent_deg=14
+angular_diameter_deg=3
+yaw_extent_deg=16
 pitch_extent_deg=6
-speed_deg_s=16
+min_transition_deg=3.5
+speed_deg_s=14
 reference_hits_s=1.8

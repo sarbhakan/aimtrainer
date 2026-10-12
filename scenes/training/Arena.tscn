@@ -1,31 +1,37 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/input/aim_camera.gd" id="1_camera"]
 [ext_resource type="Script" path="res://scripts/training/target_pool.gd" id="2_pool"]
+[ext_resource type="Script" path="res://scripts/presentation/arena_presentation.gd" id="3_presentation"]
+[ext_resource type="Shader" path="res://assets/shaders/training_surface.gdshader" id="4_surface"]
 
 [sub_resource type="Environment" id="Environment"]
 background_mode=1
-background_color=Color(0.04, 0.065, 0.10, 1)
+background_color=Color(0.025, 0.04, 0.059, 1)
 ambient_light_source=3
 ambient_light_color=Color(0.85, 0.91, 1, 1)
 ambient_light_energy=0.6
 tonemap_mode=0
 
-[sub_resource type="StandardMaterial3D" id="FloorMaterial"]
-albedo_color=Color(0.075, 0.11, 0.15, 1)
-roughness=1.0
+[sub_resource type="ShaderMaterial" id="FloorMaterial"]
+shader=ExtResource("4_surface")
+shader_parameter/surface_color=Color(0.036, 0.058, 0.077, 1)
+shader_parameter/seam_color=Color(0.075, 0.126, 0.154, 1)
+shader_parameter/panel_count=Vector2(20, 20)
+shader_parameter/seam_strength=0.38
 
 [sub_resource type="PlaneMesh" id="FloorMesh"]
 material=SubResource("FloorMaterial")
 size=Vector2(40, 40)
 
-[sub_resource type="StandardMaterial3D" id="WallMaterial"]
-albedo_color=Color(0.055, 0.085, 0.12, 1)
-roughness=1.0
+[sub_resource type="ShaderMaterial" id="WallMaterial"]
+shader=ExtResource("4_surface")
+shader_parameter/panel_count=Vector2(6, 4)
+shader_parameter/seam_strength=0.42
 
 [sub_resource type="BoxMesh" id="WallMesh"]
 material=SubResource("WallMaterial")
-size=Vector3(30, 10, 0.2)
+size=Vector3(30, 14, 0.2)
 
 [sub_resource type="StandardMaterial3D" id="ReferenceMaterial"]
 albedo_color=Color(0.39, 0.9, 0.85, 1)
@@ -40,6 +46,9 @@ rings=12
 
 [node name="Arena" type="Node3D"]
 
+[node name="Presentation" type="Node3D" parent="."]
+script=ExtResource("3_presentation")
+
 [node name="Environment" type="WorldEnvironment" parent="."]
 environment=SubResource("Environment")
 
@@ -52,7 +61,7 @@ shadow_enabled=false
 mesh=SubResource("FloorMesh")
 
 [node name="BackWall" type="MeshInstance3D" parent="."]
-position=Vector3(0, 5, -6)
+position=Vector3(0, 6, -12)
 mesh=SubResource("WallMesh")
 
 [node name="ReferenceSphere" type="MeshInstance3D" parent="."]

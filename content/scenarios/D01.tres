@@ -5,13 +5,14 @@
 [resource]
 script=ExtResource("1")
 scenario_id="D01"
-revision=2
+revision=3
 distance_m=4.0
 title="Pop-up"
-instructions="Toucher avant la disparition après une seconde. Les cibles expirées sont comptées."
+instructions="Une sphère visible pendant une seconde : repérer son apparition, la rejoindre et cliquer avant son expiration. Une touche la remplace immédiatement ; les cibles expirées comptent aussi."
 family="click"
-angular_diameter_deg=1.5
-yaw_extent_deg=14
-pitch_extent_deg=8
+angular_diameter_deg=3.4
+yaw_extent_deg=16
+pitch_extent_deg=9
+min_transition_deg=4.5
 lifetime_s=1
 reference_hits_s=2

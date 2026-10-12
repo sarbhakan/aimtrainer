@@ -33,39 +33,49 @@ var context: VBoxContainer
 var context_root: PanelContainer
 var record_celebration: RecordCelebration
 var guided_confirmation: CheckButton
+var content_margin: MarginContainer
+var main_layout: VBoxContainer
+var result_scroll: ScrollContainer
+var result_content: VBoxContainer
+var actions: HFlowContainer
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	AimUI.backdrop(self)
 	var margin := MarginContainer.new()
+	content_margin = margin
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for edge in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + edge, 24)
+		margin.add_theme_constant_override("margin_" + edge, AimUI.SPACE_XL)
 	add_child(margin)
-	var layout := AimUI.column(margin, 18)
+	var layout := AimUI.column(margin, AimUI.SPACE_LG)
+	main_layout = layout
 	var header := AimUI.row(layout)
 	var logo := AimUI.label("AIM/LOCAL", 17, AimUI.ACCENT)
 	logo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(logo)
 	header.add_child(AimUI.button("Retour au menu", func() -> void: menu_requested.emit()))
 	var scroll := ScrollContainer.new()
+	result_scroll = scroll
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	layout.add_child(scroll)
 	result_grid = GridContainer.new()
 	result_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	result_grid.add_theme_constant_override("h_separation", 26)
-	result_grid.add_theme_constant_override("v_separation", 22)
+	AimUI.grid_spacing(result_grid, AimUI.SPACE_XL)
 	scroll.add_child(result_grid)
-	var content := AimUI.column(result_grid, 14)
+	var content := AimUI.column(result_grid)
+	result_content = content
 	badge_label = AimUI.label("", 11, AimUI.ACCENT)
 	content.add_child(badge_label)
 	title_label = AimUI.label("", 28)
 	content.add_child(title_label)
 	subtitle_label = AimUI.label("", 14, AimUI.MUTED)
 	content.add_child(subtitle_label)
-	var hero := AimUI.card(content, 20)
+	var hero := AimUI.card(content)
+	hero.add_theme_constant_override("separation", AimUI.SPACE_SM)
 	hero_caption = AimUI.label("SCORE", 11, AimUI.MUTED)
 	hero.add_child(hero_caption)
 	hero_label = AimUI.label("", 42, AimUI.ACCENT)
@@ -80,9 +90,10 @@ func _ready() -> void:
 			apply_button.disabled = not confirmed)
 	hero.add_child(guided_confirmation)
 	guided_confirmation.hide()
-	stats = AimUI.row(content, 12)
+	stats = AimUI.row(content)
 	for stat_index in 3:
-		var stat := AimUI.card(stats, 16)
+		var stat := AimUI.card(stats, AimUI.SPACE_LG)
+		stat.add_theme_constant_override("separation", AimUI.SPACE_SM)
 		var caption := AimUI.label("", 11, AimUI.MUTED)
 		stat.add_child(caption)
 		stat_titles.append(caption)
@@ -95,10 +106,10 @@ func _ready() -> void:
 	progress.custom_minimum_size.y = 5.0
 	progress.show_percentage = false
 	content.add_child(progress)
-	comfort_row = AimUI.column(content, 10)
+	comfort_row = AimUI.column(content, AimUI.SPACE_SM)
 	comfort_caption = AimUI.label("Ce réglage est-il confortable ?", 15)
 	comfort_row.add_child(comfort_caption)
-	var choices := AimUI.row(comfort_row, 8)
+	var choices := AimUI.row(comfort_row, AimUI.SPACE_SM)
 	comfort_input = SpinBox.new()
 	comfort_input.min_value = 1
 	comfort_input.max_value = 5
@@ -117,14 +128,13 @@ func _ready() -> void:
 	var uncomfortable := AimUI.label("1 · Inconfortable", 11, AimUI.MUTED)
 	uncomfortable.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	comfort_help.add_child(uncomfortable)
-	comfort_help.add_child(AimUI.label("5 · Très confortable", 11, AimUI.MUTED))
+	var comfortable := AimUI.label("5 · Très confortable", 11, AimUI.MUTED)
+	comfortable.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	comfort_help.add_child(comfortable)
 	notice_label = AimUI.label("", 13, Color("f5c789"))
 	notice_label.hide()
 	content.add_child(notice_label)
-	var actions := HFlowContainer.new()
-	actions.add_theme_constant_override("h_separation", 10)
-	actions.add_theme_constant_override("v_separation", 8)
-	layout.add_child(actions)
+	actions = AimUI.flow(layout)
 	next_button = AimUI.button("Continuer  →", func() -> void: next_requested.emit(), true)
 	actions.add_child(next_button)
 	retry_button = AimUI.button("Rejouer  →", func() -> void: retry_requested.emit(), true)
@@ -137,9 +147,9 @@ func _ready() -> void:
 	details_toggle = details.get_parent().get_child(0) as Button
 	body_label = RichTextLabel.new()
 	body_label.fit_content = true
-	body_label.custom_minimum_size.y = 170.0
+	body_label.scroll_active = false
 	details.add_child(body_label)
-	context = AimUI.card(result_grid, 20)
+	context = AimUI.card(result_grid)
 	context_root = context.get_parent()
 	resized.connect(update_layout)
 	update_layout()
@@ -148,6 +158,10 @@ func _ready() -> void:
 func update_layout() -> void:
 	if result_grid != null:
 		result_grid.columns = 2 if size.x >= 1100.0 else 1
+		var padding := AimUI.SPACE_LG if size.y < 600.0 else AimUI.SPACE_XL
+		for edge in ["left", "right", "top", "bottom"]:
+			content_margin.add_theme_constant_override("margin_" + edge, padding)
+		main_layout.add_theme_constant_override("separation", AimUI.SPACE_MD if size.y < 600.0 else AimUI.SPACE_LG)
 
 
 func clear_context() -> void:
@@ -222,7 +236,6 @@ func present_result(report: Dictionary, details: String, calibration_step: bool,
 		exercise_preview.custom_minimum_size.y = 230.0
 		context.add_child(exercise_preview)
 		exercise_preview.configure(definition, true)
-		context.add_child(AimUI.label("Gardez les mêmes réglages et la même durée pour mesurer votre progression.", 13, AimUI.MUTED))
 
 
 func present_record(previous_best: float, reduced_motion: bool) -> void:
@@ -281,12 +294,13 @@ func present_calibration_context(calibration: CalibrationService, pending: Dicti
 	badge_label.text = "COMPARAISON · EXERCICE %d / 5" % (block_index + 1)
 	var phase := "Échauffement %d / 3" % (calibration.current_index % 12 + 1) if not stage.scored else "Série %d / 3 · passage %d / 3" % [int(stage.repetition) + 1, (calibration.current_index % 12 - 3) % 3 + 1]
 	progress_label.text = "%s · passage %d / 60" % [phase, calibration.current_index + 1]
-	subtitle_label.text = "Réglage %s · sensibilité AIM/LOCAL %s. Indiquez votre confort, puis continuez." % [["A", "B", "C"][int(stage.candidate_index)], AimUI.number(SensitivityService.game_sensitivity(calibration.baseline.dpi, calibration.candidate_profile(int(stage.candidate_index)).cm_per_360, SensitivityService.APP_YAW_DEG), 4)]
+	subtitle_label.text = "Réglage %s · sensibilité AIM/LOCAL %s. Indiquez votre confort, puis continuez." % [["A", "B", "C"][int(stage.candidate_index)], AimUI.sensitivity(SensitivityService.game_sensitivity(calibration.baseline.dpi, calibration.candidate_profile(int(stage.candidate_index)).cm_per_360, SensitivityService.APP_YAW_DEG))]
 	context.add_child(AimUI.label("Même exercice, trois réglages", 21))
 	context.add_child(AimUI.label(ScenarioCopy.description(ScenarioCatalog.find(stage.scenario_id)), 14, AimUI.MUTED))
 	for candidate in calibration.scenario_scores(stage.scenario_id, pending):
-		var row := AimUI.card(context, 14)
-		row.add_child(AimUI.label(candidate.label + "  ·  " + AimUI.number(candidate.sensitivity, 4), 16, AimUI.ACCENT if int(candidate.candidate_index) == int(stage.candidate_index) else AimUI.TEXT))
+		var row := AimUI.card(context, AimUI.SPACE_LG)
+		row.add_theme_constant_override("separation", AimUI.SPACE_SM)
+		row.add_child(AimUI.label(candidate.label + "  ·  " + AimUI.sensitivity(candidate.sensitivity), 16, AimUI.ACCENT if int(candidate.candidate_index) == int(stage.candidate_index) else AimUI.TEXT))
 		row.add_child(AimUI.label("%d / 3 passages notés · score médian %s" % [candidate.samples, "—" if candidate.median_score == null else "%.0f" % candidate.median_score], 13, AimUI.MUTED))
 	context.add_child(AimUI.label("Les échauffements ne comptent pas. Le conseil final combine les cinq exercices et votre confort.", 13, AimUI.MUTED))
 	retry_button.text = "Refaire ce passage"
@@ -306,7 +320,7 @@ func present_recommendation(recommendation: Dictionary, dpi: float, details: Str
 	}
 	subtitle_label.text = messages[status]
 	hero_caption.text = "SENSIBILITÉ AIM/LOCAL" if status == "indicative" else "VOTRE RÉGLAGE RESTE INCHANGÉ"
-	hero_label.text = AimUI.number(SensitivityService.game_sensitivity(dpi, float(recommendation.get("recommended_cm_per_360", 35.0)), SensitivityService.APP_YAW_DEG), 4)
+	hero_label.text = AimUI.sensitivity(SensitivityService.game_sensitivity(dpi, float(recommendation.get("recommended_cm_per_360", 35.0)), SensitivityService.APP_YAW_DEG))
 	retry_button.hide()
 	apply_button.visible = bool(recommendation.apply_allowed)
 	refine_button.visible = status in ["indicative", "uncertain"]
@@ -330,12 +344,12 @@ func present_recommendation(recommendation: Dictionary, dpi: float, details: Str
 		context.add_child(AimUI.label("Vos résultats par exercice", 21))
 		context.add_child(AimUI.label("Scores médians de trois passages, sans les échauffements. Comparez les réglages sur une même ligne, pas les exercices entre eux.", 13, AimUI.MUTED))
 		for summary in summaries:
-			var card := AimUI.card(context, 14)
+			var card := AimUI.card(context, AimUI.SPACE_LG)
 			card.add_child(AimUI.label(ScenarioCopy.title(ScenarioCatalog.find(summary.scenario_id)), 16))
 			var results := AimUI.row(card)
 			for candidate in summary.candidates:
 				var candidate_index := int(candidate.candidate_index)
-				AimUI.stat(results, "%s · %s" % [["A", "B", "C"][candidate_index], AimUI.number(float(candidate.sensitivity), 4)], "—" if candidate.median_score == null else "%.0f" % candidate.median_score)
+				AimUI.stat(results, "%s · %s" % [["A", "B", "C"][candidate_index], AimUI.sensitivity(float(candidate.sensitivity))], "—" if candidate.median_score == null else "%.0f" % candidate.median_score)
 
 
 func set_stat(index: int, caption: String, value: String) -> void:

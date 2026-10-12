@@ -76,7 +76,7 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	expect(app.session_panel.context_root.visible and app.session_panel.context.get_child_count() == 7, "Le bilan doit afficher les cinq lignes d’exercice, pas seulement un nombre final.")
 	var displayed_labels := label_texts(app.session_panel.context)
 	for candidate in recommendation.scenario_results[0].candidates:
-		var caption: String = "%s · %s" % [["A", "B", "C"][int(candidate.candidate_index)], AimUI.number(float(candidate.sensitivity), 4)]
+		var caption: String = "%s · %s" % [["A", "B", "C"][int(candidate.candidate_index)], AimUI.sensitivity(float(candidate.sensitivity))]
 		expect(caption in displayed_labels, "Le bilan doit associer chaque colonne A/B/C à sa vraie sensibilité, indépendamment du classement final.")
 	app.queue_free()
 	await tree.process_frame

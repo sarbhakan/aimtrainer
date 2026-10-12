@@ -5,13 +5,13 @@
 [resource]
 script=ExtResource("1")
 scenario_id="C04"
-revision=2
-distance_m=4.0
+revision=3
+distance_m=5.0
 title="Grands flicks"
-instructions="Acquérir des cibles éloignées. Mesurer ensemble vitesse, précision et régularité."
+instructions="Au moins 20° entre deux apparitions : déplacer le viseur franchement, freiner sur la sphère puis cliquer une fois. Travailler les grands gestes plutôt que la taille minuscule."
 family="click"
-angular_diameter_deg=1.4
-yaw_extent_deg=24
-pitch_extent_deg=10
-min_transition_deg=14
+angular_diameter_deg=3.2
+yaw_extent_deg=30
+pitch_extent_deg=12
+min_transition_deg=20
 reference_hits_s=1.8

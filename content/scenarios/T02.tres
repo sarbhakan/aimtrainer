@@ -5,13 +5,13 @@
 [resource]
 script=ExtResource("1")
 scenario_id="T02"
-revision=2
-distance_m=4.0
+revision=3
+distance_m=3.5
 title="Suivi vertical"
-instructions="Suivre la cible en hauteur, sans cliquer. Contrôler les corrections verticales."
+instructions="La sphère monte et descend sur une même colonne : garder le viseur dessus sans cliquer, avec des corrections verticales régulières jusqu'aux demi-tours."
 family="tracking"
 motion="vertical"
-angular_diameter_deg=2
-yaw_extent_deg=3
-pitch_extent_deg=10
+angular_diameter_deg=3.6
+yaw_extent_deg=2
+pitch_extent_deg=16
 speed_deg_s=12

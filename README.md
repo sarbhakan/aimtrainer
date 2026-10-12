@@ -2,7 +2,7 @@
 
 Aim trainer 3D hors ligne pour Windows, en **Godot 4.7.2 stable + GDScript**.
 
-La **0.4.0** ajoute une recherche de sensibilité adaptative, un viseur personnalisable, des interactions plus fluides et une progression lisible avec records comparables. Les 16 exercices partagent des aperçus représentatifs, un cadrage de départ contrôlé et des retours de tir cosmétiques. La [spécification originale](docs/SPECIFICATION.md) reste la cible complète : les 55 exercices, le déplacement du joueur, l’ADS et les routines personnalisées ne sont pas encore implémentés.
+La **0.5.0** revoit le cadrage des 16 exercices, agrandit les cibles d’entrée et remplace les sprites par des armes originales en **3D**. Menus espacés, démonstrations contenues dans leur bulle, sensibilités lisibles à deux décimales, décor virtuel et HUD compact : temps à gauche, performance et score à droite. Départ **3, 2, 1, GO**, sans changer la fidélité de la souris. La [spécification originale](docs/SPECIFICATION.md) reste la cible complète : les 55 exercices, le déplacement du joueur, l’ADS et les routines personnalisées ne sont pas encore implémentés.
 
 Priorités : fidélité des mouvements de souris, pertinence des exercices, mesure réelle de la progression.
 
@@ -10,16 +10,18 @@ Priorités : fidélité des mouvements de souris, pertinence des exercices, mesu
 
 [Voir la bibliothèque d’exercices](docs/screenshots/exercices.png) · [Voir le parcours de sensibilité](docs/screenshots/sensibilite.png) · [Choix d’interface et équipements](docs/UI_UX.md)
 
+**Sur Mac :** [voir la galerie](docs/screenshots/README.md) ou [télécharger les 77 captures PNG](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.5.0-visuels.zip), menus, calibration, seize exercices et armes 3D. Ce ZIP est une galerie, pas un exécutable Mac. Pour le régénérer : `bash tools/visual_smoke.sh`, puis `python3 tools/package_visuals.py`.
+
 ## Ouvrir sous Windows
 
-Télécharger [AimLocal-0.4.0-windows-x64.zip](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.4.0-windows-x64.zip), puis extraire **tout** le dossier et lancer `AimLocal.exe` : **aucune installation de Godot nécessaire**. Vérification facultative : [somme SHA-256](downloads/AimLocal-0.4.0-windows-x64.zip.sha256), ou `Get-FileHash .\AimLocal-0.4.0-windows-x64.zip -Algorithm SHA256` sous PowerShell. Seule la dernière distribution est conservée dans `downloads/`.
+Télécharger [AimLocal-0.5.0-windows-x64.zip](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.5.0-windows-x64.zip), puis extraire **tout** le dossier et lancer `AimLocal.exe` : **aucune installation de Godot nécessaire**. Vérification facultative : [somme SHA-256](downloads/AimLocal-0.5.0-windows-x64.zip.sha256), ou `Get-FileHash .\AimLocal-0.5.0-windows-x64.zip -Algorithm SHA256` sous PowerShell. Seule la dernière distribution est conservée dans `downloads/`.
 
 Pour ouvrir les sources, installer l'édition standard de Godot **4.7.2 stable** et ses export templates de la même version depuis les [releases officielles](https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable). Importer `project.godot`, puis lancer le projet avec F6 depuis `Main.tscn`, ou F5.
 
 - **Accueil** : accès rapide à l’entraînement ou à la recherche de sensibilité.
 - **Ma sensibilité** : entrer les DPI actuels de la souris et modifier la valeur AIM/LOCAL, ou importer la sensibilité et les DPI du jeu source. CS2 et Valorant proposent leurs coefficients documentaires ; CoD et les autres jeux nécessitent le titre/version et une mesure à la règle. L’import conserve les DPI actuels et la distance physique calculée ; il ne reconfigure pas la souris.
-- Le parcours compare trois réglages sur **micro-précision, grands flicks, switching, suivi fluide et strafes** : chaque exercice commence par trois familiarisations, suivies de neuf essais mesurés. Total : 15 familiarisations et 45 mesures, positions A/B/C équilibrées, graines communes et confort déclaré. Prévoir environ **16 minutes minimum** ; l'interruption est reprenable. Le bilan détaille les trois médianes de chaque exercice.
-- **Trouver mon réglage** : exploration large, déplacement de la plage si un bord gagne nettement et confortablement, puis affinage à 25 % et validation à 10 %. Chaque comparaison rejoue les cinq exercices ; maximum quatre comparaisons. Un parcours stable demande généralement **48–64 minutes minimum**, avec pauses et reprise. Bruit, inconfort ou limite atteinte peuvent l’arrêter plus tôt sans conseil applicable.
+- Le parcours compare trois réglages sur **micro-précision, grands flicks, switching, suivi fluide et strafes** : chaque exercice commence par trois familiarisations, suivies de neuf essais mesurés. Total : 15 familiarisations et 45 mesures, positions A/B/C équilibrées, graines communes et confort déclaré. Prévoir environ **17 minutes minimum** ; l'interruption est reprenable. Le bilan détaille les trois médianes de chaque exercice.
+- **Trouver mon réglage** : exploration large, déplacement de la plage si un bord gagne nettement et confortablement, puis affinage à 25 % et validation à 10 %. Chaque comparaison rejoue les cinq exercices ; maximum quatre comparaisons. Un parcours stable demande généralement **51–68 minutes minimum**, avec pauses et reprise. Bruit, inconfort ou limite atteinte peuvent l’arrêter plus tôt sans conseil applicable.
 - **Comparer mon réglage** : parcours court à ±10 % pour une sensibilité déjà connue. Le conseil guidé reste provisoire : consentement avant de l’essayer, confirmation un autre jour.
 - Le bilan explique les scores et la dispersion. Un avantage net autorise une application explicite ; une égalité propose une plage, un manque de données ou un mauvais confort interdit l'application. On peut revoir le bilan ou affiner la plage.
 - **Entraînement** : cartes, filtres, recherche et bulle de démonstration au survol, au focus ou au clic ; 16 exercices de 15/30/60 secondes, avec consigne courte et bouton de lancement toujours accessible.
@@ -34,7 +36,7 @@ Défaut : **800 DPI, 35 cm/360°, FOV vertical 75°**, soit `914,4 / (800 × 35)
 
 Les données sont dans `user://aim_local`, soit **`%APPDATA%\AIM_LOCAL\aim_local` sous Windows**. Séances et bilans sont immuables ; profil et checkpoint utilisent un remplacement atomique avec backup. Un fichier corrompu est conservé et signalé, jamais écrasé silencieusement.
 
-Les exercices restent en révision 2. Le protocole 3 rend les facteurs configurables et peut reprendre un protocole 2 compatible. Les checkpoints du protocole 1 sont archivés, jamais réinterprétés. La recherche guidée sauvegarde son historique et sa comparaison ensemble, avec rollback en cas de panne. Les anciennes séances restent conservées ; seuls les contextes cohérents et identiques sont comparés.
+Les exercices passent en **révision 3**, avec des tailles, amplitudes et distances choisies selon leur objectif : [détail des mécaniques](docs/EXERCISE_DESIGN_050.md). Le protocole 3 garde ses facteurs et contrebalancements. Une comparaison 0.3/0.4 reconnue est archivée avant un nouveau départ, jamais poursuivie sur une autre difficulté ; les fichiers incohérents restent protégés. La recherche guidée sauvegarde son historique et sa comparaison ensemble, avec rollback en cas de panne. Les anciennes séances restent conservées ; seuls les contextes cohérents et identiques sont comparés.
 
 ## Développer dans le cloud Linux
 
@@ -64,8 +66,8 @@ bash tools/export_windows.sh
 Ce script importe, exécute les tests, exporte en release, ouvre le pack avec le moteur Linux dans un dossier isolé, vérifie le format PE x86-64 et le PCK embarqué, puis crée :
 
 - `dist/AimLocal.exe`
-- `dist/AimLocal-0.4.0-windows-x64.zip`, avec l’exécutable, les instructions et les notices Godot/tiers.
-- `dist/AimLocal-0.4.0-windows-x64.zip.sha256`
+- `dist/AimLocal-0.5.0-windows-x64.zip`, avec l’exécutable, les instructions et les notices Godot/tiers.
+- `dist/AimLocal-0.5.0-windows-x64.zip.sha256`
 
 Sous Windows, depuis PowerShell :
 

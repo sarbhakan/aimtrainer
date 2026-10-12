@@ -5,14 +5,14 @@
 [resource]
 script=ExtResource("1")
 scenario_id="S01"
-revision=2
-distance_m=4.0
+revision=3
+distance_m=4.5
 title="Target switching"
-instructions="Toucher une sphère puis changer de cible. Chaque clic compte, les ratés aussi."
+instructions="Quatre sphères immobiles et bien séparées : toucher l'une, choisir la suivante et enchaîner les transitions propres. Un clic par cible ; les ratés comptent."
 family="switching"
-angular_diameter_deg=1.3
-yaw_extent_deg=22
+angular_diameter_deg=3.4
+yaw_extent_deg=24
 pitch_extent_deg=10
-min_transition_deg=4
+min_transition_deg=6
 active_targets=4
 reference_hits_s=2.8

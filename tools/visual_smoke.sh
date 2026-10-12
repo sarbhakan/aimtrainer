@@ -40,7 +40,7 @@ if [ -z "${DISPLAY:-}" ] || ! xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
 fi
 
 export LIBGL_ALWAYS_SOFTWARE=1
-timeout 120s bash "$project_root/tools/godot.sh" --audio-driver Dummy \
+timeout 240s bash "$project_root/tools/godot.sh" --audio-driver Dummy \
     --script res://tests/visual_smoke.gd 2>&1 | tee "$visual_log"
 if rg -q '^(SCRIPT ERROR:|ERROR:)' "$visual_log" || ! rg -q '^VISUAL SMOKE : [0-9]+ captures, 0 échec\.$' "$visual_log"; then
     printf 'La validation graphique a échoué. Journal : %s\n' "$visual_log" >&2

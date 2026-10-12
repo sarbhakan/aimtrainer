@@ -5,14 +5,14 @@
 [resource]
 script=ExtResource("1")
 scenario_id="T05"
-revision=2
-distance_m=4.0
-turn_duration_s=0.12
+revision=3
+distance_m=3.0
+turn_duration_s=0.16
 title="Suivi de strafes"
-instructions="Suivre les allers-retours et réacquérir après chaque changement de direction."
+instructions="La sphère traverse à vitesse régulière puis repart en 160 ms : garder le viseur dessus sans cliquer et réacquérir proprement après chaque demi-tour."
 family="tracking"
 motion="strafe"
-angular_diameter_deg=1.8
-yaw_extent_deg=12
-pitch_extent_deg=3
+angular_diameter_deg=3.6
+yaw_extent_deg=16
+pitch_extent_deg=2
 speed_deg_s=26

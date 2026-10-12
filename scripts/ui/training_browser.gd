@@ -6,6 +6,7 @@ signal training_requested(scenario_id: String, duration_s: float)
 const PreviewPopupScript := preload("res://scripts/ui/exercise_preview_popup.gd")
 const PREVIEW_DELAY_S: float = 0.18
 const FAMILY_IDS := ["all", "click", "tracking", "switching"]
+const CARD_WIDTH_PX: float = 192.0
 
 var selected_definition: ScenarioDefinition = ScenarioCatalog.DEFINITIONS[0]
 var selected_family: String = "all"
@@ -31,9 +32,9 @@ var pending_anchor: Control
 
 
 func _ready() -> void:
-	add_theme_constant_override("separation", 16)
+	add_theme_constant_override("separation", AimUI.SPACE_LG)
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var filters := AimUI.row(self, 6)
+	var filters := AimUI.flow(self)
 	var filter_group := ButtonGroup.new()
 	filter_group.allow_unpress = false
 	for filter_index in FAMILY_IDS.size():
@@ -50,7 +51,7 @@ func _ready() -> void:
 	search_input.clear_button_enabled = true
 	search_input.text_changed.connect(func(_query: String) -> void: filter_catalog())
 	add_child(search_input)
-	var layout := AimUI.row(self, 18)
+	var layout := AimUI.row(self, AimUI.SPACE_LG)
 	layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var catalog := AimUI.column(layout)
 	catalog.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -62,8 +63,7 @@ func _ready() -> void:
 	grid = GridContainer.new()
 	grid.columns = 2
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.add_theme_constant_override("h_separation", 12)
-	grid.add_theme_constant_override("v_separation", 12)
+	AimUI.grid_spacing(grid, AimUI.SPACE_MD)
 	catalog_scroll.add_child(grid)
 	var card_group := ButtonGroup.new()
 	card_group.allow_unpress = false
@@ -85,7 +85,7 @@ func _ready() -> void:
 	empty_label = AimUI.label("Aucun exercice trouvé. Essayez un autre mot.", 14, AimUI.MUTED)
 	empty_label.hide()
 	catalog.add_child(empty_label)
-	detail_column = AimUI.column(layout, 10)
+	detail_column = AimUI.column(layout)
 	detail_column.custom_minimum_size.x = 228.0
 	detail_column.size_flags_horizontal = Control.SIZE_FILL
 	detail_column.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -94,8 +94,7 @@ func _ready() -> void:
 	detail_scroll.follow_focus = true
 	detail_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail_column.add_child(detail_scroll)
-	var detail := AimUI.card(detail_scroll, 14)
-	detail.add_theme_constant_override("separation", 10)
+	var detail := AimUI.card(detail_scroll, AimUI.SPACE_LG)
 	family_label = AimUI.label("", 11, AimUI.ACCENT)
 	detail.add_child(family_label)
 	title_label = AimUI.label("", 21)
@@ -133,6 +132,7 @@ func _ready() -> void:
 	visibility_changed.connect(browser_visibility_changed)
 	AimUI.feedback(self).motion_changed.connect(func(_enabled: bool) -> void: refresh_preview_animation())
 	resized.connect(update_layout)
+	catalog_scroll.resized.connect(update_layout)
 	filter_catalog()
 	update_layout.call_deferred()
 
@@ -140,16 +140,16 @@ func _ready() -> void:
 static func scenario_card(definition: ScenarioDefinition, action: Callable) -> Button:
 	var control := AimUI.button("", action)
 	control.set_meta("scenario_id", definition.scenario_id)
-	control.custom_minimum_size = Vector2(176, 180)
+	control.custom_minimum_size = Vector2(CARD_WIDTH_PX, 184)
 	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	AimUI.style_button(control, &"card")
 	var margin := MarginContainer.new()
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for edge in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + edge, 14)
+		margin.add_theme_constant_override("margin_" + edge, AimUI.SPACE_LG)
 	control.add_child(margin)
-	var content := AimUI.column(margin, 10)
+	var content := AimUI.column(margin, AimUI.SPACE_SM)
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var thumbnail := ScenarioPreview.new()
 	thumbnail.custom_minimum_size.y = 78.0
@@ -163,10 +163,10 @@ static func scenario_card(definition: ScenarioDefinition, action: Callable) -> B
 func select_definition(definition: ScenarioDefinition) -> void:
 	var changed := selected_definition != definition or title_label.text.is_empty()
 	selected_definition = definition
-	family_label.text = ScenarioCopy.family(definition) + "  /  APERÇU"
+	family_label.text = ScenarioCopy.family(definition)
 	title_label.text = ScenarioCopy.title(definition)
 	description_label.text = ScenarioCopy.description(definition)
-	measure_label.text = "Score · temps sur cible" if definition.family == "tracking" else "Score · précision et vitesse"
+	measure_label.text = ScenarioCopy.measure(definition)
 	if changed:
 		preview.configure(definition, not preview_popup.visible if preview_popup != null else true)
 		detail_scroll.scroll_vertical = 0
@@ -200,10 +200,10 @@ func filter_catalog() -> void:
 
 func update_layout() -> void:
 	if grid != null:
-		add_theme_constant_override("separation", 8 if size.y < 420.0 else 16)
-		detail_column.custom_minimum_size.x = maxf(228.0, size.x * 0.30)
-		var catalog_width_px := size.x - detail_column.custom_minimum_size.x - 18.0 - catalog_scroll.get_v_scroll_bar().get_combined_minimum_size().x
-		grid.columns = clampi(floori((catalog_width_px + 12.0) / 188.0), 1, 4)
+		add_theme_constant_override("separation", AimUI.SPACE_SM if size.y < 420.0 else AimUI.SPACE_LG)
+		detail_column.custom_minimum_size.x = clampf(size.x * 0.30, 228.0, 420.0)
+		var catalog_width_px := catalog_scroll.size.x - catalog_scroll.get_theme_stylebox("panel").get_minimum_size().x - catalog_scroll.get_v_scroll_bar().get_combined_minimum_size().x
+		grid.columns = clampi(floori((catalog_width_px + AimUI.SPACE_MD) / (CARD_WIDTH_PX + AimUI.SPACE_MD)), 1, 5)
 		preview.visible = size.y >= 420.0
 		update_card_focus()
 		refresh_preview_animation()

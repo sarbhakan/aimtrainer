@@ -1,5 +1,48 @@
 # Plan de validation
 
+## Refonte 0.5.0 — 12 octobre 2026, Europe/Paris
+
+Godot `4.7.2.stable.official.ed1daf0bf`, Linux. Quatre agents ont implémenté des lots disjoints ; intégration, revue des rendus et publication sont coordonnées séparément.
+
+| Contrôle | Résultat final |
+|---|---|
+| Suite intégrée UI/UX/input/moteur/archives/armes | **10 431 assertions, 0 échec** ; capture physique du pointeur non exécutée en headless |
+| Géométrie des seize exercices r3 | **2 001 assertions, 0 échec** ; frustum, silhouette/hitbox, sol, espacement et vitesses |
+| Recherche adaptative | **906 assertions, 0 échec** |
+| Espacement et petites valeurs | **91 assertions, 0 échec** ; trois tailles, valeurs canoniques et coefficient avancé |
+| Projection et bulles | **7 084 assertions, 0 échec** ; confinement, redimensionnement, visibilité et replay indépendant |
+| Rendu OpenGL/Mesa + Xorg dummy | **77 captures, 0 échec** ; trois tailles, seize exercices, trois modèles, countdown, menus et effets |
+| Import sans `.godot/`, puis lancement isolé | Code 0, aucun `ERROR`/`SCRIPT ERROR` ; manifeste de sources identique avant/après import |
+| Export Windows 0.5.0 et pack ouvert hors checkout | 16 exercices r3, 3 vrais viewmodels, 3 imports, protocole 3/recherche et 4 viseurs ; 0 échec |
+| ZIP Windows et galerie Mac | Intégrité ZIP et SHA-256 vérifiées ; EXE PE x86-64/PCK + notices, galerie de 77 PNG séparée |
+| Débit logiciel hors rendu | 200 000 événements en 309,03 ms, 1,545 µs/événement, tampon max 183/32 768 et six cibles ; pas une mesure de latence matérielle |
+| Souris physique, son entendu, scaling/latence/GPU Windows et essais humains | **Non exécutés** |
+
+Total final : **20 513 assertions logicielles sans échec**. `bash tools/test.sh` exécute les cinq runners avec compilation préalable, assertions positives, marqueur final, timeout et refus des erreurs/fuites signalées. L’export a d’abord exécuté 20 508 assertions ; la suite finale ajoute cinq contrôles contre les empreintes r2 réellement publiées, sans changement des sources produit ni du ZIP.
+
+Contre-exemples corrigés :
+
+- Les libellés HUD auto-wrap pouvaient devenir verticaux et étirer les cartes sur toute la hauteur. Le retour à la ligne est désactivé pour les compteurs/GO, les cartes restent compactes ; contrôles aux trois tailles ajoutés.
+- C03 conserve une grille 3×3, mais ses bornes r3 sont ±18°/±10° : la fixture métier utilisait encore ±16°/±9°. Elle vérifie désormais les cellules de la définition versionnée, avec les contrôles géométriques explicites de r3.
+- Les cinq exercices de calibration sont reconstruits depuis des paramètres r2 figés et leurs SHA-256 publiés, pas depuis les nouveaux `.tres`. Checkpoints v2/v3 vides, partiels et complets, recherches guidées, erreurs et fichiers falsifiés restent couverts.
+- Une ouverture/fermeture de la très petite sensibilité valide à 64 000 DPI/150 cm pouvait recalculer le canonique depuis le paramètre arrondi du signal natif. `precise_value_changed` filtre cette fausse modification ; profil exact conservé. Les faibles valeurs sont affichées « <0,01 », jamais zéro. `m_yaw` avancé garde sa précision utile.
+- Le curseur d’aperçu masquait presque entièrement C02 miniature. Son centre est ouvert, sans changer la projection, les cibles, leur taille ou le RNG. La main du viewmodel est cadrée avec une arme plus petite/plus éloignée, sans changer la caméra de visée.
+- Le rendu logiciel peut dépasser les 65/110 ms des effets courts. Tir/impact sont vérifiés immédiatement, puis figés uniquement pour la capture. Durées réelles, arrêt, recyclage et indépendance du score sont testés séparément. Ces PNG ne constituent pas une vidéo de fluidité matérielle.
+
+La réinstallation épinglée revalide les deux SHA-512 officiels. Elle réextrait temporairement le binaire : ne pas la lancer en parallèle des validations. Une telle concurrence a interrompu un premier runner après ses suites réussies ; la validation finale complète est relancée une fois l’installation terminée.
+
+Sources produit identiques entre import vierge, export et checkout. Les exemples de progression/calibration/record restent synthétiques sous `user://tests`, jamais des données de joueur. Le décor statique et les viewports masqués au repos ne dispensent pas d’un benchmark GPU Windows.
+
+### Réception 0.5 sous Windows
+
+1. Comparer la taille des cibles normales et des défis avancés ; tester chaque famille et les FOV extrêmes, le repère de réalignement, les trois secondes de préparation sans score et la pause/focus.
+2. Importer puis recopier CS2/Valorant/profil CoD mesuré. Vérifier à la règle, éditer les champs puis les ouvrir/quitter sans changement ; contrôler DPI actuels/source et précision conservée.
+3. Tester armes visibles/masquées, recul/flash, hitmarker, volume/silence, maintien tracking, animations réduites et reprise sans tir automatique ; le score ne doit pas changer selon l’arme.
+4. Redimensionner, tester scaling 100/125/150/200 %, clavier et survol ; aucune bulle débordante, texte collé ou action inaccessible.
+5. Refaire des comparaisons guidées sur plusieurs jours ; conserver les archives r2 et séparer les records r2/r3, confirmer confort et progression. Aucun optimum universel n’est garanti.
+
+## Historique
+
 ## Finition 0.4.0 — 12 octobre 2026, Europe/Paris
 
 Godot `4.7.2.stable.official.ed1daf0bf`, Linux. Résultats après intégration des lots UI, UX, gameplay, feedback et calibration ; les essais précédents restent historiques.

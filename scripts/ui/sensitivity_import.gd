@@ -4,8 +4,10 @@ extends VBoxContainer
 signal profile_requested(profile: Dictionary)
 
 class ReadableSpinBox extends SpinBox:
+	signal precise_value_changed(value: float)
+
 	var display_input: LineEdit
-	var display_decimals: int = 6
+	var display_decimals: int = AimUI.SENSITIVITY_DECIMALS
 	var editing: bool = false
 	var original_value: float = 0.0
 	var original_text: String = ""
@@ -47,17 +49,22 @@ class ReadableSpinBox extends SpinBox:
 
 
 	func refresh_display() -> void:
-		var caption := String.num(value, display_decimals)
+		var decimals := clampi(display_decimals, 0, 6)
+		var caption := String.num(value, decimals)
 		if caption.contains("."):
 			caption = caption.rstrip("0").rstrip(".")
+		if decimals == AimUI.SENSITIVITY_DECIMALS and value > 0.0 and value < 0.005:
+			caption = "<0.01"
 		display_input.text = caption
 		display_input.caret_column = 0
-		display_input.tooltip_text = "Valeur conservée : %s\nCliquez ou appuyez sur Entrée pour modifier la valeur précise." % get_line_edit().text
+		display_input.tooltip_text = "Affichage arrondi. Cliquez ou appuyez sur Entrée pour modifier la valeur précise."
 
 
 	func preserve_unedited_value(next_value: float) -> void:
 		if not original_text.is_empty() and get_line_edit().text == original_text and next_value == original_text.to_float():
 			set_value_no_signal(original_value)
+		else:
+			precise_value_changed.emit(value)
 		refresh_display.call_deferred()
 
 
@@ -85,7 +92,7 @@ class ReadableSpinBox extends SpinBox:
 		refresh_display.call_deferred()
 
 
-static func numeric(parent: Node, caption: String, minimum: float, maximum: float, arrow_step: float, decimals: int = 6) -> ReadableSpinBox:
+static func numeric(parent: Node, caption: String, minimum: float, maximum: float, arrow_step: float, decimals: int = AimUI.SENSITIVITY_DECIMALS) -> ReadableSpinBox:
 	var fields := AimUI.row(parent)
 	fields.add_child(AimUI.label(caption))
 	var input := ReadableSpinBox.new()
@@ -96,7 +103,7 @@ static func numeric(parent: Node, caption: String, minimum: float, maximum: floa
 	input.allow_lesser = true
 	input.allow_greater = true
 	input.display_decimals = decimals
-	input.custom_minimum_size.x = 150.0
+	input.custom_minimum_size.x = AimUI.FIELD_WIDTH_PX
 	fields.add_child(input)
 	return input
 
@@ -116,16 +123,18 @@ var updating: bool = false
 
 
 func _ready() -> void:
-	add_theme_constant_override("separation", 12)
+	add_theme_constant_override("separation", AimUI.SPACE_MD)
 	add_child(AimUI.label("Reprendre mon réglage de jeu", 20))
 	game_input = OptionButton.new()
 	for title in GameProfileService.TITLES:
 		game_input.add_item(title)
 	game_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	game_input.fit_to_longest_item = false
+	game_input.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	add_child(game_input)
 	dpi_input = numeric(self, "DPI dans ce jeu", 1, 64000, 1.0)
 	value_input = numeric(self, "Sensibilité dans ce jeu", 0.000001, 100000.0, 0.001)
-	manual_fields = AimUI.column(self, 10)
+	manual_fields = AimUI.column(self, AimUI.SPACE_SM)
 	manual_fields.add_child(AimUI.label("Titre et version du jeu", 13))
 	title_input = LineEdit.new()
 	title_input.placeholder_text = "Ex. Modern Warfare III (2023)"
@@ -134,8 +143,8 @@ func _ready() -> void:
 	measurement_input = numeric(manual_fields, "Distance mesurée pour un tour (cm)", 0, 150, 0.01)
 	manual_fields.add_child(AimUI.label("Mesurez un tour à la règle, sans zoom, avec ces DPI et cette sensibilité.", 13, AimUI.MUTED))
 	cs2_fields = AimUI.foldout(self, "CS2 : m_yaw personnalisé")
-	cs2_yaw_input = numeric(cs2_fields, "m_yaw", 0.000001, 1.0, 0.000001)
-	cs2_fields.add_child(AimUI.label("Gardez 0,022 si vous n’avez pas modifié m_yaw dans CS2.", 12, AimUI.MUTED))
+	cs2_yaw_input = numeric(cs2_fields, "m_yaw", 0.000001, 1.0, 0.000001, 6)
+	cs2_fields.add_child(AimUI.label("Par défaut : m_yaw = 0,022. Gardez cette valeur si vous ne l’avez pas modifiée dans CS2.", 12, AimUI.MUTED))
 	explanation_label = AimUI.label("", 12, AimUI.MUTED)
 	add_child(explanation_label)
 	preview_label = AimUI.label("", 16, AimUI.ACCENT)
@@ -144,7 +153,7 @@ func _ready() -> void:
 	add_child(apply_button)
 	game_input.item_selected.connect(func(_index: int) -> void: select_game())
 	for control in [dpi_input, value_input, measurement_input, cs2_yaw_input]:
-		control.value_changed.connect(func(_value: float) -> void: update_preview())
+		control.precise_value_changed.connect(func(_value: float) -> void: update_preview())
 	title_input.text_changed.connect(func(_text: String) -> void: update_preview())
 	cs2_yaw_input.set_precise_value(0.022)
 	measurement_input.set_precise_value(0.0)
@@ -187,7 +196,7 @@ func update_preview() -> void:
 		return
 	var result := draft()
 	apply_button.disabled = not result.error.is_empty()
-	preview_label.text = result.error if not result.error.is_empty() else "AIM/LOCAL : %s · %s DPI actifs conservés" % [AimUI.number(SensitivityService.game_sensitivity(result.profile.dpi, result.profile.cm_per_360, SensitivityService.APP_YAW_DEG), 4), AimUI.number(float(result.profile.dpi), 0)]
+	preview_label.text = result.error if not result.error.is_empty() else "AIM/LOCAL : %s · %s DPI actifs conservés" % [AimUI.sensitivity(SensitivityService.game_sensitivity(result.profile.dpi, result.profile.cm_per_360, SensitivityService.APP_YAW_DEG)), AimUI.number(float(result.profile.dpi), 0)]
 	preview_label.add_theme_color_override("font_color", Color("f5c789") if not result.error.is_empty() else AimUI.ACCENT)
 
 

@@ -16,6 +16,8 @@ const CrosshairFeedbackTests = preload("res://tests/crosshair_feedback_tests.gd"
 const GameplayQualityTests = preload("res://tests/gameplay_quality_tests.gd")
 const GuidedFlowTests = preload("res://tests/guided_flow_tests.gd")
 const RecordFlowTests = preload("res://tests/record_flow_tests.gd")
+const RevisionArchiveTests = preload("res://tests/revision_archive_tests.gd")
+const TrainingPresentationTests = preload("res://tests/training_presentation_tests.gd")
 
 var assertion_count: int = 0
 var failure_count: int = 0
@@ -53,6 +55,8 @@ func run_tests() -> void:
 	check(await GameplayQualityTests.new().run(self, check), "Gameplay, aperçus et mesures doivent rester cohérents.")
 	check(await GuidedFlowTests.new().run(self, check), "La recherche guidée doit rester transactionnelle et reprenable.")
 	check(await RecordFlowTests.new().run(self, check), "Seuls les records réellement sauvegardés et comparables doivent être annoncés.")
+	check(RevisionArchiveTests.new().run(self, check), "La révision des exercices doit archiver les comparaisons reconnues sans écraser les fichiers incohérents.")
+	check(await TrainingPresentationTests.new().run(self, check), "La préparation et le HUD doivent être lisibles sans altérer les mesures.")
 	print("AIM/LOCAL : %d assertions, %d échecs, %d contrôles non exécutés." % [assertion_count, failure_count, skipped_count])
 	quit(0 if failure_count == 0 else 1)
 

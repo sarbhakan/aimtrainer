@@ -69,7 +69,7 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	app.home.dpi_input.value = 1600.0
 	expect(app.home.reference_import.dpi_input.value == 800.0 and app.home.reference_import.value_input.value == 0.35, "Actualiser les DPI actifs ne doit pas réinitialiser les champs du jeu source.")
 	expect(app.home.reference_import.preview_label.text.contains("1600 DPI actifs conservés"), "L’aperçu doit afficher les DPI actifs conservés à jour.")
-	expect(app.home.reference_import.preview_label.text.contains(AimUI.number(SensitivityService.game_sensitivity(1600.0, expected_cm, SensitivityService.APP_YAW_DEG), 4)), "L’aperçu doit recalculer la sensibilité locale dès que les DPI actifs changent.")
+	expect(app.home.reference_import.preview_label.text.contains(AimUI.sensitivity(SensitivityService.game_sensitivity(1600.0, expected_cm, SensitivityService.APP_YAW_DEG))), "L’aperçu doit recalculer la sensibilité locale dès que les DPI actifs changent, avec deux décimales visibles.")
 	app.home.reference_import.apply_button.pressed.emit()
 	var distinct_profile: Dictionary = app.home.read_profile()
 	expect(distinct_profile.dpi == 1600.0 and distinct_profile.reference_game.dpi == 800.0, "Modifier les DPI actifs après l’ouverture du formulaire ne doit pas les remplacer à l’import.")

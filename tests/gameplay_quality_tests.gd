@@ -1,6 +1,8 @@
 extends RefCounted
 
 const ArenaScene: PackedScene = preload("res://scenes/training/Arena.tscn")
+const MainScene: PackedScene = preload("res://scenes/app/Main.tscn")
+const AppScript = preload("res://scripts/core/main.gd")
 
 var verify: Callable
 
@@ -14,6 +16,9 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	var fingerprints: Array[String] = []
 	for definition in ScenarioCatalog.DEFINITIONS:
 		fingerprints.append(definition.fingerprint())
+	test_preview_definitions()
+	test_fixed_difficulty()
+	await test_countdown_preparation(tree)
 	await test_preview_projection(tree)
 	await test_initial_camera_poses(tree)
 	await capture_previews(tree)
@@ -22,7 +27,7 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	test_records()
 	for definition_index in ScenarioCatalog.DEFINITIONS.size():
 		var definition: ScenarioDefinition = ScenarioCatalog.DEFINITIONS[definition_index]
-		expect(definition.revision == 2 and definition.fingerprint() == fingerprints[definition_index], "L’audit ne doit pas modifier la difficulté ou l’empreinte de " + definition.scenario_id + ".")
+		expect(definition.revision == 3 and definition.fingerprint() == fingerprints[definition_index], "L’audit ne doit pas modifier la difficulté de révision 3 ou l’empreinte de " + definition.scenario_id + ".")
 	return true
 
 
@@ -31,6 +36,57 @@ func outline_bounds(outline: PackedVector2Array) -> Rect2:
 	for point in outline:
 		bounds = bounds.expand(point)
 	return bounds
+
+
+func test_preview_definitions() -> void:
+	for definition in ScenarioCatalog.DEFINITIONS:
+		var preview := ScenarioPreview.new()
+		preview.configure(definition)
+		var live := ScenarioEngine.new()
+		live.start(definition, ScenarioPreview.DEMO_SEED, ScenarioPreview.DEMO_DURATION_S)
+		var source_fingerprint: String = definition.fingerprint()
+		var live_targets: Array[Dictionary] = live.targets.duplicate(true)
+		var live_rng_state: int = live.rng.state
+		expect(preview.engine != live and preview.engine.definition != definition and preview.engine.definition.fingerprint() == source_fingerprint and preview.engine.targets == live_targets, definition.scenario_id + " : l'aperçu doit lire la nouvelle définition avec son propre moteur seedé et sa copie de difficulté.")
+		preview.advance_demo(1.1)
+		expect(live.targets == live_targets and live.rng.state == live_rng_state and live.elapsed_s == 0.0 and live.shots == 0 and live.timeline.event_count == 0 and definition.fingerprint() == source_fingerprint, "Jouer l'aperçu ne doit modifier ni la ressource, ni le RNG, ni les mesures d'un exercice réel.")
+		var revised: ScenarioDefinition = definition.duplicate() as ScenarioDefinition
+		revised.angular_diameter_deg *= 0.9
+		preview.configure(revised)
+		expect(preview.preview_error.is_empty() and preview.elapsed_s == 0.0 and preview.engine.definition.fingerprint() == revised.fingerprint() and preview.engine.definition.angular_diameter_deg == revised.angular_diameter_deg and preview.engine.definition.distance_m == revised.distance_m, "Reconfigurer l'aperçu doit relire taille et profondeur depuis la définition, sans cache d'ancienne difficulté.")
+		preview.free()
+
+
+func test_fixed_difficulty() -> void:
+	for definition in ScenarioCatalog.DEFINITIONS:
+		var original_fingerprint: String = definition.fingerprint()
+		for accurate in [false, true]:
+			var engine := ScenarioEngine.new()
+			expect(engine.start(definition, 7919, 1.0), definition.scenario_id + " : la difficulté fixe doit accepter une performance faible ou élevée.")
+			if definition.family == "tracking":
+				for sample_index in range(1, 241):
+					var time_s: float = sample_index / 240.0
+					var direction: Vector3 = engine.target_direction(0, time_s)
+					engine.record_aim(time_s, rad_to_deg(atan2(-direction.x, -direction.z)) + (0.0 if accurate else 20.0), rad_to_deg(asin(direction.y)))
+					engine.advance_to(time_s)
+			else:
+				for shot_index in 4:
+					var time_s: float = (shot_index + 1) * 0.2
+					var direction: Vector3 = engine.target_direction(shot_index % engine.targets.size(), time_s)
+					engine.record_aim(time_s, rad_to_deg(atan2(-direction.x, -direction.z)), rad_to_deg(asin(direction.y)))
+					engine.shoot(time_s, direction if accurate else Vector3.BACK)
+			engine.advance_to(1.0)
+			for projection in [[40.0, 1.25], [75.0, 16.0 / 9.0], [110.0, 3.0]]:
+				var profile: Dictionary = SensitivityService.default_profile()
+				profile.vertical_fov_deg = projection[0]
+				var report: Dictionary = engine.result(profile, float(projection[1]), true)
+				expect(report.valid and ScoringService.validate_result(report).is_empty() and report.scenario_revision == 3 and report.scenario_fingerprint == original_fingerprint and engine.definition.fingerprint() == original_fingerprint, "Performance, FOV et fenêtre ne doivent adapter ni taille, ni vitesse, ni disposition de la difficulté enregistrée.")
+				expect(report.score_version == 1 and report.reference_hits_s == definition.reference_hits_s and report.score == ScoringService.score(report, definition.reference_hits_s), "Les scores doivent conserver leur formule V1 et la référence déclarée par l'exercice.")
+				expect(report.metrics.input_events == (240 if definition.family == "tracking" else 4) and report.metrics.angular_path_deg > 0.0 and report.metrics.input_buffer_overflows == 0, "Le chemin et les événements doivent rester mesurables, sans counts fabriqués ni tampon saturé.")
+			expect(engine.shots == (0 if definition.family == "tracking" else 4) and engine.hits == (4 if accurate and definition.family != "tracking" else 0), "La performance synthétique doit réellement exercer les touches et les ratés, sans changer la cadence de clic.")
+			if definition.family == "tracking":
+				expect(engine.on_target_s > 0.99 if accurate else engine.on_target_s < 0.01, "Les deux replays de suivi doivent réellement produire une tenue presque complète et presque nulle, à difficulté identique.")
+		expect(definition.fingerprint() == original_fingerprint, "Les essais et leurs bilans ne doivent pas modifier la ressource utilisée par la calibration.")
 
 
 func test_preview_projection(tree: SceneTree) -> void:
@@ -79,6 +135,46 @@ func test_preview_projection(tree: SceneTree) -> void:
 	preview.configure(ScenarioCatalog.find("C02"), false, 75.0, 16.0 / 9.0)
 	expect(preview.preview_error.is_empty() and preview.tooltip_text.contains("simulés") and preview.tooltip_text.contains("sans agrandissement"), "L’aperçu doit expliquer FOV, ratio, taille réelle et visée simulée.")
 	viewport.queue_free()
+	await tree.process_frame
+
+
+func test_countdown_preparation(tree: SceneTree) -> void:
+	var app := MainScene.instantiate() as AppScript
+	app.store = LocalStore.new("user://tests/countdown_geometry_" + LocalStore.new().identifier())
+	tree.root.add_child(app)
+	await tree.process_frame
+	for definition in ScenarioCatalog.DEFINITIONS:
+		app.engine = ScenarioEngine.new()
+		expect(app.prepare_training(definition, 15.0, 7919, SensitivityService.default_profile()), definition.scenario_id + " : la préparation doit accepter la nouvelle difficulté au cadrage par défaut.")
+		var preparation: ScenarioEngine = app.preparation_engine
+		var initial_targets: Array[Dictionary] = preparation.targets.duplicate(true)
+		var initial_rng_state: int = preparation.rng.state
+		var transforms: Array[Transform3D] = []
+		for target_index in preparation.targets.size():
+			transforms.append(app.target_pool.spheres[target_index].global_transform)
+			expect(app.target_pool.spheres[target_index].visible, "La cible préparée doit être visible dès le début du décompte.")
+		var motion := InputEventMouseMotion.new()
+		motion.screen_relative = Vector2(7.0, -5.0)
+		app._input(motion)
+		var shot := InputEventMouseButton.new()
+		shot.button_index = MOUSE_BUTTON_LEFT
+		shot.pressed = true
+		app._input(shot)
+		for countdown_s in [0.0, 0.5, 1.0, 2.5]:
+			app.clock.start(Time.get_ticks_usec() - int(countdown_s * 1000000.0))
+			app._process(1.0 / 144.0)
+			expect(app.screen == AppScript.Screen.COUNTDOWN and preparation.targets == initial_targets and preparation.rng.state == initial_rng_state, "Le décompte doit figer cibles et RNG, y compris au-delà de la durée de vie de Pop-up.")
+			for target_index in transforms.size():
+				expect(app.target_pool.spheres[target_index].global_transform.is_equal_approx(transforms[target_index]), "La sphère préparée doit garder sa direction mondiale et son rayon pendant le décompte et les mouvements souris.")
+			expect(app.engine != preparation and app.engine.definition == null and app.engine.shots == 0 and app.engine.elapsed_s == 0.0 and app.engine.timeline.event_count == 0 and preparation.shots == 0 and preparation.elapsed_s == 0.0 and preparation.on_target_s == 0.0 and preparation.timeline.event_count == 0, "La préparation doit utiliser un second moteur, sans tirs, temps actif ni mesures de visée.")
+		app.begin_training(Time.get_ticks_usec())
+		expect(app.screen == AppScript.Screen.TRAINING and app.engine.definition.fingerprint() == definition.fingerprint() and app.engine.rng.state == initial_rng_state and app.engine.spawned == definition.active_targets, "Le départ doit recréer le moteur mesuré à zéro avec la même graine et la difficulté de révision 3.")
+		expect(app.engine.elapsed_s == 0.0 and app.engine.integrated_s == 0.0 and app.engine.shots == 0 and app.engine.timeline.event_count == 0 and app.engine.timeline.angular_path_deg == 0.0, "Aucune mesure du décompte ne doit être transférée dans la séance.")
+		expect(app.aim_camera.received_x_counts == 7.0 and app.aim_camera.received_y_counts == -5.0 and app.initial_x_counts == 7.0 and app.initial_y_counts == -5.0 and app.engine.timeline.last_yaw_deg == app.aim_camera.yaw_deg and app.engine.timeline.last_pitch_deg == app.aim_camera.pitch_deg, "Les counts du décompte doivent orienter la caméra et servir de référence initiale, sans être supprimés ni ajoutés au trajet mesuré.")
+		for target_index in transforms.size():
+			expect(app.target_pool.spheres[target_index].global_transform.is_equal_approx(transforms[target_index]) and float(app.engine.targets[target_index].born_s) == 0.0, "La cible visible préparée doit être celle du départ mesuré, avec une naissance à zéro.")
+		app.return_to_menu()
+	app.queue_free()
 	await tree.process_frame
 
 

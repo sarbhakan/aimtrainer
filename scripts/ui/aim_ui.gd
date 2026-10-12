@@ -11,6 +11,14 @@ const SELECTED := Color("16323b")
 const HOVER_BORDER := Color("466578")
 const FOCUS := Color("a5fff0")
 const DISABLED := Color("101725")
+const SPACE_XS: int = 4
+const SPACE_SM: int = 8
+const SPACE_MD: int = 12
+const SPACE_LG: int = 16
+const SPACE_XL: int = 24
+const SPACE_2XL: int = 32
+const FIELD_WIDTH_PX: float = 150.0
+const SENSITIVITY_DECIMALS: int = 2
 const FeedbackScript := preload("res://scripts/ui/interaction_feedback.gd")
 const BACKDROP := preload("res://assets/ui/ambient.svg")
 
@@ -26,19 +34,25 @@ static func number(value: float, decimals: int = 2) -> String:
 	return ("%.*f" % [decimals, value]).replace(".", ",")
 
 
+static func sensitivity(value: float) -> String:
+	if value > 0.0 and value < 0.005:
+		return "<0,01"
+	return number(value, SENSITIVITY_DECIMALS)
+
+
 static func label(caption: String, font_size: int = 15, color: Color = TEXT) -> Label:
 	var control := Label.new()
 	control.text = caption
 	control.add_theme_font_size_override("font_size", font_size)
 	control.add_theme_color_override("font_color", color)
-	control.add_theme_constant_override("line_spacing", 3)
+	control.add_theme_constant_override("line_spacing", SPACE_XS)
 	control.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	control.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return control
 
 
-static func style(color: Color = PANEL, padding: float = 22.0, border: Color = BORDER, radius: int = 12) -> StyleBoxFlat:
+static func style(color: Color = PANEL, padding: float = SPACE_XL, border: Color = BORDER, radius: int = 12) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
 	box.bg_color = color
 	box.set_content_margin_all(padding)
@@ -48,7 +62,7 @@ static func style(color: Color = PANEL, padding: float = 22.0, border: Color = B
 	return box
 
 
-static func column(parent: Node, separation: int = 14) -> VBoxContainer:
+static func column(parent: Node, separation: int = SPACE_MD) -> VBoxContainer:
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", separation)
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -56,7 +70,7 @@ static func column(parent: Node, separation: int = 14) -> VBoxContainer:
 	return content
 
 
-static func row(parent: Node, separation: int = 12) -> HBoxContainer:
+static func row(parent: Node, separation: int = SPACE_MD) -> HBoxContainer:
 	var content := HBoxContainer.new()
 	content.add_theme_constant_override("separation", separation)
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -64,7 +78,21 @@ static func row(parent: Node, separation: int = 12) -> HBoxContainer:
 	return content
 
 
-static func card(parent: Node, padding: float = 22.0) -> VBoxContainer:
+static func flow(parent: Node, separation: int = SPACE_SM) -> HFlowContainer:
+	var content := HFlowContainer.new()
+	content.add_theme_constant_override("h_separation", separation)
+	content.add_theme_constant_override("v_separation", separation)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(content)
+	return content
+
+
+static func grid_spacing(control: GridContainer, separation: int = SPACE_LG) -> void:
+	control.add_theme_constant_override("h_separation", separation)
+	control.add_theme_constant_override("v_separation", separation)
+
+
+static func card(parent: Node, padding: float = SPACE_XL) -> VBoxContainer:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_theme_stylebox_override("panel", style(PANEL, padding, BORDER, 14))
@@ -85,7 +113,7 @@ static func button(caption: String, action: Callable, primary: bool = false) -> 
 static func style_button(control: Button, variant: StringName = &"default") -> void:
 	var card_variant := variant == &"card"
 	var primary := variant == &"primary"
-	var padding_px := 0.0 if card_variant else 11.0
+	var padding_px := 0.0 if card_variant else float(SPACE_MD)
 	var radius := 12 if card_variant else 8
 	var backgrounds: Array[Color] = [PANEL if card_variant else Color("1a2435"), HOVER, SELECTED, Color("1d4048"), DISABLED]
 	var borders: Array[Color] = [BORDER, HOVER_BORDER, ACCENT, ACCENT, Color("1f293b")]
@@ -96,14 +124,14 @@ static func style_button(control: Button, variant: StringName = &"default") -> v
 	for state_index in states.size():
 		var box := style(backgrounds[state_index], padding_px, borders[state_index], radius)
 		if not card_variant:
-			box.content_margin_left = 16.0
-			box.content_margin_right = 16.0
+			box.content_margin_left = SPACE_LG
+			box.content_margin_right = SPACE_LG
 		control.add_theme_stylebox_override(states[state_index], box)
 	var focus := style(Color.TRANSPARENT, padding_px, FOCUS, radius)
 	focus.set_border_width_all(2)
 	if not card_variant:
-		focus.content_margin_left = 16.0
-		focus.content_margin_right = 16.0
+		focus.content_margin_left = SPACE_LG
+		focus.content_margin_right = SPACE_LG
 	control.add_theme_stylebox_override("focus", focus)
 	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
 		control.add_theme_color_override(state, Color("082a2c") if primary else TEXT)
@@ -131,13 +159,13 @@ static func numeric(parent: Node, caption: String, minimum: float, maximum: floa
 	input.min_value = minimum
 	input.max_value = maximum
 	input.step = step
-	input.custom_minimum_size.x = 150.0
+	input.custom_minimum_size.x = FIELD_WIDTH_PX
 	fields.add_child(input)
 	return input
 
 
 static func foldout(parent: Node, caption: String) -> VBoxContainer:
-	var content := column(parent, 10)
+	var content := column(parent, SPACE_SM)
 	var toggle := Button.new()
 	toggle.text = "+  " + caption
 	toggle.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -145,7 +173,7 @@ static func foldout(parent: Node, caption: String) -> VBoxContainer:
 	style_button(toggle)
 	content.add_child(toggle)
 	feedback(toggle)
-	var details := column(content, 12)
+	var details := column(content)
 	details.hide()
 	toggle.toggled.connect(func(expanded: bool) -> void:
 		details.visible = expanded
@@ -168,7 +196,8 @@ static func fade_in(control: Control) -> void:
 
 
 static func stat(parent: Node, caption: String, value: String, color: Color = TEXT) -> Label:
-	var content := card(parent, 18.0)
+	var content := card(parent, SPACE_LG)
+	content.add_theme_constant_override("separation", SPACE_XS)
 	content.add_child(label(caption, 12, MUTED))
 	var result := label(value, 26, color)
 	content.add_child(result)

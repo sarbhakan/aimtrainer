@@ -5,13 +5,13 @@
 [resource]
 script=ExtResource("1")
 scenario_id="T04"
-revision=2
-distance_m=4.0
+revision=3
+distance_m=5.0
 title="Circle Track"
-instructions="Suivre une orbite elliptique continue. Chercher la stabilité sur les deux axes."
+instructions="La sphère parcourt une ellipse continue : garder le viseur dessus sans cliquer, en liant les deux axes plutôt qu'en corrigeant par à-coups."
 family="tracking"
 motion="circle"
-angular_diameter_deg=2
-yaw_extent_deg=13
-pitch_extent_deg=8
+angular_diameter_deg=3.4
+yaw_extent_deg=15
+pitch_extent_deg=11
 speed_deg_s=18

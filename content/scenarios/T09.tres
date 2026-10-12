@@ -5,13 +5,13 @@
 [resource]
 script=ExtResource("1")
 scenario_id="T09"
-revision=2
-distance_m=4.0
-title="Far Small"
-instructions="Petite cible lente : mesurer les micro-ajustements et les pertes de suivi."
+revision=3
+distance_m=8.0
+title="Far Small · avancé"
+instructions="Exercice avancé facultatif : suivre sans cliquer une petite sphère de 0,9°, lente et de faible amplitude. Travailler les micro-ajustements ; pour commencer, préférer le suivi horizontal fluide."
 family="tracking"
 motion="horizontal"
 angular_diameter_deg=0.9
-yaw_extent_deg=12
-pitch_extent_deg=3
-speed_deg_s=8
+yaw_extent_deg=8
+pitch_extent_deg=2
+speed_deg_s=6

@@ -112,7 +112,7 @@ func test_catalog() -> void:
 	var grid := ScenarioEngine.new()
 	grid.start(ScenarioCatalog.find("C03"), 42, 1.0)
 	for target in grid.targets:
-		expect(float(target.yaw_deg) in [-16.0, 0.0, 16.0] and float(target.pitch_deg) in [-9.0, 0.0, 9.0], "Grid Targets doit réellement utiliser une grille 3×3.")
+		expect(float(target.yaw_deg) in [-grid.definition.yaw_extent_deg, 0.0, grid.definition.yaw_extent_deg] and float(target.pitch_deg) in [-grid.definition.pitch_extent_deg, 0.0, grid.definition.pitch_extent_deg], "Grid Targets doit réellement utiliser les cellules d’une grille 3×3 dans son champ versionné.")
 
 
 func test_click_metrics() -> void:

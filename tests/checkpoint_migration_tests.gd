@@ -31,7 +31,7 @@ func legacy_profile() -> Dictionary:
 
 
 func legacy_definition(scenario_id: String) -> ScenarioDefinition:
-	var definition: ScenarioDefinition = ScenarioCatalog.find(scenario_id).duplicate() as ScenarioDefinition
+	var definition: ScenarioDefinition = CalibrationRevisionArchive.definitions()[scenario_id].duplicate() as ScenarioDefinition
 	definition.revision = 1
 	definition.distance_m = 8.0
 	if scenario_id == "C02":

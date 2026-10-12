@@ -63,8 +63,54 @@ func run(tree: SceneTree, check: Callable) -> bool:
 func expect_contents(browser: TrainingBrowser, definition: ScenarioDefinition) -> void:
 	var popup := browser.preview_popup
 	expect(popup.visible and popup.definition == definition and popup.preview.definition == definition, "La bulle et sa démonstration doivent représenter l’ID demandé, pas la sélection précédente.")
-	expect(popup.title_label.text == ScenarioCopy.title(definition) and popup.family_label.text == ScenarioCopy.family(definition), "La bulle doit présenter le titre et la famille de la carte consultée.")
-	expect(popup.description_label.text == ScenarioCopy.description(definition) and popup.measure_label.text == ScenarioCopy.measure(definition), "La bulle doit expliquer l’action et la mesure du bon exercice.")
+	expect(popup.title_label.text == ScenarioCopy.title(definition), "Le titre court doit correspondre à la carte consultée.")
+	expect(popup.description_label.text == ScenarioCopy.description(definition), "La bulle doit expliquer une seule action pour le bon exercice.")
+	expect(popup.preview.playback_caption() == ("Démo animée" if AimUI.motion_enabled else "Aperçu fixe"), "Le badge doit annoncer clairement si la démonstration est animée.")
+
+
+func visible_controls(parent: Node) -> Array[Control]:
+	var controls: Array[Control] = []
+	for child in parent.get_children():
+		if child is Control and child.is_visible_in_tree():
+			controls.append(child)
+		controls.append_array(visible_controls(child))
+	return controls
+
+
+func expect_containment(popup: ExercisePreviewPopup, dimensions: Vector2i) -> void:
+	var context := "%s à %s" % [popup.definition.scenario_id, dimensions]
+	var popup_rect := popup.get_global_rect()
+	var panel := popup.get_theme_stylebox("panel")
+	var padding := Vector2(panel.get_content_margin(SIDE_LEFT), panel.get_content_margin(SIDE_TOP))
+	var content_rect := Rect2(popup_rect.position + padding, popup_rect.size - padding - Vector2(panel.get_content_margin(SIDE_RIGHT), panel.get_content_margin(SIDE_BOTTOM)))
+	expect(Rect2(Vector2.ZERO, Vector2(dimensions)).grow(-11.0).encloses(popup_rect), "La bulle doit garder une marge dans la fenêtre : " + context)
+	expect(not popup.get_parent() is Container and popup.is_set_as_top_level(), "La bulle doit rester indépendante de l’allocation des conteneurs : " + context)
+	var visible_labels: Array[Label] = []
+	for control in visible_controls(popup):
+		expect(content_rect.grow(1.0).encloses(control.get_global_rect()), "Chaque élément visible doit tenir dans les marges de la bulle, sans masque de débordement : " + context)
+		var ancestor := control.get_parent()
+		while ancestor != popup and ancestor != null:
+			if ancestor is Control and ancestor.clip_contents:
+				expect(ancestor.get_global_rect().grow(1.0).encloses(control.get_global_rect()), "Un parent ne doit pas couper un élément de l’aperçu : " + context)
+			ancestor = ancestor.get_parent()
+		if control is Label:
+			visible_labels.append(control)
+			expect(control.get_line_count() == control.get_visible_line_count() and control.get_combined_minimum_size().y <= control.size.y + 1.0, "Toutes les lignes du titre et de la consigne doivent être lisibles : " + context)
+			expect(control.visible_characters == -1 and control.max_lines_visible == -1 and control.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING, "Le texte ne doit pas être tronqué pour faire tenir la bulle : " + context)
+			expect(not control.text.contains("°") and not control.text.contains("FOV") and not control.text.contains("1.77") and not control.text.contains("1,77") and not control.text.contains("Mesure"), "La bulle doit présenter l’action sans légende technique ni mesure répétée : " + context)
+	expect(visible_labels.size() == 2 and popup.title_label in visible_labels and popup.description_label in visible_labels, "La bulle doit contenir uniquement un titre et une consigne autour de sa démo : " + context)
+	var view := popup.preview.projection_rect()
+	var preview_rect := Rect2(Vector2.ZERO, popup.preview.size)
+	var badge := popup.preview.playback_badge_rect()
+	expect(preview_rect.encloses(view) and preview_rect.encloses(badge) and not view.intersects(badge), "La projection entière et le badge doivent tenir dans leur cadre sans se recouvrir : " + context)
+	expect(absf(view.size.x - popup.preview.size.x) <= 1.0 and absf(view.size.y + ScenarioPreview.PLAYBACK_BAR_HEIGHT_PX - popup.preview.size.y) <= 1.0, "Le cadre doit réserver la hauteur du ratio complet, sans comprimer la démo : " + context)
+	var silhouettes_contained := true
+	for target_index in popup.preview.engine.targets.size():
+		var outline := popup.preview.target_outline(target_index, popup.preview.elapsed_s)
+		silhouettes_contained = silhouettes_contained and outline.size() == 128
+		for point in outline:
+			silhouettes_contained = silhouettes_contained and view.grow(0.01).has_point(point)
+	expect(silhouettes_contained, "Chaque silhouette entière doit être visible avant tout clipping : " + context)
 
 
 func test_hover(browser: TrainingBrowser, tree: SceneTree) -> void:
@@ -172,6 +218,16 @@ func test_motion(browser: TrainingBrowser, tree: SceneTree) -> void:
 	await settle(tree)
 	expect_contents(browser, ScenarioCatalog.find("T05"))
 	expect(not browser.preview.is_processing() and not browser.preview_popup.preview.is_processing(), "Animations réduites : la bulle reste lisible sans simulation animée.")
+	var elapsed_s := browser.preview_popup.preview.elapsed_s
+	await tree.create_timer(0.06).timeout
+	expect(browser.preview_popup.preview.elapsed_s == elapsed_s and browser.preview_popup.preview.playback_light_color() == AimUI.MUTED, "Animations réduites : ni la cible ni le témoin lumineux ne doivent continuer à bouger.")
+	AimUI.motion_enabled = true
+	var demo := browser.preview_popup.preview
+	demo.reset_demo()
+	var light_color := demo.playback_light_color()
+	demo.advance_demo(0.25)
+	expect(demo.is_processing() and demo.playback_caption() == "Démo animée" and demo.playback_light_color() != light_color and not browser.preview.is_processing(), "Réactiver l’animation doit allumer le badge et animer uniquement la bulle.")
+	AimUI.motion_enabled = false
 	browser.dismiss_card_preview()
 	expect(not browser.preview.is_processing(), "Fermer la bulle ne doit pas contourner l’option animations réduites.")
 	AimUI.motion_enabled = true
@@ -200,14 +256,25 @@ func test_layout(browser: TrainingBrowser, viewport: SubViewport, tree: SceneTre
 				var popup_rect := browser.preview_popup.get_global_rect()
 				expect(Rect2(Vector2.ZERO, Vector2(dimensions)).encloses(popup_rect), "La bulle %s doit rester dans le viewport %s, quel que soit le bord d’ancrage." % [definition.scenario_id, dimensions])
 				expect(browser.preview_popup.get_combined_minimum_size().y <= browser.preview_popup.size.y + 1.0, "Tout le contenu de la bulle doit tenir dans sa hauteur.")
+				expect_containment(browser.preview_popup, dimensions)
 		browser.dismiss_card_preview()
+	var selection_before := browser.selected_definition
+	browser.show_card_preview(ScenarioCatalog.find("T05"), anchor)
+	for dimensions in [Vector2i(1280, 720), Vector2i(800, 450), Vector2i(1920, 1080), Vector2i(800, 450), Vector2i(1280, 720)]:
+		viewport.size = dimensions
+		anchor.position = Vector2(dimensions) * 0.5
+		await settle_allocation(tree)
+		expect_contents(browser, ScenarioCatalog.find("T05"))
+		expect_containment(browser.preview_popup, dimensions)
+		expect(browser.selected_definition == selection_before, "Redimensionner une bulle ouverte ne doit pas sélectionner son exercice.")
+	browser.dismiss_card_preview()
 	anchor.queue_free()
 
 
 func expect_home_contents(dashboard: AimDashboard, definition: ScenarioDefinition) -> void:
 	var popup := dashboard.home_preview_popup
 	expect(popup.visible and popup.definition == definition and popup.preview.definition == definition, "La bulle d’accueil doit démontrer exactement la carte consultée.")
-	expect(popup.title_label.text == ScenarioCopy.title(definition) and popup.description_label.text == ScenarioCopy.description(definition) and popup.measure_label.text == ScenarioCopy.measure(definition), "Le titre, la consigne et la mesure de l’accueil doivent correspondre au bon exercice.")
+	expect(popup.title_label.text == ScenarioCopy.title(definition) and popup.description_label.text == ScenarioCopy.description(definition), "Le titre et l’unique consigne de l’accueil doivent correspondre au bon exercice.")
 
 
 func test_home(tree: SceneTree) -> void:
@@ -287,6 +354,7 @@ func test_home(tree: SceneTree) -> void:
 			dashboard.show_home_preview(ScenarioCatalog.find(scenario_id), dashboard.home_cards[scenario_id])
 			await settle_allocation(tree)
 			expect(Rect2(Vector2.ZERO, Vector2(dimensions)).encloses(dashboard.home_preview_popup.get_global_rect()), "La bulle d’accueil %s doit rester dans le viewport %s." % [scenario_id, dimensions])
+			expect_containment(dashboard.home_preview_popup, dimensions)
 			dashboard.dismiss_home_preview()
 	await test_root_allocation(dashboard, tree)
 	dashboard.queue_free()
@@ -308,6 +376,7 @@ func test_root_allocation(dashboard: AimDashboard, tree: SceneTree) -> void:
 		browser.show_card_preview(ScenarioCatalog.find("C02"))
 		await settle_allocation(tree)
 		expect(browser.preview_popup.visible and tree.root.get_visible_rect().encloses(browser.preview_popup.get_global_rect()), "Après allocation réelle des frames, la bulle C02 doit rester dans la fenêtre %s." % dimensions)
+		expect_containment(browser.preview_popup, dimensions)
 		expect(absf(browser.preview_popup.size.y - browser.preview_popup.get_combined_minimum_size().y) <= 1.0, "La bulle doit retrouver sa hauteur naturelle après le retour à la ligne, sans garder une hauteur initiale surdimensionnée.")
 		expect(browser.get_combined_minimum_size().is_equal_approx(minimum_before), "Afficher une bulle ne doit pas agrandir la taille minimale du navigateur.")
 		expect(browser.catalog_scroll.get_global_rect().is_equal_approx(catalog_before), "Afficher une bulle ne doit pas ajouter une barre ni déplacer le catalogue.")

@@ -39,10 +39,12 @@ func run_tests() -> void:
 	pool = arena.get_node("TargetPool") as TargetPool
 	arena.get_node("ReferenceSphere").hide()
 	test_real_camera_origin()
+	test_definition_policy()
 	test_angular_pixels()
 	test_entry_microprecision()
 	test_full_frustum()
 	test_catalog_bounds()
+	test_static_separation()
 	test_moving_separation()
 	test_motion_speed_bounds()
 	test_strafe_turns()
@@ -71,6 +73,7 @@ func silhouette_pixels(direction: Vector3, distance_m: float, diameter_deg: floa
 
 func test_real_camera_origin() -> void:
 	check(camera.keep_aspect == Camera3D.KEEP_HEIGHT and is_equal_approx(camera.fov, 75.0), "La scène réelle doit utiliser un FOV vertical de 75 degrés.")
+	check(is_equal_approx(camera.global_position.y, ScenarioDefinition.CAMERA_ORIGIN_HEIGHT_M), "La caméra doit garder son origine mondiale à 1,6 m au-dessus du sol.")
 	var reference: MeshInstance3D = arena.get_node("ReferenceSphere") as MeshInstance3D
 	var reference_mesh: SphereMesh = reference.mesh as SphereMesh
 	var reference_distance_m: float = camera.global_position.distance_to(reference.global_position)
@@ -103,11 +106,48 @@ func test_real_camera_origin() -> void:
 	pool.transform = Transform3D.IDENTITY
 
 
+func test_definition_policy() -> void:
+	var defaults := ScenarioDefinition.new()
+	check(defaults.angular_diameter_deg == 1.5 and defaults.yaw_extent_deg == 12.0 and defaults.pitch_extent_deg == 6.0 and defaults.min_transition_deg == 2.5 and defaults.speed_deg_s == 12.0 and defaults.reference_hits_s == 2.0, "Les valeurs implicites historiques doivent rester inchangées ; les nouvelles difficultés sont explicites dans les ressources.")
+	var depths: Array[float] = []
+	for definition in ScenarioCatalog.DEFINITIONS:
+		check(definition.revision == 3 and definition.validate().is_empty(), definition.scenario_id + " : le catalogue doit exposer une définition valide de révision 3.")
+		check(definition.distance_m >= 3.0 and definition.distance_m <= 8.0 and definition.minimum_surface_height_m() > 0.25, definition.scenario_id + " : la profondeur nominale doit garder la silhouette entière à plus de 25 cm du sol, même aux extrêmes déclarés.")
+		check(definition.fits_view(75.0, 16.0 / 9.0), definition.scenario_id + " : tout l'exercice doit tenir dans le cadrage minimal 16:9 au FOV vertical par défaut de 75°.")
+		if definition.scenario_id in ["C05", "T09"]:
+			check(definition.angular_diameter_deg < 1.0 and definition.title.contains("avancé") and definition.instructions.contains("facultatif"), "Les petites cibles C05/T09 doivent être explicitement avancées et facultatives.")
+		elif definition.scenario_id == "C03":
+			check(definition.layout == "grid" and definition.angular_diameter_deg >= 4.5 and definition.active_targets == 6, "La grille d'entrée doit conserver six cibles nettement plus grandes dans neuf cellules.")
+		else:
+			check(definition.angular_diameter_deg >= 2.5 and definition.angular_diameter_deg <= 4.0, definition.scenario_id + " : la difficulté normale doit avoir une silhouette lisible de 2,5 à 4 degrés.")
+		if not definition.distance_m in depths:
+			depths.append(definition.distance_m)
+	check(depths.size() >= 5, "Les distances nominales doivent varier selon l'intention des exercices.")
+	var grid: ScenarioDefinition = ScenarioCatalog.find("C03").duplicate() as ScenarioDefinition
+	grid.pitch_extent_deg = 4.0
+	check(not grid.validate().is_empty(), "Une grosse cible de grille ne doit pas être acceptée dans des cellules qui se chevauchent.")
+	var below_floor: ScenarioDefinition = ScenarioCatalog.find("C07").duplicate() as ScenarioDefinition
+	below_floor.distance_m = 8.0
+	check(not below_floor.validate().is_empty(), "Une profondeur masquant la sphère verticale sous le sol doit être refusée, sans réduire automatiquement sa taille.")
+	var definition: ScenarioDefinition = ScenarioCatalog.find("C01")
+	var meaningful_changes: Dictionary = {"revision": 4, "family": "switching", "motion": "horizontal", "layout": "grid",
+		"angular_diameter_deg": 3.3, "yaw_extent_deg": 15.0, "pitch_extent_deg": 9.0, "min_transition_deg": 4.5,
+		"speed_deg_s": 13.0, "active_targets": 2, "lifetime_s": 1.0, "reference_hits_s": 2.1, "distance_m": 5.0}
+	for field in meaningful_changes:
+		var alternative: ScenarioDefinition = definition.duplicate() as ScenarioDefinition
+		alternative.set(field, meaningful_changes[field])
+		check(alternative.fingerprint() != definition.fingerprint(), "Le champ mécanique " + field + " doit modifier l'empreinte, sans mélanger les records.")
+	var cosmetic: ScenarioDefinition = definition.duplicate() as ScenarioDefinition
+	cosmetic.title = "Autre titre"
+	cosmetic.instructions = "Autre consigne"
+	check(cosmetic.fingerprint() == definition.fingerprint(), "Une traduction de titre ou de consigne ne doit pas changer la difficulté mécanique.")
+
+
 func test_angular_pixels() -> void:
 	for format in FORMATS:
 		viewport.size = format
-		for scenario_id in CALIBRATION_IDS:
-			var definition: ScenarioDefinition = ScenarioCatalog.find(scenario_id)
+		for definition in ScenarioCatalog.DEFINITIONS:
+			var scenario_id: String = definition.scenario_id
 			var engine: ScenarioEngine = ScenarioEngine.new()
 			engine.start(definition, 42, 1.0)
 			var recovered_deg: float = rad_to_deg(2.0 * asin(engine.radius_m() / definition.distance_m))
@@ -127,36 +167,42 @@ func test_angular_pixels() -> void:
 
 func test_entry_microprecision() -> void:
 	var definition: ScenarioDefinition = ScenarioCatalog.find("C02")
-	check(definition.revision == 2 and is_equal_approx(definition.angular_diameter_deg, 1.2), "C02 doit être la difficulté versionnée de microprécision d'entrée : diamètre 1,2 degré, révision 2 non publiée.")
+	check(definition.revision == 3 and is_equal_approx(definition.angular_diameter_deg, 2.5), "C02 doit être la difficulté versionnée de microprécision d'entrée : diamètre 2,5 degrés, révision 3.")
 	check(is_equal_approx(ScenarioCatalog.find("C05").angular_diameter_deg, 0.7), "C05 doit conserver sa petite cible de précision exigeante.")
 	check(is_equal_approx(ScenarioCatalog.find("T09").angular_diameter_deg, 0.9), "T09 doit conserver sa petite cible de suivi exigeante.")
 	var previous_difficulty: ScenarioDefinition = definition.duplicate() as ScenarioDefinition
+	previous_difficulty.revision = 1
 	previous_difficulty.angular_diameter_deg = 0.65
-	check(previous_difficulty.fingerprint() != definition.fingerprint(), "Changer le diamètre d'entrée doit changer l'empreinte de difficulté, même au sein de la révision 2 non publiée.")
+	previous_difficulty.yaw_extent_deg = 4.0
+	previous_difficulty.pitch_extent_deg = 3.0
+	previous_difficulty.min_transition_deg = 1.4
+	previous_difficulty.distance_m = 8.0
+	var historical_parameters: Array = ["C02", 1, "click", "static", "scatter", 0.65, 4.0, 3.0, 1.4, 12.0, 1, 0.0, 1.6, 8.0]
+	check(previous_difficulty.fingerprint() == JSON.stringify(historical_parameters).sha256_text() and previous_difficulty.fingerprint() != definition.fingerprint(), "La fixture historique C02 révision 1 doit garder exactement ses anciens paramètres et son empreinte distincte.")
 	var engine: ScenarioEngine = ScenarioEngine.new()
 	check(engine.start(definition, 42, 1.0), "La difficulté micro d'entrée doit démarrer sans changement du protocole.")
-	var radius_m: float = definition.distance_m * sin(deg_to_rad(0.6))
-	check(absf(engine.radius_m() - radius_m) < 0.000001, "La hitbox C02 doit utiliser le même diamètre 1,2 degré que la sphère visible.")
+	var radius_m: float = definition.distance_m * sin(deg_to_rad(1.25))
+	check(absf(engine.radius_m() - radius_m) < 0.000001, "La hitbox C02 doit utiliser le même diamètre 2,5 degrés que la sphère visible.")
 	camera.reset_aim()
 	camera.fov = 75.0
 	for format in [Vector2i(1280, 720), Vector2i(800, 450)]:
 		viewport.size = format
-		var minimum_diameter_px: float = 9.0 if format.y == 720 else 6.0
+		var minimum_diameter_px: float = 20.0 if format.y == 720 else 12.0
 		var viewport_bounds: Rect2 = Rect2(Vector2.ZERO, Vector2(format))
 		for yaw_deg in [-definition.yaw_extent_deg, 0.0, definition.yaw_extent_deg]:
 			for pitch_deg in [-definition.pitch_extent_deg, 0.0, definition.pitch_extent_deg]:
 				var direction: Vector3 = AimGeometry.direction(yaw_deg, pitch_deg)
 				var silhouette: Rect2 = silhouette_pixels(direction, definition.distance_m, definition.angular_diameter_deg)
 				check(silhouette.size.x >= minimum_diameter_px and silhouette.size.y >= minimum_diameter_px, "C02 : le diamètre apparent doit rester au moins %.0f px à %dp/FOV 75, sans auto-scaling en pixels." % [minimum_diameter_px, format.y])
-				check(viewport_bounds.encloses(silhouette) and definition.fits_view(camera.fov, float(format.x) / format.y), "C02 : la silhouette complète de 1,2 degré doit tenir dans le viewport, y compris aux coins de spawn.")
+				check(viewport_bounds.encloses(silhouette) and definition.fits_view(camera.fov, float(format.x) / format.y), "C02 : la silhouette complète de 2,5 degrés doit tenir dans le viewport, y compris aux coins de spawn.")
 				var tangent: Vector3 = direction.cross(Vector3.UP).normalized()
-				var inside_rad: float = deg_to_rad(0.599)
-				var outside_rad: float = deg_to_rad(0.601)
+				var inside_rad: float = deg_to_rad(1.249)
+				var outside_rad: float = deg_to_rad(1.251)
 				var inside: Vector3 = direction * cos(inside_rad) + tangent * sin(inside_rad)
 				var outside: Vector3 = direction * cos(outside_rad) + tangent * sin(outside_rad)
 				var center: Vector3 = direction * definition.distance_m
-				check(not is_inf(AimGeometry.ray_sphere_distance(inside, center, engine.radius_m())), "C02 : le bord intérieur à 0,599 degré doit toucher la nouvelle hitbox visible.")
-				check(is_inf(AimGeometry.ray_sphere_distance(outside, center, engine.radius_m())), "C02 : le bord extérieur à 0,601 degré doit rater, sans hitbox agrandie séparément.")
+				check(not is_inf(AimGeometry.ray_sphere_distance(inside, center, engine.radius_m())), "C02 : le bord intérieur à 1,249 degré doit toucher la nouvelle hitbox visible.")
+				check(is_inf(AimGeometry.ray_sphere_distance(outside, center, engine.radius_m())), "C02 : le bord extérieur à 1,251 degré doit rater, sans hitbox agrandie séparément.")
 		pool.sync(engine, 0.0)
 		check(pool.spheres[0].global_basis.get_scale().is_equal_approx(Vector3.ONE * radius_m), "C02 : le rayon du mesh visible doit égaler celui de la hitbox à chaque résolution.")
 	viewport.size = Vector2i(1280, 720)
@@ -218,13 +264,39 @@ func test_catalog_bounds() -> void:
 					transforms_valid = transforms_valid and (sphere.global_position - camera.global_position).is_equal_approx(direction * definition.distance_m)
 					transforms_valid = transforms_valid and sphere.global_position.z - engine.radius_m() > wall_front_m
 					transforms_valid = transforms_valid and definition.distance_m - engine.radius_m() > camera.near and definition.distance_m + engine.radius_m() < camera.far
-		check(definition.validate().is_empty() and definition.revision >= 2, definition.scenario_id + " : la nouvelle présentation doit être versionnée.")
-		check(is_equal_approx(definition.distance_m, 4.0), definition.scenario_id + " : la présentation doit utiliser une profondeur raisonnable de 4 mètres.")
+		check(definition.validate().is_empty() and definition.revision == 3, definition.scenario_id + " : la nouvelle difficulté doit être versionnée.")
+		check(definition.distance_m >= 3.0 and definition.distance_m <= 8.0, definition.scenario_id + " : la profondeur nominale doit rester dans l'arène de 3 à 8 mètres.")
 		check(bounds_valid, definition.scenario_id + " : toutes les positions seedées doivent rester dans les bornes angulaires déclarées.")
 		check(transforms_valid, definition.scenario_id + " : positions visibles, rayon logique, near/far et mur doivent être cohérents.")
 		check(lowest_surface_m > floor_height_m, definition.scenario_id + " : aucune partie de cible ne doit traverser le sol opaque.")
 		print("GEOMETRY ARENA : %s, profondeur %.1f m, surface minimale y %.3f m, seed %d." % [definition.scenario_id, definition.distance_m, lowest_surface_m, minimum_seed])
 	pool.hide_targets()
+
+
+func test_static_separation() -> void:
+	for definition in ScenarioCatalog.DEFINITIONS:
+		if definition.motion != "static":
+			continue
+		var minimum_separation_deg: float = INF
+		var minimum_transition_deg: float = INF
+		var valid: bool = true
+		for seed_value in range(1, 65):
+			var engine := ScenarioEngine.new()
+			valid = engine.start(definition, seed_value, 10.0) and valid
+			for shot_index in 64:
+				var time_s: float = (shot_index + 1) * 0.05
+				var target_index: int = shot_index % engine.targets.size()
+				var previous: Vector3 = engine.target_direction(target_index, time_s)
+				valid = engine.shoot(time_s, previous) and valid
+				minimum_transition_deg = minf(minimum_transition_deg, AimGeometry.angular_error_deg(previous, engine.target_direction(target_index, time_s)))
+				for first_index in engine.targets.size():
+					for second_index in range(first_index + 1, engine.targets.size()):
+						minimum_separation_deg = minf(minimum_separation_deg, AimGeometry.angular_error_deg(engine.target_direction(first_index, time_s), engine.target_direction(second_index, time_s)))
+			valid = valid and engine.invalid_reason.is_empty() and engine.hits == 64 and engine.spawned == definition.active_targets + 64
+		check(valid, definition.scenario_id + " : 64 graines et 64 remplacements par graine doivent garder une génération possible et des compteurs exacts.")
+		check(minimum_transition_deg >= definition.min_transition_deg - 0.00001, definition.scenario_id + " : chaque cible statique remplacée doit respecter son espacement déclaré avec la précédente.")
+		check(minimum_separation_deg >= definition.angular_diameter_deg * 1.7 - 0.00001, definition.scenario_id + " : les silhouettes doivent rester distinctes après chaque remplacement.")
+		print("GEOMETRY STATIC : %s, transition min %.3f°, séparation min %.3f°, 4096 remplacements." % [definition.scenario_id, minimum_transition_deg, minimum_separation_deg])
 
 
 func test_moving_separation() -> void:
@@ -349,6 +421,7 @@ func test_replays() -> void:
 	for definition in ScenarioCatalog.DEFINITIONS:
 		var reference_metrics: Dictionary = {}
 		var reference_targets: Array[Dictionary] = []
+		var reference_rng_state: int = 0
 		for frame_rate in [60, 144, 240]:
 			var engine: ScenarioEngine = ScenarioEngine.new()
 			check(engine.start(definition, 7919, 2.0), definition.scenario_id + " : replay initialisé.")
@@ -361,7 +434,9 @@ func test_replays() -> void:
 				for shot_index in 20:
 					var time_s: float = (shot_index + 1) * 0.05
 					var target_index: int = shot_index % engine.targets.size()
-					check(engine.shoot(time_s, engine.target_direction(target_index, time_s)), definition.scenario_id + " : le rayon doit toucher le centre logique visible au moment du clic.")
+					var direction: Vector3 = engine.target_direction(target_index, time_s)
+					engine.record_aim(time_s, rad_to_deg(atan2(-direction.x, -direction.z)), rad_to_deg(asin(direction.y)))
+					check(engine.shoot(time_s, direction), definition.scenario_id + " : le rayon doit toucher le centre logique visible au moment du clic.")
 			for frame_index in range(1, 2 * frame_rate + 1):
 				engine.advance_to(float(frame_index) / frame_rate)
 			var report: Dictionary = engine.result(SensitivityService.default_profile(), 16.0 / 9.0, true)
@@ -369,18 +444,17 @@ func test_replays() -> void:
 			if reference_metrics.is_empty():
 				reference_metrics = report.metrics.duplicate(true)
 				reference_targets = engine.targets.duplicate(true)
+				reference_rng_state = engine.rng.state
 			else:
-				check(reference_metrics == report.metrics and reference_targets == engine.targets, definition.scenario_id + " : mêmes métriques et cibles à 60/144/240 FPS pour les mêmes événements horodatés.")
-		if not definition.scenario_id in ["S02", "T05"]:
-			var legacy: ScenarioDefinition = definition.duplicate() as ScenarioDefinition
-			legacy.distance_m = 8.0
-			legacy.revision = 1
-			var previous_engine: ScenarioEngine = ScenarioEngine.new()
-			var current_engine: ScenarioEngine = ScenarioEngine.new()
-			previous_engine.start(legacy, 42, 2.0)
-			current_engine.start(definition, 42, 2.0)
-			check(previous_engine.targets == current_engine.targets, definition.scenario_id + " : le changement de profondeur seul ne doit pas changer la génération seedée.")
-			check(legacy.fingerprint() != definition.fingerprint(), definition.scenario_id + " : les contextes et checkpoints doivent distinguer l'ancienne présentation.")
+				check(reference_metrics == report.metrics and reference_targets == engine.targets and reference_rng_state == engine.rng.state, definition.scenario_id + " : mêmes métriques, trajet, événements, cibles et RNG à 60/144/240 FPS pour les mêmes événements horodatés.")
+		var alternative_depth: ScenarioDefinition = definition.duplicate() as ScenarioDefinition
+		alternative_depth.distance_m = 2.0
+		var previous_engine: ScenarioEngine = ScenarioEngine.new()
+		var current_engine: ScenarioEngine = ScenarioEngine.new()
+		previous_engine.start(alternative_depth, 42, 2.0)
+		current_engine.start(definition, 42, 2.0)
+		check(previous_engine.targets == current_engine.targets and previous_engine.rng.state == current_engine.rng.state, definition.scenario_id + " : le changement de profondeur seul ne doit changer ni la génération seedée ni l'état du RNG.")
+		check(alternative_depth.fingerprint() != definition.fingerprint(), definition.scenario_id + " : une autre profondeur doit créer un contexte distinct sans prétendre être une fixture historique.")
 
 
 func capture_geometry() -> void:

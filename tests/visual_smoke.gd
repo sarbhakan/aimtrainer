@@ -10,8 +10,8 @@ var capture_count: int = 0
 
 
 func _initialize() -> void:
-	create_timer(90.0).timeout.connect(func() -> void:
-		push_error("Validation visuelle interrompue après 90 secondes.")
+	create_timer(180.0).timeout.connect(func() -> void:
+		push_error("Validation visuelle interrompue après 180 secondes.")
 		quit(1))
 	run.call_deferred()
 
@@ -125,6 +125,9 @@ func run() -> void:
 	app.home.game_input.get_popup().hide()
 	app.home.show_page(5)
 	var settings_scroll: ScrollContainer = app.home.pages[5]
+	var advanced: Control = app.home.fov_input.get_parent().get_parent()
+	(advanced.get_parent().get_child(0) as Button).button_pressed = true
+	await settle()
 	settings_scroll.scroll_vertical = int(settings_scroll.get_v_scroll_bar().max_value)
 	await capture("1280-14-options")
 	validate_scrolls(app.home)
@@ -136,20 +139,33 @@ func run() -> void:
 		crosshair_profile.crosshair_outline = true
 		app.home.crosshair_settings.configure(crosshair_profile)
 		app.home.crosshair_settings.changed.emit()
+		await settle()
 		settings_scroll.ensure_control_visible(app.home.crosshair_settings)
 		await capture("1280-24-viseur-" + style)
 		validate_scrolls(app.home)
 	root.size = Vector2i(800, 450)
+	await settle()
+	settings_scroll.ensure_control_visible(app.home.crosshair_settings)
 	await capture("800-24-viseur")
 	validate_scrolls(app.home)
 	root.size = Vector2i(1280, 720)
 	app.start_practice("C03", 30.0)
 	await capture("1280-06-depart")
+	root.size = Vector2i(800, 450)
+	await capture("800-06-depart")
+	root.size = Vector2i(1280, 720)
+	for preparation_us in [1100000, 2100000]:
+		app.clock.accumulated_us = preparation_us
+		app.clock.resumed_us = Time.get_ticks_usec()
+		app.update_telemetry()
+		await capture("1280-06-decompte-%s" % ("2" if preparation_us < 2000000 else "1"))
 	app.begin_training(Time.get_ticks_usec())
 	await capture("1280-07-entrainement")
 	app.hud.weapon_feedback.play_shot()
+	app.hud.weapon_feedback.set_process(false)
 	await RenderingServer.frame_post_draw
 	write_capture("1280-21-tir")
+	app.hud.weapon_feedback.update_processing()
 	await create_timer(0.1).timeout
 	await RenderingServer.frame_post_draw
 	write_capture("1280-22-recul")
@@ -162,15 +178,21 @@ func run() -> void:
 	click.button_index = MOUSE_BUTTON_LEFT
 	click.pressed = true
 	app._input(click)
+	expect(app.engine.hits == 1 and app.hud.hit_remaining_s > 0.0, "Le hitmarker capturé doit provenir d’un vrai impact du moteur.")
+	app.hud.set_process(false)
 	await RenderingServer.frame_post_draw
 	write_capture("1280-25-impact")
-	expect(app.engine.hits == 1 and app.hud.hit_remaining_s > 0.0, "Le hitmarker capturé doit provenir d’un vrai impact du moteur.")
+	app.hud.update_processing()
 	app.pause_test()
 	await capture("1280-08-pause")
 	app.resume_test()
 	app.clock.accumulated_us = 30000000
 	app.finish_training(true)
 	await capture("1280-09-resultat")
+	root.size = Vector2i(800, 450)
+	await capture("800-09-resultat")
+	validate_scrolls(app.session_panel)
+	root.size = Vector2i(1280, 720)
 	var domain := DomainTests.new()
 	domain.verify = expect
 	var calibration := domain.completed_calibration([30, 40, 70])
@@ -267,6 +289,31 @@ func run() -> void:
 	app.session_panel.set_notice("Illustration · conseil issu de données synthétiques, pas d’un joueur.")
 	await capture("1280-30-guide-conseil-exemple")
 	expect(app.session_panel.guided_confirmation.visible and app.session_panel.apply_button.disabled, "Le conseil capturé doit demander un consentement pour l’essai provisoire.")
+	app.return_to_menu()
+	for definition in ScenarioCatalog.DEFINITIONS:
+		app.start_practice(definition.scenario_id, 30.0)
+		app.begin_training(Time.get_ticks_usec())
+		await capture("1280-31-exercice-" + definition.scenario_id)
+		expect(app.hud.timer_card.is_visible_in_tree() and app.hud.metric_card.is_visible_in_tree(), "Chaque exercice présente temps et performance sans titre permanent.")
+		expect(app.hud.title_label.text.is_empty() and app.hud.help_label.text.is_empty(), "Aucune aide envahissante n’est affichée pendant " + definition.scenario_id)
+		app.return_to_menu()
+	for weapon in WeaponCatalog.DEFINITIONS:
+		var profile: Dictionary = app.home.read_profile()
+		profile.weapon_id = weapon.weapon_id
+		profile.sound_enabled = false
+		app.home.bind_profile(profile)
+		app.start_practice("C03", 30.0)
+		app.begin_training(Time.get_ticks_usec())
+		await capture("1280-32-arme-" + weapon.weapon_id)
+		var model: WeaponViewmodel = app.hud.weapon_feedback.viewmodel
+		expect(model != null and model.selected_id == weapon.weapon_id and not model.meshes.is_empty(), "Chaque arme capturée utilise une géométrie réellement 3D.")
+		app.return_to_menu()
+	root.size = Vector2i(800, 450)
+	app.start_practice("T05", 30.0)
+	app.begin_training(Time.get_ticks_usec())
+	await capture("800-33-gameplay")
+	expect(app.hud.timer_card.get_global_rect().end.x < 400.0 and app.hud.metric_card.get_global_rect().position.x > 400.0, "Les deux compteurs restent dans les coins, même à800px.")
+	app.return_to_menu()
 	print("VISUAL SMOKE : %d captures, %s." % [capture_count, "échec" if failed else "0 échec"])
 	app.queue_free()
 	await process_frame

@@ -16,6 +16,11 @@ var plan: Array[Dictionary] = []
 var trials: Array[Dictionary] = []
 var current_index: int = 0
 var error: String = ""
+var scenario_overrides: Dictionary = {}
+
+
+func find_definition(scenario_id: String) -> ScenarioDefinition:
+	return scenario_overrides[scenario_id] as ScenarioDefinition if scenario_overrides.has(scenario_id) else ScenarioCatalog.find(scenario_id)
 
 
 func begin(profile: Dictionary, viewport_aspect: float, seed_value: int, identifier: String, speed_factors: Array = FACTORS) -> bool:
@@ -47,7 +52,7 @@ func begin(profile: Dictionary, viewport_aspect: float, seed_value: int, identif
 			error = "Les trois candidats doivent rester entre 5 et 150 cm/360°."
 			return false
 	for scenario_id in SCENARIOS:
-		if not ScenarioCatalog.find(scenario_id).fits_view(float(profile.vertical_fov_deg), viewport_aspect):
+		if not find_definition(scenario_id).fits_view(float(profile.vertical_fov_deg), viewport_aspect):
 			error = "Champ de vision trop étroit pour " + scenario_id + " : élargir la fenêtre ou augmenter le FOV."
 			return false
 	baseline = profile.duplicate(true)
@@ -105,10 +110,10 @@ func accept(report: Dictionary, comfort: int) -> bool:
 	if report.get("scenario_id", "") != expected.scenario_id or int(report.get("seed", -1)) != int(expected.seed):
 		error = "Scénario ou graine incompatible avec le protocole."
 		return false
-	if report.get("scenario_fingerprint", "") != ScenarioCatalog.find(expected.scenario_id).fingerprint() or int(report.scenario_revision) != ScenarioCatalog.find(expected.scenario_id).revision:
+	if report.get("scenario_fingerprint", "") != find_definition(expected.scenario_id).fingerprint() or int(report.scenario_revision) != find_definition(expected.scenario_id).revision:
 		error = "Révision du scénario incompatible."
 		return false
-	if report.family != ScenarioCatalog.find(expected.scenario_id).family or report.get("engine_version", "") != "4.7.2" or report.get("renderer", "compatibility") != "compatibility":
+	if report.family != find_definition(expected.scenario_id).family or report.get("engine_version", "") != "4.7.2" or report.get("renderer", "compatibility") != "compatibility":
 		error = "Famille ou version du moteur incompatible."
 		return false
 	for field in ["dpi", "cm_per_360", "vertical_fov_deg"]:
@@ -121,7 +126,7 @@ func accept(report: Dictionary, comfort: int) -> bool:
 	if int(report.get("score_version", -1)) != ScoringService.VERSION or profile.get("accumulated_input", true) != baseline.get("accumulated_input", true) or profile.get("max_fps", 144) != baseline.get("max_fps", 144) or profile.get("invert_y", false) != baseline.get("invert_y", false):
 		error = "Version de score ou paramètres d'input/rendu incompatibles."
 		return false
-	if report.comparison_key != ScoringService.comparison_key(ScenarioCatalog.find(expected.scenario_id), float(expected.duration_s), candidate, aspect):
+	if report.comparison_key != ScoringService.comparison_key(find_definition(expected.scenario_id), float(expected.duration_s), candidate, aspect):
 		error = "Contexte de comparaison incompatible."
 		return false
 	var trial := report.duplicate(true)
@@ -145,7 +150,7 @@ func checkpoint() -> Dictionary:
 func report_context() -> Dictionary:
 	var fingerprints: Dictionary = {}
 	for scenario_id in SCENARIOS:
-		fingerprints[scenario_id] = ScenarioCatalog.find(scenario_id).fingerprint()
+		fingerprints[scenario_id] = find_definition(scenario_id).fingerprint()
 	return {"score_version": ScoringService.VERSION, "engine_version": "4.7.2",
 		"renderer": "compatibility", "scenario_fingerprints": fingerprints}
 
@@ -156,6 +161,7 @@ static func integer(value: Variant) -> bool:
 
 func restore(data: Dictionary) -> bool:
 	var restored := CalibrationService.new()
+	restored.scenario_overrides = scenario_overrides.duplicate()
 	if not restored.restore_data(data):
 		error = restored.error
 		return false

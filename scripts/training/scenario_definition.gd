@@ -1,6 +1,8 @@
 class_name ScenarioDefinition
 extends Resource
 
+const CAMERA_ORIGIN_HEIGHT_M: float = 1.6
+
 @export var scenario_id: String = "C01"
 @export var revision: int = 1
 @export var title: String = "Static Single"
@@ -36,6 +38,12 @@ func validate() -> String:
 		return "Nombre de cibles invalide."
 	if layout == "lanes" and (family != "switching" or motion != "horizontal" or active_targets < 2 or 2.0 * pitch_extent_deg / active_targets < angular_diameter_deg * 1.7):
 		return "Couloirs de cibles trop serrés ou incompatibles avec le mouvement."
+	if layout == "grid":
+		var horizontal_spacing_deg: float = AimGeometry.angular_error_deg(AimGeometry.direction(0.0, pitch_extent_deg), AimGeometry.direction(yaw_extent_deg, pitch_extent_deg))
+		if minf(horizontal_spacing_deg, pitch_extent_deg) < angular_diameter_deg * 1.7:
+			return "Grille de cibles trop serrée."
+	if revision >= 3 and minimum_surface_height_m() <= 0.0:
+		return "La silhouette de cible traverse le sol depuis l'origine caméra de 1,6 m."
 	if not is_finite(turn_duration_s) or turn_duration_s < 0.0:
 		return "Durée de virage invalide."
 	var motion_extent_deg: float = yaw_extent_deg * (0.9 if family == "tracking" else 0.45)
@@ -44,6 +52,10 @@ func validate() -> String:
 	if not is_finite(lifetime_s) or lifetime_s < 0.0 or not is_finite(min_transition_deg) or min_transition_deg < 0.0:
 		return "Durée ou espacement invalide."
 	return ""
+
+
+func minimum_surface_height_m() -> float:
+	return CAMERA_ORIGIN_HEIGHT_M - distance_m * (sin(deg_to_rad(pitch_extent_deg)) + sin(deg_to_rad(angular_diameter_deg * 0.5)))
 
 
 func fits_view(vertical_fov_deg: float, aspect: float) -> bool:

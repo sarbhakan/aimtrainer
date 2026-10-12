@@ -33,3 +33,5 @@ run_suite() {
 run_suite res://tests/run_tests.gd "AIM/LOCAL"
 run_suite res://tests/geometry_regression_tests.gd "GEOMETRY REGRESSION"
 run_suite res://tests/adaptive_calibration_tests.gd "ADAPTIVE CALIBRATION"
+run_suite res://tests/ui_spacing_tests.gd "UI SPACING"
+run_suite res://tests/preview_containment_tests.gd "PREVIEW CONTAINMENT"

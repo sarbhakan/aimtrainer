@@ -5,10 +5,10 @@
 [resource]
 script=ExtResource("1")
 scenario_id="C05"
-revision=2
-distance_m=4.0
-title="Sixshot précis"
-instructions="Six petites sphères : un clic précis, puis une transition contrôlée."
+revision=3
+distance_m=7.0
+title="Sixshot précis · avancé"
+instructions="Exercice avancé facultatif : six petites sphères de 0,7°. Centrer exactement le viseur, cliquer une fois puis contrôler la transition. Pour commencer, préférer Static Single ou Grid Targets."
 family="click"
 angular_diameter_deg=0.7
 yaw_extent_deg=16

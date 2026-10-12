@@ -5,16 +5,17 @@
 [resource]
 script=ExtResource("1")
 scenario_id="S02"
-revision=2
-distance_m=4.0
+revision=3
+distance_m=5.0
 layout="lanes"
 title="Moving Switch"
-instructions="Alterner entre quatre sphères mobiles. Mesurer précision et temps de transition."
+instructions="Quatre sphères mobiles dans des couloirs distincts : rejoindre l'une, cliquer une fois puis passer à une autre. Anticiper son mouvement sans confondre vitesse et précipitation."
 family="switching"
 motion="horizontal"
-angular_diameter_deg=1.8
+angular_diameter_deg=3.2
 yaw_extent_deg=22
-pitch_extent_deg=10
-speed_deg_s=14
+pitch_extent_deg=12
+min_transition_deg=4
+speed_deg_s=16
 active_targets=4
 reference_hits_s=2.4

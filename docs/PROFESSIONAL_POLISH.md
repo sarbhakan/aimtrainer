@@ -1,4 +1,12 @@
-# Plan de finition — 0.4.0
+# Plan de finition — 0.5.0
+
+## Retour visuel et mécanique 0.5
+
+Quatre lots disjoints : UI/UX native (échelle commune, champs lisibles, hiérarchie), aperçus (confinement et action courte), exercices (cadrages r3, silhouettes, sol et vitesses), armes (meshes originaux, main, recul/flash et monde isolé). Le parent traite HUD, préparation, décor, archives, intégration et distribution. Une deuxième revue en lecture seule examine les captures avant les corrections finales.
+
+Les écarts observés sont corrigés : HUD vertical, visée miniature masquée, main hors cadre, jeu tronqué malgré une grande fenêtre, screenshots de réglages mal positionnés et fausse édition de sensibilité au blur. Les états/espacements sont vérifiés aux trois tailles ; le chemin angulaire de la souris reste inchangé. `EXERCISE_DESIGN_050.md` explique les seize cadrages et `TEST_PLAN.md` consigne les **20 513 assertions** et **77 rendus**, ainsi que les essais matériels encore nécessaires.
+
+La liste de fond suivante reste celle du jalon 0.4 ; elle ne signifie pas que les 55 exercices ou l’expérience Windows humaine sont réceptionnés.
 
 Objectif : une application native Godot cohérente, utilisable par un débutant, dont les retours correspondent à des mesures réelles. Les animations ne doivent jamais modifier les counts souris, le chronomètre, les hitboxes ou les scores.
 

@@ -15,6 +15,7 @@ var history: Array[Dictionary]:
 	get:
 		return _history.duplicate(true)
 var error: String = ""
+var scenario_overrides: Dictionary = {}
 var initial_profile: Dictionary = {}
 var aspect: float = 16.0 / 9.0
 var search_seed: int = 1
@@ -41,6 +42,7 @@ func begin(profile: Dictionary, viewport_aspect: float = 16.0 / 9.0, seed_value:
 		return false
 	var spec := make_spec(profile, viewport_aspect, seed_value, resolved_id, float(profile.cm_per_360), "explore", 0)
 	var verifier := CalibrationService.new()
+	verifier.scenario_overrides = scenario_overrides.duplicate()
 	if not verifier.begin(spec.profile, viewport_aspect, int(spec.seed), str(spec.calibration_id), spec.speed_factors):
 		error = verifier.error
 		return false
@@ -174,6 +176,7 @@ func verified_report(recommendation: Dictionary) -> Dictionary:
 		error = "Le bilan ne correspond pas au centre et au profil attendus."
 		return {}
 	var verifier := CalibrationService.new()
+	verifier.scenario_overrides = scenario_overrides.duplicate()
 	if not verifier.begin(_spec.profile, aspect, int(_spec.seed), str(_spec.calibration_id), _spec.speed_factors):
 		error = verifier.error
 		return {}
@@ -270,6 +273,7 @@ func restore(data: Dictionary) -> bool:
 		error = "Contexte ou longueur de recherche invalide."
 		return false
 	var replay := AdaptiveSensitivityService.new()
+	replay.scenario_overrides = scenario_overrides.duplicate()
 	if not replay.begin(state.initial_profile, float(state.aspect), int(state.seed), str(state.search_id)):
 		error = replay.error
 		return false

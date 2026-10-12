@@ -1,4 +1,4 @@
-# Architecture — 0.4.0
+# Architecture — 0.5.0
 
 ## Responsabilités
 
@@ -33,7 +33,9 @@
 
 `HOME → COUNTDOWN → TRAINING → RESULTS`, ou `REST → COUNTDOWN` dans le parcours guidé. `TEST` conserve le diagnostic souris sans score. `PAUSED` mémorise l'état interrompu ; aucune reprise automatique après un retour de focus.
 
-Le compte à rebours de deux secondes permet de préparer le geste. Il accepte la rotation mais pas les tirs ni les métriques ; le moteur démarre avec la pose obtenue à son terme. Un abandon garde une séance partielle, exclue des records. Une variation du format de fenêtre invalide la séance et la calibration reprend uniquement au format d'origine.
+Le compte à rebours de trois secondes permet de préparer le geste. Un moteur séparé affiche les cibles seedées figées, sans tirs ni métriques. Le moteur mesuré redémarre à zéro avec la même disposition et la pose de caméra obtenue, jamais avec les mouvements de préparation. GO est un retour bref placé au-dessus du viseur. Un abandon garde une séance partielle, exclue des records. Une variation du format de fenêtre invalide la séance et la calibration reprend uniquement au format d'origine.
+
+Les contextes historiques de révision 2 sont construits depuis une table figée dans `calibration_revision_archive.gd`. Le validateur de comparaison et le contrôleur guidé acceptent une injection explicite de ces définitions pour vérifier l’archive, jamais pour lancer un exercice produit. Le replay vérifie facteurs, ordre, mesures, empreintes et décisions ; les anciennes données ne déterminent pas leur propre définition.
 
 Le clic et le dernier tick peuvent demander simultanément la fin : un drapeau et un appel différé garantissent une seule sauvegarde. La progression de calibration est validée seulement si l'écriture du checkpoint réussit ; sinon le passage reste disponible en mémoire et l'index est annulé. Un checkpoint complet permet de revoir le bilan après redémarrage, y compris après une interruption entre sa dernière écriture et celle du bilan.
 
@@ -47,11 +49,11 @@ Les événements peuvent être regroupés par Godot : l'horodatage reflète la r
 
 ## Présentation indépendante
 
-Les 16 ressources d’exercice passent en révision 2 avec une profondeur de 4 m depuis l’origine réelle de la caméra. C02 a un diamètre de 1,2°, C07 reste entièrement au-dessus du sol, S02 conserve des couloirs séparés, T03 respecte sa vitesse totale et T05 inverse continûment sa vitesse en 120 ms. La sphère complète doit tenir dans le frustum ; son rayon rendu est celui utilisé pour la collision. Les empreintes changent et protègent les anciens résultats de toute comparaison trompeuse.
+Les 16 ressources d’exercice passent en révision 3 avec tailles angulaires et profondeur distinctes par objectif, depuis l’origine réelle de la caméra. Cibles d’entrée agrandies, C07 au-dessus du sol, S02 avec couloirs séparés, T03 avec vitesse totale normalisée et T05 retournant continûment en 160 ms. La sphère complète doit tenir dans le frustum ; son rayon rendu est celui de la collision. Les empreintes protègent les anciens résultats de toute comparaison trompeuse. Voir `EXERCISE_DESIGN_050.md`.
 
 `ScenarioCopy` fournit les noms et consignes. Les aperçus utilisent une instance distincte de `ScenarioEngine` ; leur cadrage illustratif ne sert jamais au scoring. Les miniatures sont statiques, la bulle apparaît après 180 ms au survol/focus ou immédiatement au clic ; un seul aperçu est animé à 30 Hz par écran. La fermeture, le changement de page, la recherche ou le défilement coupent la bulle et les traitements masqués.
 
-`WeaponFeedback` préalloue quatre lecteurs de tir et un lecteur continu. Il reçoit un profil au lancement de la séance, hors du chemin souris, puis réutilise ses ressources. La boucle PCM est dupliquée avant configuration pour ne pas modifier la ressource partagée ; sa fin est exprimée en frames (`durée × fréquence`). L’import des six WAV désactive la compression QOA par défaut. La transformation de recul affecte uniquement le sprite HUD, jamais la caméra. Le clic maintenu en tracking n’appelle pas `ScenarioEngine.shoot` et n’ajoute aucune contrainte de score.
+`WeaponFeedback` préalloue quatre lecteurs de tir et un lecteur continu. `WeaponViewmodel` construit trois ensembles de meshes originaux dans un `SubViewport` transparent à monde/caméra propres, sans picking ou input. Le rendu est borné et s’arrête hors visibilité ; recul, pièce mobile et flash ne changent jamais la caméra de visée. La boucle PCM est dupliquée hors du chemin souris ; sa fin est exprimée en frames (`durée × fréquence`). L’import des six WAV désactive la compression QOA par défaut. Le clic maintenu en tracking n’appelle pas `ScenarioEngine.shoot` et n’ajoute aucune contrainte de score.
 
 L’interface responsive conserve les boutons de lancement et d’enregistrement hors des défilements. Les bilans affichent trois indicateurs utiles et replient les données techniques ; les erreurs de persistance restent visibles indépendamment de ce repli. Les choix UX et l’ajout d’équipements sont documentés dans `docs/UI_UX.md`.
 

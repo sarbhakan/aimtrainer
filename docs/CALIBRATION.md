@@ -1,8 +1,8 @@
-# Sensibilité repère et exercices — protocole 3, application 0.4.0
+# Sensibilité repère et exercices — protocole 3, application 0.5.0
 
 ## Deux parcours
 
-**Comparer mon réglage** conserve une comparaison à ±10 % : cinq exercices, 60 passages dont 45 mesures, environ 16 minutes minimum. Les facteurs deviennent configurables, mais chaque candidat et difficulté restent fixes pendant un passage et sa comparaison.
+**Comparer mon réglage** conserve une comparaison à ±10 % : cinq exercices, 60 passages dont 45 mesures, environ 17 minutes minimum. Les facteurs deviennent configurables, mais chaque candidat et difficulté restent fixes pendant un passage et sa comparaison.
 
 **Trouver mon réglage** utilise une recherche expérimentale bornée à quatre comparaisons complètes, jamais deux mini-exercices suffisants pour conclure :
 
@@ -13,13 +13,15 @@
 
 La plage reste 5–150 cm/360°. Trois candidats distincts imposent un centre d’exploration entre 10 et 75 cm/360° ; les phases plus étroites ont leurs propres bornes. Un départ hors centre est explicité et sauvegardé séparément, pas réécrit silencieusement comme profil actif. DPI, objectif, FOV, ratio et input restent constants. Les graines changent par comparaison avec un pas déterministe de 104 729 et restent communes entre candidats d’une même série.
 
-Un trajet stable prend généralement trois comparaisons, parfois quatre : **48–64 minutes minimum**, hors pauses supplémentaires. L’incertitude peut l’arrêter plus tôt sans conseil applicable. La difficulté ne s’ajuste pas pour faire gagner une sensibilité : seuls les candidats de la prochaine comparaison changent.
+Un trajet stable prend généralement trois comparaisons, parfois quatre : **51–68 minutes minimum**, hors pauses supplémentaires. L’incertitude peut l’arrêter plus tôt sans conseil applicable. La difficulté ne s’ajuste pas pour faire gagner une sensibilité : seuls les candidats de la prochaine comparaison changent.
 
 Le contrôleur reconstruit ses décisions depuis les 60 passages vérifiés de chaque bilan, sa dispersion, ses poids et le confort. Gagnant arbitraire et historique modifié sont refusés. `guided_calibration_checkpoint.json` écrit recherche et comparaison ensemble ; une panne annule l’avancement mémoire. Reprendre un bilan accepté ne le compte pas deux fois.
 
 Après validation stable : `trial_allowed=true`, `confirmation_required=true`, `apply_allowed=false`. **Essayer ce conseil** exige le consentement ; profil provisoire, pas validation scientifique définitive. Refaire les essais à deux puis sept jours, contrôler confort et distance en jeu reste recommandé. Aucun transfert causal vers un FPS n’est prouvé.
 
-Le protocole 3 restaure un protocole 2 compatible avec ses facteurs historiques. Les nouvelles sauvegardes explicitent facteurs et contexte ; un protocole 1 est archivé. Les rapports restent conservés, sans mélange de difficultés ou métadonnées incohérentes.
+Le protocole 3 restaure un protocole 2 seulement si ses exercices restent identiques. La 0.5 change leur difficulté : les checkpoints 0.3/0.4 reconnus sont vérifiés avec un contexte historique figé, puis archivés octet pour octet avant une nouvelle comparaison. La recherche guidée est vérifiée avec son historique de décisions, pas seulement son dernier passage. Un fichier inconnu ou incohérent bloque l’écrasement ; les séances restent conservées, sans mélange de révisions.
+
+Chaque départ montre les cibles initiales figées pendant **3, 2, 1**, puis mesure à partir de **GO**. La disposition utilise la même graine au départ, sans inclure la préparation dans les scores. Aucun tir n’est enregistré pendant le décompte ; la caméra conserve les vrais mouvements reçus. Les 60 décomptes, 15 × 8 s, 45 × 12 s et 60 repos minimaux de 3 s (dernier bilan compris) donnent **1 020 s (17 min)** hors saisie du confort, pauses et répétitions. Les exercices sont explicités dans `EXERCISE_DESIGN_050.md`.
 
 ## Ce que signifie la recommandation
 
@@ -44,7 +46,7 @@ Ces contraintes se complètent. Un réglage favorisant uniquement les gros flick
 - Trois vitesses angulaires : **A = 0,90 × référence**, **B = référence**, **C = 1,10 × référence**. En distance, les candidats sont `cm_ref / facteur` : 38,889 / 35 / 31,818 cm/360° pour un départ à 35.
 - **Cinq blocs de douze passages**, dans l’ordre C02 → C04 → S01 → T01 → T05. Dans chaque bloc : A/B/C en familiarisation de 8 s, puis trois séries de trois essais mesurés de 12 s. On termine les comparaisons d’un exercice avant le suivant.
 - Total : **15 familiarisations**, exclues du classement et de la progression, et **45 mesures** ; trois observations par cellule exercice/réglage.
-- Compte à rebours de 2 s et repos minimal de 3 s par passage, confort de 1 à 5. Minimum total proche de 16 min ; augmenter le repos librement et interrompre en cas de douleur/fatigue.
+- Compte à rebours de 3 s et repos minimal de 3 s par passage, confort de 1 à 5. Minimum total proche de 17 min ; augmenter le repos librement et interrompre en cas de douleur/fatigue.
 - Chaque candidat occupe une fois chaque position dans les trois séries d’un exercice, avec un décalage supplémentaire par exercice. Les trois candidats partagent une graine par série ; familiarisations et séries ont des graines distinctes. L’ordre des exercices est fixe : les effets de fatigue entre blocs ne sont pas entièrement contrebalancés. Les remplacements déclenchés par un impact ne surviennent pas nécessairement au même instant pour deux joueurs.
 - Le HUD indique l’exercice, A/B/C et la série. Le bilan de passage montre la sensibilité actuelle et les médianes A/B/C disponibles, avec le nombre de mesures. Ce parcours explicite n’est pas une étude en aveugle.
 - Le checkpoint conserve les passages acceptés et les paramètres. Abandonner ou refaire ne valide rien : le même candidat/graine recommence. Un passage valide est aussi refaisable après le repos minimal, avant de choisir Continuer. Une nouvelle calibration archive le checkpoint précédent. Un protocole 1 reconnu est archivé, jamais interprété selon le nouvel ordre ; un fichier incohérent ou inconnu reste protégé.
@@ -101,28 +103,28 @@ Le bilan sauvegarde tous les passages, médianes par exercice, poids, dispersion
 
 ## Bibliothèque exécutable
 
-Tous les scénarios ont une difficulté fixe, des trajectoires/générations déterministes par graine, une profondeur nominale de 4 m et les mêmes protections de pause/focus. Le pool positionne les cibles depuis l’origine réelle de la caméra. Le diamètre est angulaire, pas automatiquement adapté à la résolution. Six sphères suffisent au pool. Les ressources sont en révision 2 : leur empreinte interdit de mélanger les anciens scores ou de reprendre une ancienne calibration avec cette géométrie.
+Tous les scénarios ont une difficulté fixe, des trajectoires/générations déterministes par graine, une profondeur nominale spécifique à l’exercice et les mêmes protections de pause/focus. Le pool positionne les cibles depuis l’origine réelle de la caméra. Le diamètre est angulaire, pas automatiquement adapté à la résolution. Six sphères suffisent au pool. Les ressources sont en révision 3 : leur empreinte interdit de mélanger les anciens scores ou de reprendre une ancienne calibration avec cette géométrie. Le tableau détaillé et les raisons de cadrage sont dans `EXERCISE_DESIGN_050.md`.
 
 | ID | Exercice | Cibles | Diamètre | Particularité / référence clic |
 |---|---|---:|---:|---|
-| C01 | Static Single | 1 | 1,5° | Cible statique ; 2 touches/s |
-| C02 | Micro-précision | 1 | 1,2° | Zone étroite ; 1,6/s ; environ 9,83 px à 720p/FOV 75° |
-| C03 | Grid Targets | 6 | 1,2° | Cellules libres d'une grille 3×3 ; 3/s |
-| C04 | Grands flicks | 1 | 1,4° | Écart minimal 14° ; 1,8/s |
+| C01 | Static Single | 1 | 3,2° | Départ confortable ; 2 touches/s |
+| C02 | Micro-précision | 1 | 2,5° | Corrections courtes ; 1,6/s |
+| C03 | Grid Targets | 6 | 4,8° | Grandes cellules libres d'une grille 3×3 ; 3/s |
+| C04 | Grands flicks | 1 | 3,2° | Écart minimal 20° ; 1,8/s |
 | C05 | Sixshot précis | 6 | 0,7° | Petites cibles dispersées ; 2,4/s |
-| C07 | Flicks verticaux | 1 | 1° | Zone verticale ±17° ; 2/s |
-| D01 | Pop-up | 1 | 1,5° | Expiration après 1 s ; 2/s |
-| D02 | Clic mobile | 1 | 1,8° | Oscillation horizontale ; 1,8/s |
-| T01 | Suivi horizontal fluide | 1 | 2° | Sinusoïde horizontale |
-| T02 | Suivi vertical | 1 | 2° | Sinusoïde verticale |
-| T03 | Suivi diagonal | 1 | 2° | Yaw et pitch couplés |
-| T04 | Circle Track | 1 | 2° | Boucle elliptique yaw/pitch |
-| T05 | Suivi de strafes | 1 | 1,8° | Déplacements latéraux, retournements continus de 120 ms |
+| C07 | Flicks verticaux | 1 | 3° | Zone verticale ±20° ; 2/s |
+| D01 | Pop-up | 1 | 3,4° | Expiration après 1 s ; 2/s |
+| D02 | Clic mobile | 1 | 3° | Oscillation horizontale ; 1,8/s |
+| T01 | Suivi horizontal fluide | 1 | 4° | Sinusoïde horizontale |
+| T02 | Suivi vertical | 1 | 3,6° | Sinusoïde verticale |
+| T03 | Suivi diagonal | 1 | 3,4° | Yaw et pitch couplés |
+| T04 | Circle Track | 1 | 3,4° | Boucle elliptique yaw/pitch |
+| T05 | Suivi de strafes | 1 | 3,6° | Déplacements latéraux, retournements continus de 160 ms |
 | T09 | Far Small | 1 | 0,9° | Suivi de petite cible, vitesse réduite |
-| S01 | Target switching | 4 | 1,3° | Transitions entre touches ; 2,8/s |
-| S02 | Moving Switch | 4 | 1,8° | Couloirs séparés ; 2,4/s |
+| S01 | Target switching | 4 | 3,4° | Transitions entre touches ; 2,8/s |
+| S02 | Moving Switch | 4 | 3,2° | Couloirs séparés ; 2,4/s |
 
-Les paramètres complets résident dans les `.tres`. T03 normalise désormais les amplitudes couplées pour respecter la vitesse angulaire totale annoncée ; l’ellipse a une vitesse variable bornée. S02 utilise des couloirs distants d’au moins 5° pour éviter le chevauchement de ses cibles mobiles. La totalité de la sphère, y compris aux coins du champ, doit rester dans le viewport et au-dessus du sol. Rendu et collision partagent le même rayon. C05/T09 conservent volontairement leurs petites cibles avancées. Pas d’adaptation automatique pendant un passage ni de difficulté cachée.
+Les paramètres complets résident dans les `.tres`. T03 normalise les amplitudes couplées pour respecter la vitesse angulaire totale annoncée ; l’ellipse a une vitesse variable bornée. S02 utilise des couloirs distants de 6° pour éviter le chevauchement de ses cibles mobiles. La totalité de la sphère, y compris aux coins du champ, doit rester dans le viewport et au-dessus du sol. Rendu et collision partagent le même rayon. C05/T09 conservent volontairement leurs petites cibles avancées. Pas d’adaptation automatique pendant un passage ni de difficulté cachée.
 
 ## Conversion et progression
 

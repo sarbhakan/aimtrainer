@@ -5,13 +5,13 @@
 [resource]
 script=ExtResource("1")
 scenario_id="T03"
-revision=2
-distance_m=4.0
+revision=3
+distance_m=4.5
 title="Suivi diagonal"
-instructions="Coordonner les deux axes sur une trajectoire régulière, sans cliquer."
+instructions="Suivre la sphère en diagonale sans cliquer : coordonner le mouvement horizontal et vertical, puis repartir ensemble aux extrémités."
 family="tracking"
 motion="diagonal"
-angular_diameter_deg=2
-yaw_extent_deg=12
-pitch_extent_deg=8
+angular_diameter_deg=3.4
+yaw_extent_deg=16
+pitch_extent_deg=10
 speed_deg_s=16

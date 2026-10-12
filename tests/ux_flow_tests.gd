@@ -70,8 +70,8 @@ func test_first_steps(dashboard: AimDashboard) -> void:
 	expect(guided_resumes == 1 and quick_resumes == 0, "Reprendre la recherche ne peut pas reprendre le checkpoint rapide.")
 	dashboard.resume_calibration_button.pressed.emit()
 	expect(quick_resumes == 1 and guided_resumes == 1, "Les reprises guidée et rapide restent indépendantes même avec deux checkpoints.")
-	expect(dashboard.guided_effort_label.text.contains("3–4") and dashboard.guided_effort_label.text.contains("48–64"), "Le parcours guidé annonce 3–4 comparaisons et 48–64 minutes, pas 16 minutes au total.")
-	expect(dashboard.quick_effort_label.text.contains("16") and dashboard.quick_effort_label.text.contains("reprise"), "La comparaison rapide annonce son effort et sa possibilité de reprise.")
+	expect(dashboard.guided_effort_label.tooltip_text.contains("3–4") and dashboard.guided_effort_label.text.contains("51–68"), "Le parcours guidé annonce 51–68 minutes et précise 3–4 comparaisons à la demande, pas 17 minutes au total.")
+	expect(dashboard.quick_effort_label.text.contains("17") and dashboard.quick_effort_label.text.contains("reprise"), "La comparaison rapide annonce son effort et sa possibilité de reprise.")
 	for definition in ScenarioCatalog.DEFINITIONS:
 		expect(ScenarioCopy.description(definition).length() <= 90, "Chaque activité garde une consigne courte : " + definition.scenario_id)
 		expect(ScenarioCopy.measure(definition).contains("%"), "La mesure de l’activité est expliquée avec une unité compréhensible : " + definition.scenario_id)
@@ -91,7 +91,7 @@ func test_exact_import(dashboard: AimDashboard, tree: SceneTree) -> void:
 	dashboard.show_page(2)
 	await settle(tree)
 	var form := dashboard.reference_import
-	expect(form.value_input.display_input.text == "0.351235", "Le champ source affiche une décimale courte depuis son début.")
+	expect(form.value_input.display_input.text == "0.35", "Le champ source affiche au plus deux décimales depuis son début.")
 	expect(form.dpi_input.display_input.text == "800", "Les DPI entiers ne sont pas affichés avec une décimale inutile.")
 	expect(form.value_input.value == history.sensitivity and form.draft().profile.reference_game == history, "L’affichage abrégé conserve exactement la source et sa provenance.")
 	expect(not form.value_input.get_line_edit().visible and form.value_input.display_input.visible, "La longue décimale interne reste cachée jusqu’à une édition explicite.")
@@ -121,7 +121,7 @@ func test_exact_import(dashboard: AimDashboard, tree: SceneTree) -> void:
 	var manual := GameProfileService.import_profile(active, "custom", 800.125, 4.012345678901234, "Jeu UX · version 1", 42.12345678901234)
 	dashboard.bind_profile(manual.profile)
 	await settle(tree)
-	expect(form.dpi_input.display_input.text == "800.125" and form.measurement_input.display_input.text == "42.123457", "Les DPI fractionnaires et les centimètres restent lisibles sans quantifier le modèle.")
+	expect(form.dpi_input.display_input.text == "800.12" and form.measurement_input.display_input.text == "42.12", "Les DPI fractionnaires et les centimètres restent lisibles à deux décimales sans quantifier le modèle.")
 	expect(form.draft().profile.reference_game == manual.profile.reference_game, "Le coefficient mesuré du jeu manuel reste exact après affichage.")
 	var storage := LocalStore.new("user://tests/ux-" + LocalStore.new().identifier())
 	expect(storage.save_profile(dashboard.read_profile()), "Le profil précis se sauvegarde uniquement dans le dossier de tests isolé.")
@@ -186,7 +186,7 @@ func test_source_focus(tree: SceneTree) -> void:
 		var before_profile: Dictionary = app.home.read_profile()
 		var controls: Array[SensitivityImport.ReadableSpinBox] = [form.dpi_input, form.value_input]
 		var source_values: Array[float] = [history.dpi, history.sensitivity]
-		var captions: Array[String] = ["800.125", "2.012346" if history.game_id == "cs2" else "5.012346"]
+		var captions: Array[String] = ["800.12", "2.01" if history.game_id == "cs2" else "5.01"]
 		if history.game_id == "cs2":
 			form.cs2_fields.show()
 			controls.append(form.cs2_yaw_input)
@@ -195,7 +195,7 @@ func test_source_focus(tree: SceneTree) -> void:
 		else:
 			controls.append(form.measurement_input)
 			source_values.append(history.source_cm_per_360)
-			captions.append("34.123457")
+			captions.append("34.12")
 		await settle(tree)
 		for field_index in controls.size():
 			var control := controls[field_index]

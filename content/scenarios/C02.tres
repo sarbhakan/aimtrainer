@@ -5,13 +5,13 @@
 [resource]
 script=ExtResource("1")
 scenario_id="C02"
-revision=2
-distance_m=4.0
+revision=3
+distance_m=3.0
 title="Micro-précision"
-instructions="Petites cibles proches : contrôler la fin du geste et éviter les surcorrections."
+instructions="Cibles regroupées près du centre : faire une courte correction, stabiliser la fin du geste et cliquer une fois. Précision d'entrée, sans cible minuscule."
 family="click"
-angular_diameter_deg=1.2
-yaw_extent_deg=4
-pitch_extent_deg=3
-min_transition_deg=1.4
+angular_diameter_deg=2.5
+yaw_extent_deg=6
+pitch_extent_deg=4
+min_transition_deg=3
 reference_hits_s=1.6

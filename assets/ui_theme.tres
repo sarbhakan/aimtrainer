@@ -1,13 +1,13 @@
-[gd_resource type="Theme" load_steps=19 format=3]
+[gd_resource type="Theme" load_steps=20 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/ui/switch_on.svg" id="1"]
 [ext_resource type="Texture2D" path="res://assets/ui/switch_off.svg" id="2"]
 
 [sub_resource type="StyleBoxFlat" id="ButtonNormal"]
 content_margin_left=16.0
-content_margin_top=11.0
+content_margin_top=12.0
 content_margin_right=16.0
-content_margin_bottom=11.0
+content_margin_bottom=12.0
 bg_color=Color(0.102, 0.141, 0.208, 1)
 border_width_left=1
 border_width_top=1
@@ -21,9 +21,9 @@ corner_radius_bottom_right=8
 
 [sub_resource type="StyleBoxFlat" id="ButtonHover"]
 content_margin_left=16.0
-content_margin_top=11.0
+content_margin_top=12.0
 content_margin_right=16.0
-content_margin_bottom=11.0
+content_margin_bottom=12.0
 bg_color=Color(0.106, 0.161, 0.231, 1)
 border_width_left=1
 border_width_top=1
@@ -37,9 +37,9 @@ corner_radius_bottom_right=8
 
 [sub_resource type="StyleBoxFlat" id="ButtonPressed"]
 content_margin_left=16.0
-content_margin_top=11.0
+content_margin_top=12.0
 content_margin_right=16.0
-content_margin_bottom=11.0
+content_margin_bottom=12.0
 bg_color=Color(0.086, 0.196, 0.231, 1)
 border_width_left=1
 border_width_top=1
@@ -53,9 +53,9 @@ corner_radius_bottom_right=8
 
 [sub_resource type="StyleBoxFlat" id="ButtonHoverPressed"]
 content_margin_left=16.0
-content_margin_top=11.0
+content_margin_top=12.0
 content_margin_right=16.0
-content_margin_bottom=11.0
+content_margin_bottom=12.0
 bg_color=Color(0.114, 0.251, 0.282, 1)
 border_width_left=1
 border_width_top=1
@@ -69,9 +69,9 @@ corner_radius_bottom_right=8
 
 [sub_resource type="StyleBoxFlat" id="ButtonDisabled"]
 content_margin_left=16.0
-content_margin_top=11.0
+content_margin_top=12.0
 content_margin_right=16.0
-content_margin_bottom=11.0
+content_margin_bottom=12.0
 bg_color=Color(0.063, 0.09, 0.145, 1)
 border_width_left=1
 border_width_top=1
@@ -85,9 +85,9 @@ corner_radius_bottom_right=8
 
 [sub_resource type="StyleBoxFlat" id="Focus"]
 content_margin_left=16.0
-content_margin_top=11.0
+content_margin_top=12.0
 content_margin_right=16.0
-content_margin_bottom=11.0
+content_margin_bottom=12.0
 bg_color=Color(0, 0, 0, 0)
 border_width_left=2
 border_width_top=2
@@ -101,9 +101,9 @@ corner_radius_bottom_right=8
 
 [sub_resource type="StyleBoxFlat" id="Card"]
 content_margin_left=24.0
-content_margin_top=22.0
+content_margin_top=24.0
 content_margin_right=24.0
-content_margin_bottom=22.0
+content_margin_bottom=24.0
 bg_color=Color(0.071, 0.094, 0.15, 1)
 border_width_left=1
 border_width_top=1
@@ -117,9 +117,9 @@ corner_radius_bottom_right=14
 
 [sub_resource type="StyleBoxFlat" id="Field"]
 content_margin_left=12.0
-content_margin_top=10.0
+content_margin_top=8.0
 content_margin_right=12.0
-content_margin_bottom=10.0
+content_margin_bottom=8.0
 bg_color=Color(0.04, 0.06, 0.105, 1)
 border_width_left=1
 border_width_top=1
@@ -133,9 +133,9 @@ corner_radius_bottom_right=7
 
 [sub_resource type="StyleBoxFlat" id="FieldFocus"]
 content_margin_left=12.0
-content_margin_top=10.0
+content_margin_top=8.0
 content_margin_right=12.0
-content_margin_bottom=10.0
+content_margin_bottom=8.0
 bg_color=Color(0, 0, 0, 0)
 border_width_left=2
 border_width_top=2
@@ -150,9 +150,13 @@ corner_radius_bottom_right=7
 [sub_resource type="StyleBoxFlat" id="Empty"]
 bg_color=Color(0, 0, 0, 0)
 
+[sub_resource type="StyleBoxEmpty" id="ScrollContent"]
+content_margin_right=8.0
+content_margin_bottom=4.0
+
 [sub_resource type="StyleBoxFlat" id="Toggle"]
-content_margin_top=6.0
-content_margin_bottom=6.0
+content_margin_top=8.0
+content_margin_bottom=8.0
 bg_color=Color(0, 0, 0, 0)
 
 [sub_resource type="StyleBoxFlat" id="Scroll"]
@@ -237,11 +241,17 @@ LineEdit/colors/font_placeholder_color=Color(0.43, 0.51, 0.65, 1)
 LineEdit/colors/caret_color=Color(0.39, 0.9, 0.85, 1)
 LineEdit/colors/selection_color=Color(0.12, 0.35, 0.38, 1)
 Label/colors/font_color=Color(0.89, 0.93, 0.98, 1)
-Label/constants/line_spacing=3
+Label/constants/line_spacing=4
+HBoxContainer/constants/separation=12
+VBoxContainer/constants/separation=12
+GridContainer/constants/h_separation=16
+GridContainer/constants/v_separation=16
+HFlowContainer/constants/h_separation=8
+HFlowContainer/constants/v_separation=8
 RichTextLabel/colors/default_color=Color(0.64, 0.71, 0.82, 1)
 RichTextLabel/font_sizes/normal_font_size=14
 PanelContainer/styles/panel=SubResource("Card")
-ScrollContainer/styles/panel=SubResource("Empty")
+ScrollContainer/styles/panel=SubResource("ScrollContent")
 VScrollBar/styles/scroll=SubResource("Scroll")
 VScrollBar/styles/grabber=SubResource("Grabber")
 VScrollBar/styles/grabber_highlight=SubResource("Progress")
@@ -253,7 +263,7 @@ ProgressBar/styles/fill=SubResource("Progress")
 PopupMenu/styles/panel=SubResource("Popup")
 PopupMenu/styles/hover=SubResource("PopupHover")
 PopupMenu/colors/font_color=Color(0.89, 0.93, 0.98, 1)
-PopupMenu/constants/v_separation=14
+PopupMenu/constants/v_separation=16
 PopupMenu/constants/item_start_padding=8
 PopupMenu/constants/item_end_padding=8
 CheckButton/icons/checked=ExtResource("1")

@@ -5,13 +5,13 @@
 [resource]
 script=ExtResource("1")
 scenario_id="T01"
-revision=2
+revision=3
 distance_m=4.0
 title="Suivi horizontal fluide"
-instructions="Garder le viseur sur la sphère, sans cliquer. Mesure du temps sur cible et de l'erreur angulaire."
+instructions="Une grande sphère effectue des allers-retours horizontaux souples : garder le viseur dessus sans cliquer et accompagner les ralentissements aux extrémités."
 family="tracking"
 motion="horizontal"
-angular_diameter_deg=2
-yaw_extent_deg=12
-pitch_extent_deg=3
+angular_diameter_deg=4
+yaw_extent_deg=16
+pitch_extent_deg=2
 speed_deg_s=12

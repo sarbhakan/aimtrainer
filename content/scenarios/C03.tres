@@ -5,14 +5,15 @@
 [resource]
 script=ExtResource("1")
 scenario_id="C03"
-revision=2
+revision=3
 distance_m=4.0
 title="Grid Targets"
-instructions="Six cibles réparties sans chevauchement. Choisir la suivante et garder sa précision."
+instructions="Six grandes sphères sur une grille de neuf positions : choisir la suivante, cliquer une fois et construire un rythme régulier sans sacrifier la précision."
 family="click"
 layout="grid"
-angular_diameter_deg=1.2
-yaw_extent_deg=16
-pitch_extent_deg=9
+angular_diameter_deg=4.8
+yaw_extent_deg=18
+pitch_extent_deg=10
+min_transition_deg=5.5
 active_targets=6
 reference_hits_s=3

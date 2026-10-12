@@ -17,7 +17,7 @@ func smoke() -> void:
 	app.store = LocalStore.new("user://tests/export-" + LocalStore.new().identifier())
 	root.add_child(app)
 	await process_frame
-	for test_path in ["run_tests", "domain_tests", "ui_tests", "sensitivity_import_tests", "geometry_regression_tests", "browser_preview_tests", "weapon_animation_tests", "calibration_block_tests", "checkpoint_migration_tests", "ui_polish_tests", "ux_flow_tests", "crosshair_feedback_tests", "gameplay_quality_tests", "adaptive_calibration_tests", "guided_flow_tests", "record_flow_tests"]:
+	for test_path in ["run_tests", "domain_tests", "ui_tests", "sensitivity_import_tests", "geometry_regression_tests", "browser_preview_tests", "weapon_animation_tests", "calibration_block_tests", "checkpoint_migration_tests", "ui_polish_tests", "ux_flow_tests", "crosshair_feedback_tests", "gameplay_quality_tests", "adaptive_calibration_tests", "guided_flow_tests", "record_flow_tests", "revision_archive_tests", "training_presentation_tests", "ui_spacing_tests", "preview_containment_tests"]:
 		if ResourceLoader.exists("res://tests/" + test_path + ".gd"):
 			failures += 1
 	for game_id in ["cs2", "valorant", "cod"]:
@@ -52,8 +52,11 @@ func smoke() -> void:
 		app.hud.configure(profile)
 		if app.hud.weapon_feedback.continuous_player.stream.loop_mode != AudioStreamWAV.LOOP_FORWARD:
 			failures += 1
+		var model: WeaponViewmodel = app.hud.weapon_feedback.viewmodel
+		if model == null or model.meshes.is_empty() or model.selected_id != definition.weapon_id or not model.viewport.own_world_3d:
+			failures += 1
 	for definition in ScenarioCatalog.DEFINITIONS:
-		if definition.revision != 2 or definition.distance_m != 4.0:
+		if definition.revision != 3 or not definition.validate().is_empty():
 			failures += 1
 		app.start_practice(definition.scenario_id, 1.0)
 		app.begin_training(Time.get_ticks_usec())

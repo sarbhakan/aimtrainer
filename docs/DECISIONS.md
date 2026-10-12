@@ -105,3 +105,19 @@ Le canonique des champs source est indépendant du Range arrondi ; focus/blur sa
 ## D19 — Cadrage sans trahir la souris
 
 Les cibles restent ancrées dans la zone mondiale. Une rotation pendant le countdown peut mettre cette zone hors champ, sans occlusion par le sol. Le départ attend donc le réalignement avec repère/flèche avant de mesurer. Aucun count supprimé, aucun snap de caméra, aucune cible déplacée pour corriger ce cas. Les régressions vérifient les rotations ±30° et la reprise par vrais deltas.
+
+## D20 — Exercices et préparation, 0.5.0
+
+Les seize exercices passent en révision 3 : tailles angulaires d’entrée plus confortables, amplitudes et profondeur choisies par objectif, précision avancée explicitement distincte. Rapprocher le décor seul n’agrandit pas une cible exprimée en degrés. Le joueur ne se déplace pas ; le FOV reste celui du profil et aucune adaptation cachée ne survient pendant une comparaison. Les compromis sont décrits dans `EXERCISE_DESIGN_050.md` ; ils demandent encore des essais utilisateurs, pas une imitation prétendue des algorithmes privés d’Aimlabs.
+
+Le départ 3, 2, 1 présente les cibles figées via un moteur de préparation séparé ; elles reprennent la même graine lorsque le chronomètre mesuré démarre. Les mouvements préparatoires restent réels mais exclus des mesures. Le HUD garde uniquement temps à gauche, touches/précision ou suivi à droite et score V1 évolutif recalculé à 10 Hz. La formule reste celle du service de score. Aucun texte d’aide permanent devant la zone de tir.
+
+## D21 — Conserver sans comparer des difficultés différentes
+
+Le score V1 et le protocole 3 restent identiques, pas leurs empreintes d’exercice. Les checkpoints de révision 2 sont rejoués avec cinq définitions historiques figées, y compris les recherches guidées et leurs décisions. Seuls les historiques reconnus sont archivés avant une nouvelle comparaison ; CRLF, Unicode et précision d’origine sont conservés octet pour octet. Inconnu, incohérent, verrou ou archive contradictoire interdit l’écrasement. Aucun bilan ancien n’est transformé en conseil valable pour la nouvelle difficulté.
+
+## D22 — Présentation native plutôt que changement de moteur
+
+Godot permet des viewmodels réellement 3D et une UI responsive : migrer le moteur n’est pas nécessaire pour corriger ces problèmes visuels. Trois armes originales procédurales sont rendues dans un monde isolé ; recul et flash n’atteignent ni caméra de visée ni hitbox. L’option de masquage reste disponible. Décor virtuel statique, sans ombres dynamiques, et surfaces sobres favorisent le contraste des cibles. Les sensations, sons et performances GPU Windows restent à réceptionner.
+
+Les composants emploient une échelle commune de 4/8/12/16/24/32 px. Sensibilités affichées à deux décimales, float canonique conservé indépendamment des champs lisibles ; aucune quantification de l’input ni du profil. Les coefficients techniques ne sont pas des sensibilités et restent dans les réglages avancés. Les démos sont contenues et n’affichent plus de FOV/ratio permanent ; ce sont des animations du moteur, pas des vidéos propriétaires.
