@@ -20,24 +20,26 @@ func check(condition: bool, description: String) -> void:
 
 static func synthetic_report(service: ProgressiveCalibrationService, value: float = 40.0) -> Dictionary:
 	var stage := service.current_stage()
-	var definition := ScenarioCatalog.find(stage.scenario_id)
+	var definition := service.definition_for(stage.scenario_id)
 	var tracking: bool = definition.family == "tracking"
 	var hits := 0 if tracking else roundi(value)
 	var shots := 0 if tracking else maxi(3, hits)
 	var accuracy := float(hits) / maxf(shots, 1.0)
 	var ratio := value / 100.0 if tracking else 0.0
-	var report := {"schema_version": 1, "score_version": 1, "engine_version": "4.7.2", "renderer": "compatibility",
+	var report := {"schema_version": 1, "score_version": ScoringService.version_for(definition), "engine_version": "4.7.2", "renderer": "compatibility",
 		"scenario_id": stage.scenario_id, "scenario_revision": definition.revision, "scenario_fingerprint": definition.fingerprint(),
 		"family": definition.family, "seed": stage.seed, "duration_s": stage.duration_s, "active_duration_s": stage.duration_s,
 		"completed": true, "valid": true, "warmup": false, "calibration_id": service.calibration_id,
 		"profile": stage.profile, "aspect": service.aspect, "reference_hits_s": definition.reference_hits_s,
-		"metrics": {"shots": shots, "hits": hits, "misses": shots - hits, "accuracy_fraction": accuracy,
+		"metrics": {"shots": shots, "hits": hits, "misses": shots - hits, "targets_expired": 0, "accuracy_fraction": accuracy,
 			"accuracy_pct": accuracy * 100.0 if shots > 0 else null, "hits_per_s": float(hits) / stage.duration_s,
 			"input_events": 100, "input_buffer_overflows": 0, "angular_path_deg": 20.0,
 			"on_target_ratio": ratio, "on_target_time_s": stage.duration_s * ratio, "target_exposed_time_s": stage.duration_s,
 			"angular_error_mean_deg": 1.0, "angular_error_p95_deg": 2.0},
 		"performance": {"frame_samples": 1000, "frametime_p99_ms": 8.0, "max_frametime_ms": 12.0},
 		"comparison_key": ScoringService.comparison_key(definition, stage.duration_s, stage.profile, service.aspect)}
+	if report.score_version == ScoringService.EXPIRY_VERSION:
+		report.score_policy = "expiry_accuracy_v2"
 	report.score = ScoringService.score(report, definition.reference_hits_s)
 	return report
 
@@ -53,6 +55,7 @@ func new_service(identifier: String = "progressive-test", distance_cm: float = 3
 func run_tests() -> void:
 	test_directions()
 	test_conditions()
+	test_protocol_compatibility()
 	for duration_s in [45.0, 60.0]:
 		for distance_cm in [5.0, 35.123456789, 150.0]:
 			for wide in [false, true]:
@@ -102,6 +105,28 @@ func test_conditions() -> void:
 		check(not service.begin(profile, 16.0 / 9.0, 42, "bad-duration", duration_s), "Seuls 45 et 60 secondes sont admis.")
 	for identifier in ["", "..", "../outside"]:
 		check(not service.begin(profile, 16.0 / 9.0, 42, identifier), "Les identifiants de chemin sont refusés.")
+
+
+func test_protocol_compatibility() -> void:
+	check(ProgressiveCalibrationService.PROTOCOL_VERSION == 5 and ScoringService.VERSION == 1 and ScoringService.EXPIRY_VERSION == 2,
+		"Le parcours public passe au protocole 5 sans réécrire le score historique V1.")
+	for protocol in [4, 5]:
+		var service := ProgressiveCalibrationService.new()
+		check(service.begin(SensitivityService.default_profile(), 16.0 / 9.0, 42, "protocol-%d" % protocol, 60.0, true, protocol),
+			"Les protocoles progressifs 4 et 5 démarrent explicitement.")
+		for trial_index in ProgressiveCalibrationService.TOTAL_TRIALS:
+			var stage := service.current_stage()
+			var definition := service.definition_for(stage.scenario_id)
+			var expected := ScenarioCatalog.find(stage.scenario_id) if protocol == 4 else ScenarioCatalog.find_practice(stage.scenario_id)
+			check(definition == expected and definition.has_lifecycle() == (protocol == 5),
+				"La version du protocole choisit la difficulté historique ou temporelle de chaque activité.")
+			var report := synthetic_report(service)
+			check(report.score_version == ScoringService.version_for(expected) and service.accept(report),
+				"Chaque version accepte les mesures et le score de sa propre difficulté : " + service.error)
+			var checkpoint: Dictionary = JSON.parse_string(JSON.stringify(service.checkpoint(), "\t", true, true))
+			var restored := ProgressiveCalibrationService.new()
+			check(restored.restore(checkpoint) and restored.protocol_version == protocol and restored.same_value(restored.current_stage(), service.current_stage()),
+				"Une reprise JSON conserve le protocole et les difficultés de chacun des vingt-cinq essais : " + restored.error)
 
 
 func test_full_protocol(distance_cm: float, duration_s: float, wide: bool, preference: String) -> void:

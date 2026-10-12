@@ -11,7 +11,7 @@ func begin(duration_s: float = 45.0) -> bool:
 	if not is_finite(duration_s) or not duration_s in [45.0, 60.0]:
 		return false
 	for stage_index in SCENARIO_IDS.size():
-		var definition: ScenarioDefinition = ScenarioCatalog.find(SCENARIO_IDS[stage_index])
+		var definition: ScenarioDefinition = ScenarioCatalog.find_practice(SCENARIO_IDS[stage_index])
 		if definition == null or not definition.validate().is_empty():
 			plan.clear()
 			return false

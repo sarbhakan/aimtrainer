@@ -8,6 +8,8 @@ var app: Node
 var failed: bool = false
 var screenshot_dir: String = "res://dist/preview"
 var capture_count: int = 0
+var capture_names: Array[String] = []
+var lifecycle_states: Array[Dictionary] = []
 
 
 func _initialize() -> void:
@@ -37,6 +39,7 @@ func write_capture(caption: String) -> void:
 	var path := screenshot_dir.path_join(caption + ".png")
 	expect(root.get_texture().get_image().save_png(path) == OK, "Capture inaccessible : " + path)
 	capture_count += 1
+	capture_names.append(caption + ".png")
 
 
 func validate_scrolls(parent: Node) -> void:
@@ -63,6 +66,11 @@ func run() -> void:
 		push_error("Dossier de captures inaccessible : " + screenshot_dir)
 		quit(1)
 		return
+	var marker_path := screenshot_dir.path_join("CURRENT")
+	if FileAccess.file_exists(marker_path) and DirAccess.remove_absolute(ProjectSettings.globalize_path(marker_path)) != OK:
+		push_error("L’ancien marqueur CURRENT ne peut pas être remplacé.")
+		quit(1)
+		return
 	app = MainScene.instantiate()
 	app.store = LocalStore.new("user://tests/" + LocalStore.new().identifier())
 	root.add_child(app)
@@ -78,7 +86,7 @@ func run() -> void:
 		app.home.show_page(0)
 		await settle()
 		var starter: Control = app.home.home_grid.get_child(0)
-		app.home.show_home_preview(ScenarioCatalog.find("C03"), starter)
+		app.home.show_home_preview(ScenarioCatalog.find_practice("C03"), starter)
 		await capture("%d-23-accueil-survol" % dimensions.x)
 		expect(app.home.home_preview_popup.visible and root.get_visible_rect().encloses(app.home.home_preview_popup.get_global_rect()), "La bulle de l’accueil doit rester dans la fenêtre.")
 		app.home.dismiss_home_preview()
@@ -92,7 +100,7 @@ func run() -> void:
 	for dimensions in [Vector2i(1280, 720), Vector2i(800, 450)]:
 		root.size = dimensions
 		await settle()
-		app.home.browser.show_card_preview(ScenarioCatalog.find("C02"))
+		app.home.browser.show_card_preview(ScenarioCatalog.find_practice("C02"))
 		await capture("%d-16-survol" % dimensions.x)
 		var popup: Control = app.home.browser.preview_popup
 		expect(popup.visible and root.get_visible_rect().encloses(popup.get_global_rect()), "La bulle doit rester lisible et entièrement dans la fenêtre.")
@@ -233,7 +241,7 @@ func run() -> void:
 	app.return_to_menu()
 	root.size = Vector2i(1280, 720)
 	app.home.show_page(4)
-	var summaries: Array[Dictionary] = [{"title": ScenarioCopy.title(ScenarioCatalog.find("C03")) + " · données synthétiques", "count": 12}]
+	var summaries: Array[Dictionary] = [{"title": ScenarioCopy.title(ScenarioCatalog.find_practice("C03")) + " · données synthétiques", "count": 12}]
 	summaries[0].scenario_id = "C03"
 	summaries[0].family = "click"
 	summaries[0].comparison_key = "visual-test-context"
@@ -244,14 +252,13 @@ func run() -> void:
 	var history_sessions: Array[Dictionary] = []
 	var history_scores: Array[float] = []
 	for session_index in 12:
-		var history_metrics := {"shots": 30 + session_index, "hits": 25 + session_index,
-			"accuracy_pct": 100.0 * float(25 + session_index) / float(30 + session_index),
-			"accuracy_fraction": float(25 + session_index) / float(30 + session_index), "hits_per_s": float(25 + session_index) / 30.0}
-		var history_score := ScoringService.score({"family": "click", "metrics": history_metrics}, ScenarioCatalog.find("C03").reference_hits_s)
-		history_scores.append(history_score)
-		history_sessions.append({"session_id": "visual-" + str(session_index), "created_at_utc": "2026-10-12T00:%02d:00Z" % session_index,
-			"scenario_id": "C03", "comparison_key": "visual-test-context", "score": history_score, "family": "click", "completed": true, "valid": true,
-			"metrics": history_metrics})
+		var history_report := VisualFixtures.session_report("C03", app.home.read_profile(), 30.0, app.current_aspect(), 42,
+			25.0 + session_index, "visual-" + str(session_index), null, 5 + session_index)
+		history_report.created_at_utc = "2026-10-12T00:%02d:00Z" % session_index
+		expect(ScoringService.validate_result(history_report).is_empty(), "Chaque point de progression synthétique utilise des mesures temporelles V2 vérifiables.")
+		history_scores.append(float(history_report.score))
+		history_sessions.append(history_report)
+	summaries[0].comparison_key = history_sessions[0].comparison_key
 	summaries[0].recent_sessions = history_sessions
 	summaries[0].recent_scores = history_scores
 	summaries[0].latest_score = history_scores.back()
@@ -266,8 +273,8 @@ func run() -> void:
 	validate_scrolls(app.home)
 	app.return_to_menu()
 	root.size = Vector2i(1280, 720)
-	expect(ScenarioCatalog.DEFINITIONS.size() == 18 and ScenarioCatalog.find("M01") != null and ScenarioCatalog.find("T10") != null, "La galerie utilise les dix-huit exercices actuels, dont M01 et T10.")
-	for definition in ScenarioCatalog.DEFINITIONS:
+	expect(ScenarioCatalog.practice_definitions().size() == 18 and ScenarioCatalog.find_practice("M01") != null and ScenarioCatalog.find_practice("T10") != null, "La galerie utilise les dix-huit exercices actuels, dont M01 et T10.")
+	for definition in ScenarioCatalog.practice_definitions():
 		app.start_practice(definition.scenario_id, 30.0)
 		app.begin_training(Time.get_ticks_usec())
 		await capture("1280-31-exercice-" + definition.scenario_id)
@@ -275,14 +282,18 @@ func run() -> void:
 		app.return_to_menu()
 	await capture_weapon_inspections()
 	await capture_routine_workflow()
+	await capture_lifecycle_workflow()
+	await capture_expiry_result()
+	await capture_legacy_progressive()
 	for scenario_id in ["D01", "D02"]:
-		app.prepare_training(ScenarioCatalog.find(scenario_id), 30.0, 42, app.home.read_profile())
+		app.prepare_training(ScenarioCatalog.find_practice(scenario_id), 30.0, 42, app.home.read_profile())
 		app.begin_training(Time.get_ticks_usec())
 		app.set_process(false)
 		for sample_index in 3:
 			var sample_s := float(sample_index) * (0.4 if scenario_id == "D01" else 1.0)
 			app.engine.advance_to(sample_s)
 			app.target_pool.sync(app.engine, sample_s)
+			app.update_telemetry()
 			await capture("1280-35-pattern-%s-%d" % [scenario_id, sample_index])
 		app.return_to_menu()
 		app.set_process(true)
@@ -303,6 +314,16 @@ func run() -> void:
 	await capture("800-33-gameplay")
 	validate_gameplay("T05")
 	app.return_to_menu()
+	expect(lifecycle_states.size() == 10 and capture_count == 177 and capture_count < 180, "La galerie actuelle conserve dix captures temporelles dans une limite de moins de 180 images.")
+	if not failed:
+		var marker := FileAccess.open(screenshot_dir.path_join("CURRENT"), FileAccess.WRITE)
+		expect(marker != null, "Le marqueur CURRENT de la galerie actuelle est accessible.")
+		if marker != null:
+			marker.store_string(JSON.stringify({"app_version": ProjectSettings.get_setting("application/config/version"),
+				"protocol_version": app.progressive.protocol_version, "scenario_revision": 6,
+				"captures": capture_names, "lifecycle_states": lifecycle_states}, "\t"))
+			marker.close()
+	print("VISUAL CURRENT : 0.8 · protocole 5 · 18 variantes r6 · %d captures temporelles, %s." % [lifecycle_states.size(), "échec" if failed else "0 échec"])
 	print("VISUAL SMOKE : %d captures, %s." % [capture_count, "échec" if failed else "0 échec"])
 	app.queue_free()
 	await process_frame
@@ -332,7 +353,7 @@ func capture_progressive_workflow() -> void:
 	if not app.is_progressive or app.progressive.current_stage().is_empty():
 		expect(false, "Le parcours public de calibration progressive doit démarrer.")
 		return
-	expect(app.progressive.duration_s == 60.0 and ProgressiveCalibrationService.TOTAL_TRIALS == 25, "La calibration publique propose vingt-cinq essais de soixante secondes.")
+	expect(app.progressive.protocol_version == 5 and app.progressive.duration_s == 60.0 and ProgressiveCalibrationService.TOTAL_TRIALS == 25 and app.selected_definition == app.progressive.definition_for("C02"), "La calibration publique propose vingt-cinq essais de soixante secondes sous protocole 5 temporel.")
 	app.set_process(false)
 	for dimensions in LAYOUTS:
 		root.size = dimensions
@@ -467,7 +488,7 @@ func capture_routine_workflow() -> void:
 			return
 		for stage_index in 3:
 			var stage: Dictionary = app.routine.current_stage(app.routine_index)
-			expect(stage.index == stage_index and stage.duration_s == duration_s and app.selected_definition.scenario_id == stage.scenario_id, "La routine suit M01, T10 et S02 depuis current_stage.")
+			expect(stage.index == stage_index and stage.duration_s == duration_s and app.selected_definition == ScenarioCatalog.find_practice(stage.scenario_id), "La routine suit les variantes temporelles M01, T10 et S02 depuis current_stage.")
 			for dimensions in [Vector2i(1280, 720), Vector2i(800, 450)]:
 				root.size = dimensions
 				await capture("%d-39-routine-%d-etape-%d-depart" % [dimensions.x, int(duration_s), stage_index + 1])
@@ -481,11 +502,11 @@ func capture_routine_workflow() -> void:
 				validate_gameplay(stage.scenario_id)
 			app.finish_training(false, false)
 			var report := VisualFixtures.routine_report(stage, app.training_profile, app.training_aspect, app.selected_seed)
-			expect(ScoringService.validate_result(report).is_empty(), "Les mesures synthétiques de routine sont cohérentes avec le score V1.")
+			expect(report.score_version == ScoringService.version_for(app.selected_definition) and ScoringService.validate_result(report).is_empty(), "Les mesures synthétiques de routine sont cohérentes avec leur score V1 ou V2.")
 			app.last_report = report
 			app.present_routine_result(VisualFixtures.NOTICE, false)
 			app.routine_auto_continue = false
-			mark_synthetic(VisualFixtures.NOTICE + " Étape %d/3 · %s." % [stage_index + 1, ScenarioCopy.title(ScenarioCatalog.find(stage.scenario_id))])
+			mark_synthetic(VisualFixtures.NOTICE + " Étape %d/3 · %s." % [stage_index + 1, ScenarioCopy.title(ScenarioCatalog.find_practice(stage.scenario_id))])
 			for dimensions in [Vector2i(1280, 720), Vector2i(800, 450)]:
 				root.size = dimensions
 				await capture("%d-39-routine-%d-etape-%d-repos-exemple" % [dimensions.x, int(duration_s), stage_index + 1])
@@ -504,3 +525,132 @@ func capture_routine_workflow() -> void:
 		app.return_to_menu()
 	root.size = Vector2i(1280, 720)
 	app.set_process(true)
+
+
+func capture_live_snapshot(caption: String, sample_s: float, reference: ScenarioEngine) -> void:
+	app.clock.accumulated_us = ceili(sample_s * 1000000.0)
+	app._process(0.1)
+	var actual_s: float = app.engine.elapsed_s
+	reference.advance_to(actual_s)
+	expect(app.session_active and app.screen == app.Screen.TRAINING and not app.engine.completed, "La capture temporelle conserve un exercice actif : " + caption)
+	expect(app.engine.targets == reference.targets and app.engine.expired == reference.expired and app.engine.spawned == reference.spawned,
+		"La capture reproduit les cibles, échéances et expirations du moteur seedé : " + caption)
+	expect(app.engine.shots == 0 and app.engine.timeline.event_count == 0, "Le renouvellement capturé ne dépend d’aucun tir ni mouvement de souris : " + caption)
+	var report: Dictionary = app.engine.result(app.training_profile, app.training_aspect, false)
+	var remaining_s: int = ceili(maxf(app.selected_duration_s - actual_s, 0.0))
+	expect(app.hud.score_label.text == "Score %d" % int(report.score) and absf(app.hud.progress.value - actual_s) <= maxf(app.hud.progress.step * 0.5, 0.000001)
+		and app.hud.timer_label.text == "%d:%02d" % [remaining_s / 60, remaining_s % 60],
+		"Le HUD actif affiche le temps et le score réellement recalculés par le moteur : " + caption)
+	if report.score_version == ScoringService.EXPIRY_VERSION:
+		expect(app.hud.score_label.text == "Score 0" and app.hud.metric_label.text == ("0 · 0 %" if app.engine.expired > 0 else "0 · —"),
+			"Les expirations sans tir passent d’une réussite inconnue à zéro et conservent un score nul.")
+		expect(app.hud.expired_label.visible == (app.engine.expired > 0) and (app.engine.expired == 0 or app.hud.expired_label.text.contains(str(app.engine.expired))),
+			"Le nombre de cibles expirées provient du moteur actif.")
+	var target_ids: Array[int] = []
+	var diameters_deg: Array[float] = []
+	for target_index in app.engine.targets.size():
+		var geometry: Dictionary = reference.target_geometry(target_index, actual_s)
+		var sphere: MeshInstance3D = app.target_pool.spheres[target_index]
+		expect(sphere.visible and sphere.global_position.is_equal_approx(app.aim_camera.global_position + Vector3(geometry.center_offset_m))
+			and sphere.global_basis.get_scale().is_equal_approx(Vector3.ONE * float(geometry.radius_m)),
+			"La silhouette capturée conserve la position et le rayon physiques du moteur : " + caption)
+		target_ids.append(int(app.engine.targets[target_index].id))
+		diameters_deg.append(float(geometry.angular_diameter_deg))
+	lifecycle_states.append({"capture": caption + ".png", "scenario_id": app.selected_definition.scenario_id,
+		"seed": app.selected_seed, "elapsed_s": actual_s, "active": app.session_active, "shots": app.engine.shots,
+		"input_events": app.engine.timeline.event_count, "targets_expired": app.engine.expired,
+		"score_version": report.score_version, "score": report.score, "target_ids": target_ids, "diameters_deg": diameters_deg})
+	await capture(caption)
+	validate_gameplay(app.selected_definition.scenario_id)
+
+
+func capture_lifecycle_workflow() -> void:
+	app.return_to_menu()
+	root.size = Vector2i(1280, 720)
+	await settle()
+	app.set_process(false)
+	for scenario_id in ["C03", "T10"]:
+		var definition := ScenarioCatalog.find_practice(scenario_id)
+		expect(app.prepare_training(definition, 30.0, 42, app.home.read_profile()), "La capture temporelle prépare la vraie définition publique.")
+		app.begin_training(Time.get_ticks_usec())
+		app.clock.pause(Time.get_ticks_usec())
+		var reference := ScenarioEngine.new()
+		expect(reference.start(definition, app.selected_seed, 30.0), "Le moteur de référence conserve la graine enregistrée.")
+		var earliest_index := 0
+		for target_index in app.engine.targets.size():
+			if float(app.engine.targets[target_index].expires_s) < float(app.engine.targets[earliest_index].expires_s):
+				earliest_index = target_index
+		var first_target: Dictionary = app.engine.targets[earliest_index].duplicate(true)
+		var deadline_s: float = first_target.expires_s
+		var initial_diameter_deg: float = app.engine.target_angular_diameter_deg(earliest_index, 0.0)
+		if scenario_id == "C03":
+			await capture_live_snapshot("1280-42-lifeC03-early", 0.0, reference)
+			await capture_live_snapshot("1280-42-lifeC03-late", deadline_s * 0.7, reference)
+			expect(app.engine.targets[earliest_index].id == first_target.id and app.engine.target_angular_diameter_deg(earliest_index, app.engine.elapsed_s) < initial_diameter_deg,
+				"C03 rétrécit sa cible initiale selon son âge avant son échéance seedée.")
+			await capture_live_snapshot("1280-42-lifeC03-predeadline", deadline_s - 0.001, reference)
+			expect(app.engine.expired == 0 and app.engine.targets[earliest_index].id == first_target.id, "La cible initiale reste présente juste avant sa vraie échéance.")
+			await capture_live_snapshot("1280-42-lifeC03-deadline", deadline_s, reference)
+			var replacement_id: int = app.engine.targets[earliest_index].id
+			expect(app.engine.expired >= 1 and replacement_id != first_target.id and is_equal_approx(float(app.engine.targets[earliest_index].born_s), deadline_s),
+				"L’échéance réelle renouvelle C03 immédiatement, sans attendre un tir.")
+			await capture_live_snapshot("1280-42-lifeC03-hold-2s", deadline_s + 2.25, reference)
+			expect(app.engine.targets[earliest_index].id == replacement_id and app.engine.elapsed_s - float(app.engine.targets[earliest_index].born_s) >= 2.0
+				and app.engine.expired == definition.active_targets, "Les six remplacements restent visibles après plus de deux secondes sans input.")
+		else:
+			await capture_live_snapshot("1280-43-lifeT10-early", 0.0, reference)
+			await capture_live_snapshot("1280-43-lifeT10-midlife", 5.0, reference)
+			await capture_live_snapshot("1280-43-lifeT10-predeadline", 9.0, reference)
+			expect(app.engine.targets[0].id == first_target.id and app.engine.target_angular_diameter_deg(0, app.engine.elapsed_s) < initial_diameter_deg,
+				"T10 conserve sa cible et réduit sa taille visable aux instants réels 0, 5 et 9 secondes.")
+			await capture_live_snapshot("1280-43-lifeT10-cycle-1", ceil(deadline_s / ScenarioEngine.SAMPLE_STEP_S) * ScenarioEngine.SAMPLE_STEP_S, reference)
+			var second_id: int = app.engine.targets[0].id
+			expect(app.engine.expired == 1 and second_id != first_target.id and is_equal_approx(float(app.engine.targets[0].born_s), deadline_s),
+				"Le suivi renouvelle la cible à l’échéance réelle intégrée entre deux bins de 240 Hz.")
+			var next_deadline_s: float = app.engine.targets[0].expires_s
+			await capture_live_snapshot("1280-43-lifeT10-cycle-2", ceil(next_deadline_s / ScenarioEngine.SAMPLE_STEP_S) * ScenarioEngine.SAMPLE_STEP_S, reference)
+			expect(app.engine.expired == 2 and app.engine.targets[0].id != second_id, "Deux cycles T10 distincts sont renouvelés dans le même exercice actif.")
+		app.return_to_menu()
+	app.set_process(true)
+
+
+func capture_expiry_result() -> void:
+	root.size = Vector2i(1280, 720)
+	await settle()
+	var report := VisualFixtures.session_report("C03", app.home.read_profile(), 30.0, app.current_aspect(), 42,
+		36.0, "visual-expiry-v2", null, 12)
+	expect(ScoringService.validate_result(report).is_empty() and report.score_version == 2 and report.metrics.effective_accuracy_pct == 60.0,
+		"Le résultat V2 illustre 36 touches, 48 tirs et 12 expirations : 60 % de réussite effective.")
+	app.home.hide()
+	app.session_panel.present_result(report, VisualFixtures.NOTICE, false, 0, 0)
+	mark_synthetic(VisualFixtures.NOTICE + " Réussite intégrant 12 cibles expirées.")
+	for dimensions in [Vector2i(1280, 720), Vector2i(800, 450)]:
+		root.size = dimensions
+		await capture("%d-44-expirations-score-v2-exemple" % dimensions.x)
+		validate_scrolls(app.session_panel)
+	app.return_to_menu()
+
+
+func capture_legacy_progressive() -> void:
+	root.size = Vector2i(1280, 720)
+	await settle()
+	var legacy := ProgressiveCalibrationService.new()
+	expect(legacy.begin(app.home.read_profile(), app.current_aspect(), 42, "visual-progressive-legacy-4", 60.0, true, 4),
+		"L’illustration historique conserve le protocole 4 explicite.")
+	while not legacy.completed():
+		var report := VisualFixtures.progressive_report(legacy)
+		if not legacy.accept(report):
+			expect(false, "Fixture historique de protocole 4 refusée : " + legacy.error)
+			return
+	var recommendation := legacy.recommendation()
+	expect(recommendation.protocol_version == 4 and legacy.trials[0].score_version == 1 and legacy.trials[0].scenario_revision == 3,
+		"Le bilan historique garde ses vingt-cinq mesures V1 et les empreintes r3.")
+	app.home.hide()
+	app.session_panel.present_progressive_complete(recommendation, legacy.baseline.dpi, VisualFixtures.NOTICE)
+	mark_synthetic(VisualFixtures.NOTICE + " Historique 0.7 · protocole 4 · scores V1.")
+	for dimensions in [Vector2i(1280, 720), Vector2i(800, 450)]:
+		root.size = dimensions
+		await capture("%d-45-calibration-protocole4-exemple" % dimensions.x)
+		validate_scrolls(app.session_panel)
+	app.return_to_menu()
+	root.size = Vector2i(1280, 720)

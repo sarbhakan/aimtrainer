@@ -33,6 +33,9 @@ const CAMERA_ORIGIN_HEIGHT_M: float = 1.6
 @export var small_transition_probability: float = 0.5
 @export var waypoint_min_duration_s: float = 0.6
 @export var depth_speed_m_s: float = 1.2
+@export var lifecycle_shrink_ratio: float = 0.0
+@export var lifetime_min_s: float = 0.0
+@export var lifetime_max_s: float = 0.0
 
 
 func validate() -> String:
@@ -69,6 +72,13 @@ func validate() -> String:
 		return "Le mouvement réactif exige une définition de clic ou switching de révision 4."
 	if not is_finite(lifetime_s) or lifetime_s < 0.0 or not is_finite(min_transition_deg) or min_transition_deg < 0.0:
 		return "Durée ou espacement invalide."
+	if not is_finite(lifecycle_shrink_ratio) or not is_finite(lifetime_min_s) or not is_finite(lifetime_max_s):
+		return "Cycle de vie non fini."
+	if has_lifecycle():
+		if revision < 6 or lifecycle_shrink_ratio < 0.3 or lifecycle_shrink_ratio >= 1.0 or lifetime_min_s < 0.5 or lifetime_min_s > lifetime_s or lifetime_max_s < lifetime_s or lifetime_max_s > 15.0 or diameter_motion == "shrink":
+			return "Cycle de vie incompatible : durée bornée et taille finale visable requises."
+	elif lifetime_min_s != 0.0 or lifetime_max_s != 0.0 or lifecycle_shrink_ratio != 0.0:
+		return "Cycle de vie incomplet."
 	var pattern_error: String = validate_patterns()
 	if not pattern_error.is_empty():
 		return pattern_error
@@ -83,6 +93,10 @@ func validate() -> String:
 
 func has_diameter_variation() -> bool:
 	return angular_diameter_min_deg != 0.0 or angular_diameter_max_deg != 0.0
+
+
+func has_lifecycle() -> bool:
+	return lifecycle_shrink_ratio > 0.0
 
 
 func has_distance_variation() -> bool:
@@ -140,7 +154,7 @@ func validate_patterns() -> String:
 		if small_transition_min_deg <= 0.0 or small_transition_min_deg > small_transition_max_deg or small_transition_max_deg >= large_transition_min_deg or large_transition_min_deg > large_transition_max_deg or large_transition_max_deg >= 180.0 or large_transition_min_deg > yaw_extent_deg or small_transition_max_deg >= yaw_extent_deg or small_transition_probability <= 0.0 or small_transition_probability >= 1.0 or min_transition_deg != small_transition_min_deg:
 			return "Bornes ou probabilité de transitions mixtes incompatibles."
 	if motion == "waypoints":
-		if revision < 5 or family != "tracking" or layout != "scatter" or not has_distance_variation() or lifetime_s != 0.0:
+		if revision < 5 or family != "tracking" or layout != "scatter" or not has_distance_variation() or (lifetime_s != 0.0 and not has_lifecycle()):
 			return "Les destinations 3D exigent un suivi continu de révision 5 avec profondeur variable."
 		if not is_finite(waypoint_min_duration_s) or waypoint_min_duration_s < 0.2 or waypoint_min_duration_s > 5.0 or not is_finite(depth_speed_m_s) or depth_speed_m_s <= 0.0 or depth_speed_m_s > 5.0 or distance_min_m >= distance_max_m:
 			return "Durée de destination ou vitesse de profondeur invalide."
@@ -183,4 +197,6 @@ func fingerprint() -> String:
 		parameters.append(["waypoints_3d_v1", waypoint_min_duration_s, depth_speed_m_s])
 	if revision >= 5 and layout == "scatter" and active_targets > 1:
 		parameters.append("bounded_scatter_v1")
+	if has_lifecycle():
+		parameters.append(["lifecycle_v1", lifecycle_shrink_ratio, lifetime_min_s, lifetime_max_s])
 	return JSON.stringify(parameters).sha256_text()

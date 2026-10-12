@@ -115,7 +115,7 @@ func expect_containment(popup: ExercisePreviewPopup, dimensions: Vector2i) -> vo
 
 func test_hover(browser: TrainingBrowser, tree: SceneTree) -> void:
 	var initial_id: String = browser.selected_definition.scenario_id
-	var hovered := ScenarioCatalog.find("C03")
+	var hovered := ScenarioCatalog.find_practice("C03")
 	var card: Button = browser.cards[hovered.scenario_id]
 	card.mouse_entered.emit()
 	expect(not browser.preview_popup.visible and not browser.preview_timer.is_stopped(), "Un survol bref doit attendre avant d’ouvrir la bulle.")
@@ -125,7 +125,7 @@ func test_hover(browser: TrainingBrowser, tree: SceneTree) -> void:
 	browser.start_button.pressed.emit()
 	expect(launched_id == initial_id, "Le lancement après un survol doit rester celui de la carte sélectionnée.")
 	expect(browser.preview_popup.preview.is_processing() and not browser.preview.is_processing(), "Une seule démonstration doit s’animer, celle de la bulle ouverte.")
-	for definition in ScenarioCatalog.DEFINITIONS:
+	for definition in ScenarioCatalog.practice_definitions():
 		var thumbnail: ScenarioPreview = browser.cards[definition.scenario_id].get_child(0).get_child(0).get_child(0)
 		expect(thumbnail.definition == definition and not thumbnail.is_processing(), "Les miniatures conservent leur structure et restent statiques.")
 	card.mouse_exited.emit()
@@ -140,10 +140,10 @@ func test_hover(browser: TrainingBrowser, tree: SceneTree) -> void:
 	next_card.mouse_entered.emit()
 	card.mouse_exited.emit()
 	await wait_for_preview(tree)
-	expect_contents(browser, ScenarioCatalog.find("T02"))
+	expect_contents(browser, ScenarioCatalog.find_practice("T02"))
 	expect(browser.selected_definition.scenario_id == initial_id, "Un changement rapide de survol ne doit pas modifier la sélection.")
 	next_card.mouse_exited.emit()
-	for definition in ScenarioCatalog.DEFINITIONS:
+	for definition in ScenarioCatalog.practice_definitions():
 		var current_card: Button = browser.cards[definition.scenario_id]
 		current_card.mouse_entered.emit()
 		browser.preview_timer.timeout.emit()
@@ -155,7 +155,7 @@ func test_hover(browser: TrainingBrowser, tree: SceneTree) -> void:
 
 func test_click_and_focus(browser: TrainingBrowser, tree: SceneTree) -> void:
 	for scenario_id in ["C02", "T01", "S02"]:
-		var definition := ScenarioCatalog.find(scenario_id)
+		var definition := ScenarioCatalog.find_practice(scenario_id)
 		var card: Button = browser.cards[scenario_id]
 		card.pressed.emit()
 		await settle(tree)
@@ -170,7 +170,7 @@ func test_click_and_focus(browser: TrainingBrowser, tree: SceneTree) -> void:
 	focused.grab_focus()
 	await wait_for_preview(tree)
 	expect(focused.has_focus(), "Une carte doit être accessible au focus clavier.")
-	expect_contents(browser, ScenarioCatalog.find("C04"))
+	expect_contents(browser, ScenarioCatalog.find_practice("C04"))
 	expect(browser.selected_definition.scenario_id == selected_id, "Le focus clavier consulte l’exercice sans le sélectionner.")
 	var escape := InputEventAction.new()
 	escape.action = "ui_cancel"
@@ -206,17 +206,17 @@ func test_dismissal(browser: TrainingBrowser, tree: SceneTree) -> void:
 	expect(not browser.preview_popup.visible and not browser.preview_popup.preview.is_processing(), "Masquer la page doit fermer immédiatement une bulle déjà ouverte.")
 	browser.show()
 	await settle(tree)
-	browser.show_card_preview(ScenarioCatalog.find("T04"))
-	expect_contents(browser, ScenarioCatalog.find("T04"))
+	browser.show_card_preview(ScenarioCatalog.find_practice("T04"))
+	expect_contents(browser, ScenarioCatalog.find_practice("T04"))
 	browser.catalog_scroll.get_v_scroll_bar().value_changed.emit(1.0)
 	expect(not browser.preview_popup.visible, "Faire défiler la bibliothèque doit fermer une bulle devenue mal ancrée.")
 
 
 func test_motion(browser: TrainingBrowser, tree: SceneTree) -> void:
 	AimUI.motion_enabled = false
-	browser.show_card_preview(ScenarioCatalog.find("T05"))
+	browser.show_card_preview(ScenarioCatalog.find_practice("T05"))
 	await settle(tree)
-	expect_contents(browser, ScenarioCatalog.find("T05"))
+	expect_contents(browser, ScenarioCatalog.find_practice("T05"))
 	expect(not browser.preview.is_processing() and not browser.preview_popup.preview.is_processing(), "Animations réduites : la bulle reste lisible sans simulation animée.")
 	var elapsed_s := browser.preview_popup.preview.elapsed_s
 	await tree.create_timer(0.06).timeout
@@ -250,7 +250,7 @@ func test_layout(browser: TrainingBrowser, viewport: SubViewport, tree: SceneTre
 		expect(browser.start_button.get_global_rect().end.y <= dimensions.y + 1.0 and browser.start_button.size.y >= 36.0, "Le bouton de lancement doit rester visible et assez grand, même à 800 × 450.")
 		for corner in [Vector2.ZERO, Vector2(dimensions.x - 96, 0), Vector2(0, dimensions.y - 46), Vector2(dimensions.x - 96, dimensions.y - 46)]:
 			anchor.position = corner
-			for definition in ScenarioCatalog.DEFINITIONS:
+			for definition in ScenarioCatalog.practice_definitions():
 				browser.show_card_preview(definition, anchor)
 				await settle(tree)
 				var popup_rect := browser.preview_popup.get_global_rect()
@@ -259,12 +259,12 @@ func test_layout(browser: TrainingBrowser, viewport: SubViewport, tree: SceneTre
 				expect_containment(browser.preview_popup, dimensions)
 		browser.dismiss_card_preview()
 	var selection_before := browser.selected_definition
-	browser.show_card_preview(ScenarioCatalog.find("T05"), anchor)
+	browser.show_card_preview(ScenarioCatalog.find_practice("T05"), anchor)
 	for dimensions in [Vector2i(1280, 720), Vector2i(800, 450), Vector2i(1920, 1080), Vector2i(800, 450), Vector2i(1280, 720)]:
 		viewport.size = dimensions
 		anchor.position = Vector2(dimensions) * 0.5
 		await settle_allocation(tree)
-		expect_contents(browser, ScenarioCatalog.find("T05"))
+		expect_contents(browser, ScenarioCatalog.find_practice("T05"))
 		expect_containment(browser.preview_popup, dimensions)
 		expect(browser.selected_definition == selection_before, "Redimensionner une bulle ouverte ne doit pas sélectionner son exercice.")
 	browser.dismiss_card_preview()
@@ -288,7 +288,7 @@ func test_home(tree: SceneTree) -> void:
 	expect(dashboard.home_cards.size() == 3, "Les trois cartes d’accueil doivent avoir des bulles dédiées.")
 	var initial_id: String = dashboard.browser.selected_definition.scenario_id
 	for scenario_id in ["C03", "T01", "C02"]:
-		var definition := ScenarioCatalog.find(scenario_id)
+		var definition := ScenarioCatalog.find_practice(scenario_id)
 		var card: Button = dashboard.home_cards[scenario_id]
 		card.mouse_entered.emit()
 		expect(not dashboard.home_preview_popup.visible and not dashboard.home_preview_timer.is_stopped(), "Les cartes d’accueil doivent attendre 180 ms avant d’ouvrir leur bulle.")
@@ -301,7 +301,7 @@ func test_home(tree: SceneTree) -> void:
 	var focused: Button = dashboard.home_cards["C02"]
 	focused.grab_focus()
 	await wait_for_preview(tree)
-	expect_home_contents(dashboard, ScenarioCatalog.find("C02"))
+	expect_home_contents(dashboard, ScenarioCatalog.find_practice("C02"))
 	expect(dashboard.browser.selected_definition.scenario_id == initial_id, "Le focus clavier d’accueil ne doit pas sélectionner l’exercice.")
 	var escape := InputEventAction.new()
 	escape.action = "ui_cancel"
@@ -328,19 +328,19 @@ func test_home(tree: SceneTree) -> void:
 	for scenario_id in ["C03", "T01", "C02"]:
 		dashboard.show_page(0)
 		var card: Button = dashboard.home_cards[scenario_id]
-		dashboard.show_home_preview(ScenarioCatalog.find(scenario_id), card)
+		dashboard.show_home_preview(ScenarioCatalog.find_practice(scenario_id), card)
 		card.pressed.emit()
 		await settle(tree)
 		expect(dashboard.selected_page == 1 and dashboard.browser.selected_definition.scenario_id == scenario_id, "Cliquer une carte d’accueil doit sélectionner le bon exercice dans la bibliothèque.")
-		expect_contents(dashboard.browser, ScenarioCatalog.find(scenario_id))
+		expect_contents(dashboard.browser, ScenarioCatalog.find_practice(scenario_id))
 		expect(not dashboard.home_preview_popup.visible and not dashboard.hero_preview.is_processing() and not dashboard.browser.preview.is_processing(), "La navigation par clic doit transférer l’aperçu sans laisser deux animations.")
 	dashboard.show_page(0)
 	var profile := SensitivityService.default_profile()
 	profile.reduced_motion = true
 	dashboard.bind_profile(profile)
-	dashboard.show_home_preview(ScenarioCatalog.find("T01"), dashboard.home_cards["T01"])
+	dashboard.show_home_preview(ScenarioCatalog.find_practice("T01"), dashboard.home_cards["T01"])
 	await settle(tree)
-	expect_home_contents(dashboard, ScenarioCatalog.find("T01"))
+	expect_home_contents(dashboard, ScenarioCatalog.find_practice("T01"))
 	expect(not dashboard.home_preview_popup.preview.is_processing() and not dashboard.hero_preview.is_processing(), "Le profil animations réduites doit aussi s’appliquer aux bulles d’accueil.")
 	profile.reduced_motion = false
 	dashboard.bind_profile(profile)
@@ -351,7 +351,7 @@ func test_home(tree: SceneTree) -> void:
 		viewport.size = dimensions
 		await settle_allocation(tree)
 		for scenario_id in ["C03", "T01", "C02"]:
-			dashboard.show_home_preview(ScenarioCatalog.find(scenario_id), dashboard.home_cards[scenario_id])
+			dashboard.show_home_preview(ScenarioCatalog.find_practice(scenario_id), dashboard.home_cards[scenario_id])
 			await settle_allocation(tree)
 			expect(Rect2(Vector2.ZERO, Vector2(dimensions)).encloses(dashboard.home_preview_popup.get_global_rect()), "La bulle d’accueil %s doit rester dans le viewport %s." % [scenario_id, dimensions])
 			expect_containment(dashboard.home_preview_popup, dimensions)
@@ -373,7 +373,7 @@ func test_root_allocation(dashboard: AimDashboard, tree: SceneTree) -> void:
 		expect(available_rect.grow(1.0).encloses(browser.start_button.get_global_rect()), "Le lancement doit rester entièrement visible après allocation réelle à %s : bouton %s, navigateur %s." % [dimensions, browser.start_button.get_global_rect(), browser.get_global_rect()])
 		var minimum_before := browser.get_combined_minimum_size()
 		var catalog_before := browser.catalog_scroll.get_global_rect()
-		browser.show_card_preview(ScenarioCatalog.find("C02"))
+		browser.show_card_preview(ScenarioCatalog.find_practice("C02"))
 		await settle_allocation(tree)
 		expect(browser.preview_popup.visible and tree.root.get_visible_rect().encloses(browser.preview_popup.get_global_rect()), "Après allocation réelle des frames, la bulle C02 doit rester dans la fenêtre %s." % dimensions)
 		expect_containment(browser.preview_popup, dimensions)

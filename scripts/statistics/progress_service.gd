@@ -29,7 +29,7 @@ static func summarize(results: Array[Dictionary], comparison_key: String) -> Dic
 		"latest_session_id": str(comparable.back().get("session_id", "")) if not comparable.is_empty() else "",
 		"previous_best": null, "new_record": false, "recent_sessions": recent_sessions,
 		"excluded_count": results.size() - comparable.size(), "excluded_reasons": excluded_reasons,
-		"filter": {"comparison_key": comparison_key, "score_version": ScoringService.VERSION,
+		"filter": {"comparison_key": comparison_key, "score_version": comparable[0].get("score_version", ScoringService.VERSION) if not comparable.is_empty() else ScoringService.VERSION,
 			"completed": true, "valid": true, "warmup": false, "active": true,
 			"recent_sessions_order": "created_at_utc descending, session_id descending"},
 		"conditions": "Même configuration et version de score ; séances complètes, valides, actives, hors échauffement. Un score élevé cohérent reste admissible."}

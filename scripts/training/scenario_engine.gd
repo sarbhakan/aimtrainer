@@ -98,6 +98,38 @@ func record_frame(delta_s: float) -> void:
 
 
 func spawn_target(target_index: int, time_s: float) -> void:
+	var previous_direction := target_direction(target_index, time_s) if targets[target_index].get("id", 0) > 0 else Vector3.ZERO
+	if definition.has_lifecycle():
+		targets[target_index].lifetime_s = definition.lifetime_s
+		targets[target_index].expires_s = time_s + definition.lifetime_s
+		targets[target_index].respawn_from_direction = previous_direction
+	spawn_target_geometry(target_index, time_s)
+	if not definition.has_lifecycle():
+		return
+	var target: Dictionary = targets[target_index]
+	target.lifetime_s = rng.randf_range(definition.lifetime_min_s, definition.lifetime_max_s)
+	target.expires_s = time_s + float(target.lifetime_s)
+	if definition.family == "tracking" and previous_direction != Vector3.ZERO:
+		if definition.motion != "waypoints":
+			var previous_angles := angles_from_direction_deg(previous_direction)
+			var separated := false
+			for attempt in 32:
+				var next_direction := target_direction(target_index, time_s)
+				var next_angles := angles_from_direction_deg(next_direction)
+				separated = Vector2(previous_angles.x, previous_angles.y).dot(Vector2(next_angles.x, next_angles.y)) <= 0.0 and AimGeometry.angular_error_deg(previous_direction, next_direction) >= definition.maximum_angular_diameter_deg() * 1.5
+				if separated:
+					break
+				target.phase_rad = rng.randf_range(0.0, TAU)
+			if not separated:
+				if definition.motion == "circle":
+					target.phase_rad = atan2(-previous_angles.y / definition.pitch_extent_deg, -previous_angles.x / definition.yaw_extent_deg)
+				elif definition.motion == "strafe":
+					target.phase_rad = 0.0 if previous_angles.x >= 0.0 else PI
+				else:
+					target.phase_rad = -PI * 0.5 if (previous_angles.y if definition.motion == "vertical" else previous_angles.x) >= 0.0 else PI * 0.5
+
+
+func spawn_target_geometry(target_index: int, time_s: float) -> void:
 	if definition.spawn_pattern == "mixed":
 		spawn_mixed_target(target_index, time_s)
 		return
@@ -255,6 +287,10 @@ func spawn_waypoint_target(target_index: int, time_s: float) -> void:
 	var pose := Vector3(rng.randf_range(-definition.yaw_extent_deg, definition.yaw_extent_deg),
 		rng.randf_range(-definition.pitch_extent_deg, definition.pitch_extent_deg),
 		rng.randf_range(definition.distance_min_m, definition.distance_max_m))
+	if definition.has_lifecycle() and target.get("respawn_from_direction", Vector3.ZERO) != Vector3.ZERO:
+		var previous_angles := angles_from_direction_deg(target.respawn_from_direction)
+		pose.x = opposite_waypoint_value(previous_angles.x, -definition.yaw_extent_deg, definition.yaw_extent_deg)
+		pose.y = opposite_waypoint_value(previous_angles.y, -definition.pitch_extent_deg, definition.pitch_extent_deg)
 	var poses: Array[Vector3] = [pose]
 	var times_s := PackedFloat64Array([0.0])
 	var kinds := PackedStringArray()
@@ -324,7 +360,8 @@ func target_direction(target_index: int, time_s: float) -> Vector3:
 		amplitude_deg = sqrt(amplitude_yaw_deg * amplitude_yaw_deg + amplitude_pitch_deg * amplitude_pitch_deg)
 	elif definition.motion == "circle":
 		amplitude_deg = maxf(amplitude_yaw_deg, amplitude_pitch_deg)
-	var phase_rad := float(target.phase_rad) + definition.speed_deg_s / amplitude_deg * time_s
+	var local_s := time_s - float(target.born_s) if definition.has_lifecycle() else time_s
+	var phase_rad := float(target.phase_rad) + definition.speed_deg_s / amplitude_deg * local_s
 	if definition.family == "tracking":
 		yaw_deg = 0.0
 		pitch_deg = 0.0
@@ -338,7 +375,7 @@ func target_direction(target_index: int, time_s: float) -> Vector3:
 			yaw_deg += amplitude_yaw_deg * cos(phase_rad)
 			pitch_deg += amplitude_pitch_deg * sin(phase_rad)
 		"strafe":
-			yaw_deg += strafe_offset_deg(time_s, float(target.phase_rad), amplitude_yaw_deg)
+			yaw_deg += strafe_offset_deg(local_s, float(target.phase_rad), amplitude_yaw_deg)
 	return AimGeometry.direction(yaw_deg, pitch_deg)
 
 
@@ -379,6 +416,15 @@ func target_distance_m(target_index: int, time_s: float) -> float:
 
 
 func target_angular_diameter_deg(target_index: int, time_s: float) -> float:
+	var diameter_deg := base_target_angular_diameter_deg(target_index, time_s)
+	if definition != null and definition.has_lifecycle() and diameter_deg > 0.0:
+		var target: Dictionary = targets[target_index]
+		var age_fraction := clampf((time_s - float(target.born_s)) / float(target.lifetime_s), 0.0, 1.0)
+		diameter_deg *= lerpf(1.0, definition.lifecycle_shrink_ratio, age_fraction)
+	return diameter_deg
+
+
+func base_target_angular_diameter_deg(target_index: int, time_s: float) -> float:
 	if definition == null or target_index < 0 or target_index >= targets.size() or not is_finite(time_s) or time_s < 0.0:
 		return 0.0
 	var target: Dictionary = targets[target_index]
@@ -416,6 +462,23 @@ func radius_m(target_index: int = 0, time_s: float = 0.0) -> float:
 func expire_targets(time_s: float) -> void:
 	if definition.lifetime_s <= 0.0:
 		return
+	if definition.has_lifecycle():
+		while true:
+			var earliest_index := -1
+			var earliest_s := INF
+			for target_index in targets.size():
+				var deadline_s := float(targets[target_index].expires_s)
+				if deadline_s <= time_s and deadline_s < earliest_s:
+					earliest_index = target_index
+					earliest_s = deadline_s
+			if earliest_index < 0:
+				break
+			expired += 1
+			spawn_target(earliest_index, earliest_s)
+			if definition.family == "tracking":
+				previous_on_target = false
+				loss_started_s = earliest_s
+		return
 	for target_index in targets.size():
 		while float(targets[target_index].born_s) + definition.lifetime_s <= time_s:
 			var birth_s: float = float(targets[target_index].born_s) + definition.lifetime_s
@@ -424,6 +487,23 @@ func expire_targets(time_s: float) -> void:
 
 
 func integrate_sample(midpoint_s: float, weight_s: float) -> void:
+	if definition.has_lifecycle():
+		var start_s := midpoint_s - weight_s * 0.5
+		var end_s := midpoint_s + weight_s * 0.5
+		expire_targets(start_s)
+		while float(targets[0].expires_s) < end_s:
+			var deadline_s := float(targets[0].expires_s)
+			if deadline_s > start_s:
+				integrate_geometry_sample((start_s + deadline_s) * 0.5, deadline_s - start_s)
+			expire_targets(deadline_s)
+			start_s = deadline_s
+		if end_s > start_s:
+			integrate_geometry_sample((start_s + end_s) * 0.5, end_s - start_s)
+		return
+	integrate_geometry_sample(midpoint_s, weight_s)
+
+
+func integrate_geometry_sample(midpoint_s: float, weight_s: float) -> void:
 	var pose := timeline.sample(midpoint_s)
 	var direction := AimGeometry.direction(pose.x, pose.y)
 	var geometry: Dictionary = target_geometry(0, midpoint_s)
@@ -452,6 +532,8 @@ func advance_to(time_s: float) -> void:
 			var remaining_s := duration_s - integrated_s
 			integrate_sample(integrated_s + remaining_s * 0.5, remaining_s)
 			integrated_s = duration_s
+		if definition.has_lifecycle():
+			expire_targets(integrated_s)
 	else:
 		timeline.sample(end_s)
 		expire_targets(end_s)
@@ -542,9 +624,14 @@ func result(profile: Dictionary, aspect: float, finished: bool) -> Dictionary:
 		"scenario_fingerprint": definition.fingerprint(), "family": definition.family, "seed": scenario_seed,
 		"duration_s": duration_s, "active_duration_s": elapsed_s, "completed": finished and completed,
 		"valid": invalid_reason.is_empty(), "invalid_reason": invalid_reason, "profile": profile.duplicate(true),
-		"aspect": aspect, "score_version": ScoringService.VERSION, "reference_hits_s": definition.reference_hits_s, "metrics": metrics,
+		"aspect": aspect, "score_version": ScoringService.version_for(definition), "reference_hits_s": definition.reference_hits_s, "metrics": metrics,
 		"performance": {"frame_samples": frame_count, "frametime_p95_ms": ScoringService.percentile(frames, 0.95),
 			"frametime_p99_ms": ScoringService.percentile(frames, 0.99), "max_frametime_ms": max_frametime_ms},
 		"comparison_key": ScoringService.comparison_key(definition, duration_s, profile, aspect)}
+	if report.score_version == ScoringService.EXPIRY_VERSION:
+		report.score_policy = "expiry_accuracy_v2"
+		metrics.effective_accuracy_fraction = float(hits) / maxf(float(shots + expired), 1.0)
+		metrics.effective_accuracy_pct = metrics.effective_accuracy_fraction * 100.0 if shots + expired > 0 else null
+		metrics.failed_actions = shots - hits + expired
 	report.score = ScoringService.score(report, definition.reference_hits_s)
 	return report

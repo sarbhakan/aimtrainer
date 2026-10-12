@@ -2,6 +2,15 @@ class_name ScoringService
 extends RefCounted
 
 const VERSION: int = 1
+const EXPIRY_VERSION: int = 2
+
+
+static func version_for(definition: ScenarioDefinition) -> int:
+	return EXPIRY_VERSION if definition.has_lifecycle() and definition.family != "tracking" else VERSION
+
+
+static func effective_accuracy(metrics: Dictionary) -> float:
+	return float(metrics.get("hits", 0)) / maxf(float(metrics.get("shots", 0)) + float(metrics.get("targets_expired", 0)), 1.0)
 
 
 static func number(value: Variant) -> bool:
@@ -9,7 +18,7 @@ static func number(value: Variant) -> bool:
 
 
 static func validate_result(result: Dictionary) -> String:
-	if not number(result.get("schema_version", null)) or result.schema_version != 1 or not number(result.get("score_version", null)) or result.score_version != VERSION:
+	if not number(result.get("schema_version", null)) or result.schema_version != 1 or not number(result.get("score_version", null)) or not float(result.score_version) in [float(VERSION), float(EXPIRY_VERSION)]:
 		return "Version des données incompatible."
 	if not result.get("profile", null) is Dictionary or not SensitivityService.validate_profile(result.profile).is_empty():
 		return "Profil de séance invalide."
@@ -40,10 +49,30 @@ static func validate_result(result: Dictionary) -> String:
 		return "Empreinte de séance invalide."
 	if reported_comparison_key(result) != result.comparison_key:
 		return "Clé de comparaison incohérente avec les conditions réellement déclarées."
-	var definition := ScenarioCatalog.find(result.scenario_id)
+	var definition := ScenarioCatalog.resolve(result.scenario_id, result.scenario_fingerprint)
 	if definition != null and definition.fingerprint() == result.scenario_fingerprint and (int(result.scenario_revision) != definition.revision or result.family != definition.family):
 		return "Révision ou famille incompatible avec l’empreinte de l’exercice."
+	if definition != null and result.has("reference_hits_s") and (not number(result.reference_hits_s) or float(result.reference_hits_s) != definition.reference_hits_s):
+		return "Cadence de référence incompatible avec l’empreinte de l’exercice."
 	var metrics: Dictionary = result.metrics
+	if metrics.has("targets_expired") and (not number(metrics.targets_expired) or float(metrics.targets_expired) < 0.0 or float(metrics.targets_expired) != floor(float(metrics.targets_expired))):
+		return "Compteur d’expirations invalide."
+	if result.score_version == EXPIRY_VERSION:
+		if result.family == "tracking" or result.get("score_policy", "") != "expiry_accuracy_v2" or not number(result.get("reference_hits_s", null)) or float(result.reference_hits_s) <= 0.0:
+			return "Règle de score temporel absente ou incompatible."
+		for counter in ["hits", "shots", "targets_expired"]:
+			if not number(metrics.get(counter, null)):
+				return "Compteur temporel absent ou invalide : " + counter
+		if not number(metrics.get("targets_expired", null)) or float(metrics.targets_expired) < 0.0 or float(metrics.targets_expired) != floor(float(metrics.targets_expired)):
+			return "Compteur d’expirations invalide."
+		if metrics.has("effective_accuracy_fraction") and (not number(metrics.effective_accuracy_fraction) or not is_equal_approx(float(metrics.effective_accuracy_fraction), effective_accuracy(metrics))):
+			return "Taux de réussite temporel incohérent."
+		if metrics.has("effective_accuracy_pct") and ((float(metrics.get("shots", 0)) + float(metrics.targets_expired) == 0.0 and metrics.effective_accuracy_pct != null) or (float(metrics.get("shots", 0)) + float(metrics.targets_expired) > 0.0 and (not number(metrics.effective_accuracy_pct) or not is_equal_approx(float(metrics.effective_accuracy_pct), effective_accuracy(metrics) * 100.0)))):
+			return "Pourcentage de réussite temporel incohérent."
+		if metrics.has("failed_actions") and (not number(metrics.failed_actions) or float(metrics.failed_actions) != float(metrics.get("shots", 0)) - float(metrics.get("hits", 0)) + float(metrics.targets_expired)):
+			return "Compteur d’échecs temporels incohérent."
+	if definition != null and int(result.score_version) != version_for(definition):
+		return "Version de score incompatible avec cette difficulté."
 	for field in ["shots", "hits", "input_events", "input_buffer_overflows"]:
 		if not number(metrics.get(field, null)) or float(metrics[field]) < 0.0 or float(metrics[field]) != floor(float(metrics[field])):
 			return "Compteur invalide : " + field
@@ -109,8 +138,8 @@ static func comparison_error(result: Dictionary, expected_key: String = "") -> S
 		return "État d’échauffement invalide."
 	if result.get("warmup", false):
 		return "Échauffement : exclu des records et tendances."
-	if not number(result.get("score_version", VERSION)) or result.get("score_version", VERSION) != VERSION:
-		return "Version de score incompatible avec le score V1."
+	if not number(result.get("score_version", VERSION)) or not float(result.get("score_version", VERSION)) in [float(VERSION), float(EXPIRY_VERSION)]:
+		return "Version de score incompatible."
 	if not number(result.get("score", null)) or float(result.score) < 0.0:
 		return "Score non fini ou négatif."
 	if not result.get("comparison_key", null) is String or result.comparison_key.is_empty():
@@ -121,7 +150,7 @@ static func comparison_error(result: Dictionary, expected_key: String = "") -> S
 		var validation_error: String = validate_result(result)
 		if not validation_error.is_empty():
 			return validation_error
-		var definition: ScenarioDefinition = ScenarioCatalog.find(str(result.get("scenario_id", "")))
+		var definition: ScenarioDefinition = ScenarioCatalog.resolve(str(result.get("scenario_id", "")), str(result.get("scenario_fingerprint", "")))
 		if definition != null and definition.fingerprint() == result.scenario_fingerprint:
 			if comparison_key(definition, float(result.duration_s), result.profile, float(result.aspect)) != result.comparison_key:
 				return "Clé de comparaison incohérente avec les conditions de la séance."
@@ -145,7 +174,7 @@ static func explain(result: Dictionary) -> Dictionary:
 	var tracking: bool = result.get("family", "") == "tracking"
 	var reference_hits_s: Variant = result.get("reference_hits_s", null)
 	if reference_hits_s == null:
-		var definition: ScenarioDefinition = ScenarioCatalog.find(str(result.get("scenario_id", "")))
+		var definition: ScenarioDefinition = ScenarioCatalog.resolve(str(result.get("scenario_id", "")), str(result.get("scenario_fingerprint", "")))
 		if definition != null and definition.fingerprint() == result.get("scenario_fingerprint", ""):
 			reference_hits_s = definition.reference_hits_s
 	if not number(reference_hits_s) or float(reference_hits_s) <= 0.0:
@@ -161,9 +190,10 @@ static func explain(result: Dictionary) -> Dictionary:
 		var unrounded_score := 1000.0 * float(measured_utility) / (1.0 if tracking else float(reference_hits_s))
 		score_rounding_range = rounding_range(unrounded_score)
 		expected_score = float(result.score) if number(result.get("score", null)) and float(result.score) in score_rounding_range else round(unrounded_score)
-	return {"score_version": VERSION, "utility": measured_utility, "utility_unit": "ratio" if tracking else "touches/s",
-		"utility_formula": "temps sur cible / temps exposé" if tracking else "cadence de touches × précision²",
-		"score_formula": "arrondi(1000 × temps sur cible / temps exposé)" if tracking else "arrondi(1000 × cadence de touches × précision² / cadence de référence)",
+	var expiry_scoring: bool = result.get("score_version", VERSION) == EXPIRY_VERSION
+	return {"score_version": result.get("score_version", VERSION), "utility": measured_utility, "utility_unit": "ratio" if tracking else "touches/s",
+		"utility_formula": "temps sur cible / temps exposé" if tracking else "cadence de touches × réussite², expirations incluses" if expiry_scoring else "cadence de touches × précision²",
+		"score_formula": "arrondi(1000 × temps sur cible / temps exposé)" if tracking else "arrondi(1000 × cadence de touches × (touches / (tirs + expirations))² / référence)" if expiry_scoring else "arrondi(1000 × cadence de touches × précision² / cadence de référence)",
 		"reference_hits_s": reference_hits_s, "expected_score": expected_score, "score_rounding_range": score_rounding_range,
 		"components": {"hits_per_s": metrics.get("hits_per_s", null), "accuracy_fraction": metrics.get("accuracy_fraction", null),
 			"on_target_time_s": metrics.get("on_target_time_s", null), "target_exposed_time_s": metrics.get("target_exposed_time_s", null),
@@ -208,6 +238,8 @@ static func utility(result: Dictionary) -> float:
 	var metrics: Dictionary = result.get("metrics", {})
 	if result.get("family", "") == "tracking":
 		return float(metrics.get("on_target_ratio", 0.0))
+	if result.get("score_version", VERSION) == EXPIRY_VERSION:
+		return float(metrics.get("hits_per_s", 0.0)) * pow(effective_accuracy(metrics), 2.0)
 	return float(metrics.get("hits_per_s", 0.0)) * pow(float(metrics.get("accuracy_fraction", 0.0)), 2.0)
 
 
@@ -227,7 +259,7 @@ static func score(result: Dictionary, reference_hits_s: float) -> float:
 
 
 static func comparison_key(definition: ScenarioDefinition, duration_s: float, profile: Dictionary, aspect: float) -> String:
-	return JSON.stringify([definition.fingerprint(), VERSION, float(duration_s), float(profile.dpi),
+	return JSON.stringify([definition.fingerprint(), version_for(definition), float(duration_s), float(profile.dpi),
 		float(profile.cm_per_360), float(profile.vertical_fov_deg), snappedf(aspect, 0.0001),
 		bool(profile.get("accumulated_input", true)), int(profile.get("max_fps", 144)), bool(profile.get("invert_y", false)), "4.7.2", "compatibility"]).sha256_text()
 

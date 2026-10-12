@@ -59,7 +59,7 @@ func test_browser(app: Node) -> void:
 	var browser: TrainingBrowser = app.home.browser
 	app.home.show_page(1)
 	expect(browser.cards.size() == 18 and visible_card_count(browser) == 18, "Les dix-huit exercices doivent être accessibles sans liste déroulante.")
-	for definition in ScenarioCatalog.DEFINITIONS:
+	for definition in ScenarioCatalog.practice_definitions():
 		expect(ScenarioCopy.TITLES.has(definition.scenario_id) and ScenarioCopy.DESCRIPTIONS.has(definition.scenario_id), "Chaque exercice doit avoir un titre et une consigne en français.")
 		browser.select_definition(definition)
 		expect(browser.title_label.text == ScenarioCopy.title(definition) and browser.preview.definition == definition, "Le titre, l’aperçu et l’exercice à lancer doivent correspondre.")
@@ -72,10 +72,10 @@ func test_browser(app: Node) -> void:
 	expect(browser.empty_label.visible and browser.start_button.disabled, "Une recherche vide ne doit pas lancer un exercice masqué.")
 	browser.search_input.clear()
 	browser.filter_buttons[0].pressed.emit()
-	browser.select_definition(ScenarioCatalog.find("C02"))
+	browser.select_definition(ScenarioCatalog.find_practice("C02"))
 	browser.duration_input.select(2)
 	browser.start_button.pressed.emit()
-	expect(app.selected_definition.scenario_id == "C02" and app.selected_duration_s == 15.0, "La carte sélectionnée et la durée choisie doivent réellement piloter le lancement.")
+	expect(app.selected_definition == ScenarioCatalog.find_practice("C02") and app.selected_duration_s == 15.0, "La carte sélectionnée et la durée choisie lancent la variante temporelle publique.")
 	app.return_to_menu()
 	browser.duration_input.select(0)
 	app.home.show_page(0)
@@ -107,13 +107,13 @@ func test_profile(app: Node) -> void:
 	var saved: Dictionary = app.store.load_profile()
 	expect(saved.weapon_id == "vector" and saved.sound_volume == 25.0 and not saved.sound_enabled and not saved.show_weapon and saved.reduced_motion, "Toutes les préférences d’équipement doivent persister.")
 	var context_profile := SensitivityService.default_profile()
-	var context := ScoringService.comparison_key(ScenarioCatalog.find("C01"), 30.0, context_profile, 16.0 / 9.0)
+	var context := ScoringService.comparison_key(ScenarioCatalog.find_practice("C01"), 30.0, context_profile, 16.0 / 9.0)
 	context_profile.weapon_id = "classic"
 	context_profile.sound_enabled = false
 	context_profile.sound_volume = 0.0
 	context_profile.show_weapon = false
 	context_profile.reduced_motion = true
-	expect(context == ScoringService.comparison_key(ScenarioCatalog.find("C01"), 30.0, context_profile, 16.0 / 9.0), "Une arme cosmétique ne doit pas modifier la formule ou le contexte du score.")
+	expect(context == ScoringService.comparison_key(ScenarioCatalog.find_practice("C01"), 30.0, context_profile, 16.0 / 9.0), "Une arme cosmétique ne doit pas modifier la formule ou le contexte du score.")
 	for invalid in [-1.0, 101.0, NAN, INF, "fort", null]:
 		var broken := context_profile.duplicate(true)
 		broken.sound_volume = invalid

@@ -64,7 +64,22 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	domain.verify = verify
 	var prior: Dictionary = domain.trial_report(calibration, [3, 3, 3])
 	prior.warmup = false
-	expect(store.save_session(prior), "La référence de record doit être enregistrée avec un contexte valide.")
+	expect(store.save_session(prior), "La référence historique V1 reste enregistrable sans modifier sa difficulté.")
+	var legacy_key: String = prior.comparison_key
+	var reference_engine := ScenarioEngine.new()
+	expect(reference_engine.start(ScenarioCatalog.find_practice("C02"), 42, 8.0), "La référence publique utilise la difficulté temporelle actuelle.")
+	for shot_index in 3:
+		var shot_s: float = 0.1 * float(shot_index + 1)
+		var direction: Vector3 = reference_engine.target_direction(0, shot_s)
+		reference_engine.record_aim(shot_s, rad_to_deg(atan2(-direction.x, -direction.z)), rad_to_deg(asin(direction.y)))
+		reference_engine.shoot(shot_s, direction)
+	reference_engine.record_frame(0.01)
+	reference_engine.record_frame(0.01)
+	reference_engine.advance_to(8.0)
+	prior = reference_engine.result(app.home.read_profile(), app.current_aspect(), true)
+	prior.warmup = false
+	expect(ScoringService.comparison_error(prior).is_empty(), "La référence publique comporte un mouvement réel et trois impacts, donc reste admissible aux records.")
+	expect(prior.score_version == ScoringService.EXPIRY_VERSION and prior.comparison_key != legacy_key and store.save_session(prior), "La référence de record publique V2 est sauvegardée dans un contexte distinct de la référence V1.")
 	for changes in [{"engine_version": "4.6.3"}, {"renderer": "forward_plus"}, {"scenario_revision": 99}, {"scenario_fingerprint": "f".repeat(64)}, {"score": 999999.0}]:
 		var altered: Dictionary = prior.duplicate(true)
 		altered.merge(changes, true)

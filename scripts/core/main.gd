@@ -350,7 +350,7 @@ func start_practice(scenario_id: String, duration_s: float) -> void:
 	is_guided = false
 	is_progressive = false
 	is_routine = false
-	prepare_training(ScenarioCatalog.find(scenario_id), duration_s, next_practice_seed(), home.read_profile())
+	prepare_training(ScenarioCatalog.find_practice(scenario_id), duration_s, next_practice_seed(), home.read_profile())
 
 
 func prepare_training(definition: ScenarioDefinition, duration_s: float, seed_value: int, profile: Dictionary) -> bool:
@@ -514,10 +514,13 @@ func result_text(report: Dictionary) -> String:
 			metrics.angular_error_p95_deg, metrics.reacquisition_median_ms, report.score]
 	else:
 		var accuracy := "N/A" if metrics.accuracy_pct == null else "%.1f %%" % metrics.accuracy_pct
-		body += "Cibles touchées : %d · ratés : %d · tirs : %d · cibles expirées : %d\nPrécision : %s · rythme : %.0f cibles/min\nAcquisition/transition : médiane %.0f ms · p95 %.0f ms\nErreur médiane au clic : %.2f° · efficacité de trajet : %.1f %%\nScore v1 : %.0f (1000 × cadence × précision² / référence ; sans plafond artificiel)" % [metrics.hits, metrics.misses,
+		body += "Cibles touchées : %d · tirs ratés : %d · tirs : %d · cibles expirées : %d\nPrécision des tirs : %s · rythme : %.0f cibles/min\nAcquisition/transition : médiane %.0f ms · p95 %.0f ms\nErreur médiane au clic : %.2f° · efficacité de trajet : %.1f %%" % [metrics.hits, metrics.misses,
 			metrics.shots, metrics.targets_expired, accuracy, metrics.hits_per_s * 60.0,
 			metrics.acquisition_median_ms, metrics.acquisition_p95_ms, metrics.shot_error_median_deg,
-			metrics.path_efficiency_median * 100.0, report.score]
+			metrics.path_efficiency_median * 100.0]
+		body += "\nScore v%d : %.0f · %s" % [report.score_version, report.score, ScoringService.explain(report).score_formula]
+		if report.score_version == ScoringService.EXPIRY_VERSION:
+			body += "\nRéussite : %.1f %% · échecs : %d (tirs ratés + cibles expirées)." % [100.0 * ScoringService.effective_accuracy(metrics), metrics.misses + metrics.targets_expired]
 	body += "\nInput reçu : %d événements (pas le polling matériel)\nFrametime p95/p99 : %.2f / %.2f ms · %d frames récentes\nGraine : %d · révision : %d" % [metrics.input_events, report.performance.frametime_p95_ms,
 		report.performance.frametime_p99_ms, report.performance.frame_samples, report.seed, report.scenario_revision]
 	if not report.valid:
@@ -577,7 +580,7 @@ func start_progressive_stage() -> void:
 		show_progressive_recommendation()
 		return
 	var stage := progressive.current_stage()
-	prepare_training(ScenarioCatalog.find(stage.scenario_id), stage.duration_s, stage.seed, stage.profile)
+	prepare_training(progressive.definition_for(stage.scenario_id), stage.duration_s, stage.seed, stage.profile)
 
 
 func present_progressive_result(body: String, quality_error: String, saved: bool) -> void:
@@ -587,9 +590,9 @@ func present_progressive_result(body: String, quality_error: String, saved: bool
 		pending_trial = last_report.duplicate(true)
 		pending_trial_saved = saved
 		context.completed_trials += 1
-		context.block_history.append({"family": last_report.family, "sensitivity": context.active_sensitivity, "score": last_report.score,
+		context.block_history.append({"family": last_report.family, "score_version": last_report.score_version, "targets_expired": last_report.metrics.get("targets_expired", 0), "sensitivity": context.active_sensitivity, "score": last_report.score,
 			"hits": last_report.metrics.hits, "misses": last_report.metrics.misses,
-			"accuracy_pct": last_report.metrics.accuracy_pct, "on_target_ratio": last_report.metrics.on_target_ratio,
+			"effective_accuracy_pct": last_report.metrics.get("effective_accuracy_pct", last_report.metrics.accuracy_pct), "accuracy_pct": last_report.metrics.accuracy_pct, "on_target_ratio": last_report.metrics.on_target_ratio,
 			"utility": ScoringService.utility(last_report)})
 		screen = Screen.REST
 		rest_until_us = Time.get_ticks_usec() + 3000000
@@ -664,7 +667,7 @@ func start_routine(duration_s: float = 60.0) -> void:
 		home.set_status("Séance indisponible.")
 		return
 	for stage in next.plan:
-		if not ScenarioCatalog.find(stage.scenario_id).fits_view(profile.vertical_fov_deg, current_aspect()):
+		if not ScenarioCatalog.find_practice(stage.scenario_id).fits_view(profile.vertical_fov_deg, current_aspect()):
 			home.set_status("Élargissez la fenêtre pour la séance complète.")
 			return
 	routine = next
@@ -683,7 +686,7 @@ func start_routine_stage() -> void:
 	if stage.is_empty():
 		return
 	routine_auto_continue = true
-	if not prepare_training(ScenarioCatalog.find(stage.scenario_id), stage.duration_s, next_practice_seed(), training_profile):
+	if not prepare_training(ScenarioCatalog.find_practice(stage.scenario_id), stage.duration_s, next_practice_seed(), training_profile):
 		routine_auto_continue = false
 
 
@@ -1023,7 +1026,7 @@ func refresh_history() -> void:
 	var profile := home.read_profile()
 	var seconds: float = [30.0, 60.0, 15.0][home.duration_input.selected]
 	var summaries: Array[Dictionary] = []
-	for definition in ScenarioCatalog.DEFINITIONS:
+	for definition in ScenarioCatalog.practice_definitions():
 		var key := ScoringService.comparison_key(definition, seconds, profile, current_aspect())
 		var summary := ProgressService.summarize(results, key)
 		summary.title = ScenarioCopy.title(definition)
@@ -1074,7 +1077,7 @@ func update_telemetry() -> void:
 		help_label.text = "" if start_pose_ready else "Revenez vers le repère pour démarrer."
 		help_label.visible = not start_pose_ready
 	else:
-		hud.present_live(engine.elapsed_s, engine.duration_s, engine.hits, engine.shots, selected_definition.family == "tracking", engine.on_target_s, engine.integrated_s, selected_definition.reference_hits_s)
+		hud.present_live(engine.elapsed_s, engine.duration_s, engine.hits, engine.shots, selected_definition.family == "tracking", engine.on_target_s, engine.integrated_s, selected_definition.reference_hits_s, engine.expired, ScoringService.version_for(selected_definition))
 	hud.queue_redraw()
 
 

@@ -10,15 +10,15 @@ const BLOCK_VALUES: Array = [
 ]
 
 
-static func session_report(scenario_id: String, profile: Dictionary, duration_s: float, aspect: float, seed_value: int, value: float, identifier: String) -> Dictionary:
-	var definition := ScenarioCatalog.find(scenario_id)
+static func session_report(scenario_id: String, profile: Dictionary, duration_s: float, aspect: float, seed_value: int, value: float, identifier: String, explicit_definition: ScenarioDefinition = null, expired_targets: int = 0) -> Dictionary:
+	var definition := explicit_definition if explicit_definition != null else ScenarioCatalog.find_practice(scenario_id)
 	var tracking: bool = definition.family == "tracking"
 	var hits: int = 0 if tracking else roundi(value)
 	var shots: int = 0 if tracking else hits + 12
 	var accuracy: float = float(hits) / maxf(float(shots), 1.0)
 	var ratio: float = value / 100.0 if tracking else 0.0
 	var report: Dictionary = {
-		"schema_version": 1, "score_version": ScoringService.VERSION,
+		"schema_version": 1, "score_version": ScoringService.version_for(definition),
 		"engine_version": "4.7.2", "renderer": "compatibility",
 		"app_version": ProjectSettings.get_setting("application/config/version"),
 		"session_id": identifier, "created_at_utc": "2026-10-12T00:00:00Z",
@@ -30,7 +30,7 @@ static func session_report(scenario_id: String, profile: Dictionary, duration_s:
 		"profile": profile.duplicate(true), "aspect": aspect,
 		"reference_hits_s": definition.reference_hits_s,
 		"metrics": {
-			"shots": shots, "hits": hits, "misses": shots - hits,
+			"shots": shots, "hits": hits, "misses": shots - hits, "targets_expired": expired_targets,
 			"accuracy_fraction": accuracy, "accuracy_pct": accuracy * 100.0 if shots > 0 else null,
 			"hits_per_s": float(hits) / duration_s, "input_events": 100,
 			"input_buffer_overflows": 0, "angular_path_deg": 20.0,
@@ -41,6 +41,11 @@ static func session_report(scenario_id: String, profile: Dictionary, duration_s:
 		"performance": {"frame_samples": 1000, "frametime_p99_ms": 8.0, "max_frametime_ms": 12.0},
 		"comparison_key": ScoringService.comparison_key(definition, duration_s, profile, aspect)
 	}
+	if report.score_version == ScoringService.EXPIRY_VERSION:
+		report.score_policy = "expiry_accuracy_v2"
+		report.metrics.effective_accuracy_fraction = ScoringService.effective_accuracy(report.metrics)
+		report.metrics.effective_accuracy_pct = report.metrics.effective_accuracy_fraction * 100.0 if shots + expired_targets > 0 else null
+		report.metrics.failed_actions = shots - hits + expired_targets
 	report.score = ScoringService.score(report, definition.reference_hits_s)
 	return report
 
@@ -49,7 +54,7 @@ static func progressive_report(service: ProgressiveCalibrationService) -> Dictio
 	var stage := service.current_stage()
 	var value: float = BLOCK_VALUES[int(stage.block_index)][int(stage.trial_index)]
 	var report := session_report(stage.scenario_id, stage.profile, stage.duration_s, service.aspect,
-		stage.seed, value, "visual-progressive-%02d" % service.trials.size())
+		stage.seed, value, "visual-progressive-%02d" % service.trials.size(), service.definition_for(stage.scenario_id))
 	report.calibration_id = service.calibration_id
 	report.progressive_block_index = stage.block_index
 	report.progressive_trial_index = stage.trial_index
@@ -60,9 +65,11 @@ static func trial_context(service: ProgressiveCalibrationService, report: Dictio
 	var context := service.current_stage().duplicate(true)
 	context.completed_trials += 1
 	context.block_history.append({
-		"family": report.family, "sensitivity": context.active_sensitivity, "score": report.score,
+		"family": report.family, "score_version": report.score_version, "targets_expired": report.metrics.targets_expired,
+		"sensitivity": context.active_sensitivity, "score": report.score,
 		"hits": report.metrics.hits, "misses": report.metrics.misses,
-		"accuracy_pct": report.metrics.accuracy_pct, "on_target_ratio": report.metrics.on_target_ratio,
+		"accuracy_pct": report.metrics.accuracy_pct,
+		"effective_accuracy_pct": report.metrics.get("effective_accuracy_pct", report.metrics.accuracy_pct), "on_target_ratio": report.metrics.on_target_ratio,
 		"utility": ScoringService.utility(report)
 	})
 	return context

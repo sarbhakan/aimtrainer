@@ -40,6 +40,8 @@ var result_content: VBoxContainer
 var actions: HFlowContainer
 var details_content: VBoxContainer
 var progressive_history_grid: GridContainer
+var expiration_label: Label
+var temporal_result: bool = false
 
 
 func _ready() -> void:
@@ -101,6 +103,9 @@ func _ready() -> void:
 		var value := AimUI.label("", 23)
 		stat.add_child(value)
 		stat_values.append(value)
+	expiration_label = AimUI.label("", 12, AimUI.MUTED)
+	expiration_label.hide()
+	content.add_child(expiration_label)
 	progress_label = AimUI.label("", 12, AimUI.MUTED)
 	content.add_child(progress_label)
 	progress = ProgressBar.new()
@@ -164,6 +169,14 @@ func update_layout() -> void:
 		for edge in ["left", "right", "top", "bottom"]:
 			content_margin.add_theme_constant_override("margin_" + edge, padding)
 		main_layout.add_theme_constant_override("separation", AimUI.SPACE_MD if size.y < 600.0 else AimUI.SPACE_LG)
+		var compact: bool = temporal_result and size.y < 600.0
+		result_content.add_theme_constant_override("separation", AimUI.SPACE_SM if compact else AimUI.SPACE_MD)
+		title_label.add_theme_font_size_override("font_size", 24 if compact else 28)
+		hero_label.add_theme_font_size_override("font_size", 32 if compact else 42)
+		var hero_panel: PanelContainer = hero_label.get_parent().get_parent()
+		hero_panel.get_theme_stylebox("panel").set_content_margin_all(AimUI.SPACE_MD if compact else AimUI.SPACE_XL)
+		for stat in stats.get_children():
+			stat.get_theme_stylebox("panel").set_content_margin_all(AimUI.SPACE_MD if compact else AimUI.SPACE_LG)
 
 
 func clear_context() -> void:
@@ -213,16 +226,19 @@ func present(title: String, body: String, calibration_step: bool = false) -> voi
 	details_toggle.text = "Voir les mesures détaillées"
 	details_toggle.set_pressed_no_signal(false)
 	details_content.hide()
+	expiration_label.hide()
+	temporal_result = false
 	stats.show()
 	for value in stat_values:
 		value.tooltip_text = ""
 	show()
+	update_layout()
 	AimUI.fade_in(self)
 
 
 func present_progressive_trial(report: Dictionary, details: String, trial_context: Dictionary) -> void:
 	var scenario_id: String = str(trial_context.get("scenario_id", report.get("scenario_id", "")))
-	var definition := ScenarioCatalog.find(scenario_id)
+	var definition := ScenarioCopy.report_definition(report)
 	var exercise_title: String = str(trial_context.get("title", ScenarioCopy.title(definition) if definition != null else scenario_id))
 	present(exercise_title, details)
 	var block_index: int = int(trial_context.get("block_index", 0))
@@ -253,11 +269,21 @@ func present_progressive_trial(report: Dictionary, details: String, trial_contex
 		set_notice("Essai interrompu : rejouez pour terminer cette mesure.")
 	context_root.show()
 	context.add_child(AimUI.label("Les cinq sensibilités de cet exercice", 20))
-	progressive_history_grid = show_progressive_candidates(context, trial_context.get("block_history", []))
+	progressive_history_grid = show_progressive_candidates(context, trial_context.get("block_history", []), str(report.get("family", "")))
 
 
 func show_raw_stats(report: Dictionary) -> void:
 	var metrics: Dictionary = report.get("metrics", {})
+	show_expiration_details(report)
+	if int(report.get("score_version", 1)) == 2 and report.get("family", "") != "tracking":
+		var insights := PerformanceInsights.analyze(report)
+		set_stat(0, insights.primary_label, insights.primary_value)
+		set_stat(1, insights.secondary_label, insights.secondary_value)
+		set_stat(2, insights.tempo_label, insights.tempo_value)
+		stat_values[0].tooltip_text = "Tirs qui touchent une cible."
+		stat_values[1].tooltip_text = "Tirs manqués + cibles expirées ; une expiration ne compte pas comme un tir."
+		stat_values[2].tooltip_text = "100 × touches / (tirs + cibles expirées)."
+		return
 	if report.get("family", "") == "tracking":
 		set_stat(0, "Temps sur cible", PerformanceInsights.display(float(metrics.get("on_target_ratio", 0.0)) * 100.0, 1, "%"))
 		set_stat(1, "Suivi réussi", PerformanceInsights.display(metrics.get("on_target_time_s", null), 1, "s"))
@@ -273,7 +299,22 @@ func show_raw_stats(report: Dictionary) -> void:
 	stat_values[2].tooltip_text = "Temps actif, hors préparation et pauses."
 
 
-func show_progressive_candidates(parent: Node, history: Array) -> GridContainer:
+func show_expiration_details(report: Dictionary) -> void:
+	var metrics: Dictionary = report.get("metrics", {})
+	var expired: Variant = PerformanceInsights.measured(metrics, "targets_expired")
+	var temporal_score: bool = int(report.get("score_version", 1)) == 2
+	temporal_result = temporal_score or int(report.get("scenario_revision", 1)) >= 6
+	update_layout()
+	expiration_label.visible = temporal_score or int(report.get("scenario_revision", 1)) >= 6 or (expired != null and float(expired) > 0.0)
+	if not expiration_label.visible:
+		return
+	if report.get("family", "") == "tracking":
+		expiration_label.text = "Cibles remplacées à échéance : %s · ces remplacements ne sont pas des tirs manqués." % PerformanceInsights.display(expired, 0)
+	else:
+		expiration_label.text = "Ratées = %s tirs manqués + %s cibles expirées." % [PerformanceInsights.display(PerformanceInsights.shot_misses(metrics), 0), PerformanceInsights.display(expired, 0)]
+
+
+func show_progressive_candidates(parent: Node, history: Array, fallback_family: String = "") -> GridContainer:
 	var candidates := GridContainer.new()
 	candidates.columns = 5
 	candidates.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -288,15 +329,21 @@ func show_progressive_candidates(parent: Node, history: Array) -> GridContainer:
 			continue
 		var candidate: Dictionary = history[trial_index]
 		var metrics: Dictionary = candidate.get("metrics", candidate)
+		var tracking: bool = candidate.get("family", fallback_family) == "tracking"
+		var temporal_score: bool = int(candidate.get("score_version", 2 if metrics.has("effective_accuracy_pct") else 1)) == 2 and not tracking
 		var candidate_sensitivity: Variant = candidate.get("sensitivity", null)
 		var profile: Dictionary = candidate.get("profile", {})
 		if candidate_sensitivity == null and profile.has("dpi") and profile.has("cm_per_360"):
 			candidate_sensitivity = SensitivityService.game_sensitivity(float(profile.dpi), float(profile.cm_per_360), SensitivityService.APP_YAW_DEG)
 		card.add_child(AimUI.label(AimUI.sensitivity(float(candidate_sensitivity)) if candidate_sensitivity != null else "—", 16, AimUI.ACCENT))
 		card.add_child(AimUI.label("Score %s" % PerformanceInsights.display(candidate.get("score", null), 0), 12))
-		if candidate.get("family", "") == "tracking":
+		if tracking:
 			var ratio: Variant = metrics.get("on_target_ratio", null)
 			card.add_child(AimUI.label("Sur cible %s" % PerformanceInsights.display(float(ratio) * 100.0 if ratio != null else null, 1, "%"), 11, AimUI.MUTED))
+		elif temporal_score:
+			card.add_child(AimUI.label("Touches %s" % PerformanceInsights.display(metrics.get("hits", null), 0), 11, AimUI.MUTED))
+			card.add_child(AimUI.label("Ratées %s · expirées %s" % [PerformanceInsights.display(PerformanceInsights.failed_actions(metrics), 0), PerformanceInsights.display(metrics.get("targets_expired", null), 0)], 11, AimUI.MUTED))
+			card.add_child(AimUI.label("Réussite %s" % PerformanceInsights.display(PerformanceInsights.effective_accuracy_pct(metrics), 1, "%"), 11, AimUI.MUTED))
 		else:
 			card.add_child(AimUI.label("Touches %s" % PerformanceInsights.display(metrics.get("hits", null), 0), 11, AimUI.MUTED))
 			card.add_child(AimUI.label("Ratés %s" % PerformanceInsights.display(metrics.get("misses", null), 0), 11, AimUI.MUTED))
@@ -322,12 +369,12 @@ func present_progressive_complete(summary: Dictionary, dpi: float, details: Stri
 	context.add_child(AimUI.label("Vos cinq exercices", 20))
 	for block in blocks:
 		var scenario_id: String = str(block.get("scenario_id", ""))
-		var definition := ScenarioCatalog.find(scenario_id)
+		var definition := ScenarioCopy.report_definition(block)
 		var exercise_title: String = str(block.get("title", ScenarioCopy.title(definition) if definition != null else scenario_id))
 		var trials: Array = block.get("trials", [])
 		context.add_child(AimUI.label("%s · %d essais" % [exercise_title, trials.size()], 14))
 		details_content.add_child(AimUI.label(exercise_title, 16, AimUI.ACCENT))
-		show_progressive_candidates(details_content, trials)
+		show_progressive_candidates(details_content, trials, definition.family if definition != null else "")
 		var moving_range_cm: Array = block.get("moving_range_cm", [])
 		if moving_range_cm.size() == 2:
 			details_content.add_child(AimUI.label("Intervalle exploré : %s–%s cm/360°" % [AimUI.number(float(moving_range_cm[0])), AimUI.number(float(moving_range_cm[1]))], 12, AimUI.MUTED))
@@ -356,16 +403,22 @@ func present_routine_complete(reports: Array, details: String) -> void:
 	context.add_child(AimUI.label("Vos résultats par étape", 20))
 	for report in reports:
 		var scenario_id: String = str(report.get("scenario_id", ""))
-		var definition := ScenarioCatalog.find(scenario_id)
+		var definition := ScenarioCopy.report_definition(report)
 		var exercise_title: String = ScenarioCopy.title(definition) if definition != null else str(ScenarioCopy.TITLES.get(scenario_id, scenario_id))
 		var card := AimUI.card(context, AimUI.SPACE_LG)
 		card.add_child(AimUI.label(exercise_title, 16, AimUI.ACCENT))
 		card.add_child(AimUI.label("Score %s" % PerformanceInsights.display(report.get("score", null), 0), 18))
 		var metrics: Dictionary = report.get("metrics", {})
-		card.add_child(AimUI.label("Touches %s · ratés %s · précision %s" % [PerformanceInsights.display(metrics.get("hits", null), 0), PerformanceInsights.display(metrics.get("misses", null), 0), PerformanceInsights.display(metrics.get("accuracy_pct", null), 1, "%")], 13, AimUI.MUTED))
 		if report.get("family", "") == "tracking":
 			var ratio: Variant = metrics.get("on_target_ratio", null)
 			card.add_child(AimUI.label("Temps sur cible : %s" % PerformanceInsights.display(float(ratio) * 100.0 if ratio != null else null, 1, "%"), 13, AimUI.MUTED))
+			if int(report.get("scenario_revision", 1)) >= 6:
+				card.add_child(AimUI.label("Remplacements à échéance %s" % PerformanceInsights.display(metrics.get("targets_expired", null), 0), 12, AimUI.MUTED))
+		elif int(report.get("score_version", 1)) == 2:
+			card.add_child(AimUI.label("Touches %s · ratées %s · réussite %s" % [PerformanceInsights.display(metrics.get("hits", null), 0), PerformanceInsights.display(PerformanceInsights.failed_actions(metrics), 0), PerformanceInsights.display(PerformanceInsights.effective_accuracy_pct(metrics), 1, "%")], 13, AimUI.MUTED))
+			card.add_child(AimUI.label("%s tirs manqués + %s cibles expirées" % [PerformanceInsights.display(PerformanceInsights.shot_misses(metrics), 0), PerformanceInsights.display(metrics.get("targets_expired", null), 0)], 12, AimUI.MUTED))
+		else:
+			card.add_child(AimUI.label("Touches %s · ratés %s · précision %s" % [PerformanceInsights.display(metrics.get("hits", null), 0), PerformanceInsights.display(metrics.get("misses", null), 0), PerformanceInsights.display(metrics.get("accuracy_pct", null), 1, "%")], 13, AimUI.MUTED))
 		if not bool(report.get("completed", false)):
 			card.add_child(AimUI.label("Étape interrompue", 13, AimUI.MUTED))
 		elif not bool(report.get("valid", true)):
@@ -373,7 +426,7 @@ func present_routine_complete(reports: Array, details: String) -> void:
 
 
 func present_result(report: Dictionary, details: String, calibration_step: bool, stage_index: int, stage_total: int) -> void:
-	var definition := ScenarioCatalog.find(report.scenario_id)
+	var definition := ScenarioCopy.report_definition(report)
 	present(ScenarioCopy.title(definition), details, calibration_step)
 	var insights := PerformanceInsights.analyze(report)
 	hero_caption.text = "ÉCHAUFFEMENT · NON NOTÉ" if report.get("warmup", false) else "SCORE" if report.completed else "SCORE PROVISOIRE · SÉANCE INTERROMPUE"
@@ -382,6 +435,9 @@ func present_result(report: Dictionary, details: String, calibration_step: bool,
 	set_stat(0, insights.primary_label, insights.primary_value)
 	set_stat(1, insights.secondary_label, insights.secondary_value)
 	set_stat(2, insights.tempo_label, insights.tempo_value)
+	show_expiration_details(report)
+	if int(report.get("score_version", 1)) == 2 and not report.get("warmup", false) and report.completed:
+		hero_caption.text = "SCORE"
 	if calibration_step:
 		progress.max_value = stage_total
 		progress.value = stage_index

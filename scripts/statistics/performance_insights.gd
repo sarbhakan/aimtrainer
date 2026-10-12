@@ -26,6 +26,61 @@ static func measurement(value: Variant, unit: String, description: String) -> Di
 
 
 static func analyze(report: Dictionary) -> Dictionary:
+	var insights: Dictionary = analyze_v1(report)
+	if int(report.get("score_version", 1)) != 2 or report.get("family", "") == "tracking":
+		return insights
+	var metrics: Dictionary = report.get("metrics", {}) if report.get("metrics", {}) is Dictionary else {}
+	var hits: Variant = measured(metrics, "hits")
+	var misses: Variant = shot_misses(metrics)
+	var expired: Variant = measured(metrics, "targets_expired")
+	var failures: Variant = failed_actions(metrics)
+	var success_pct: Variant = effective_accuracy_pct(metrics)
+	insights.primary_label = "Touches"
+	insights.primary_value = display(hits, 0)
+	insights.primary_unit = "touches"
+	insights.secondary_label = "Ratées"
+	insights.secondary_value = display(failures, 0)
+	insights.secondary_unit = "tirs manqués + cibles expirées"
+	insights.tempo_label = "Réussite"
+	insights.tempo_value = display(success_pct, 1, "%")
+	insights.tempo_unit = "%"
+	insights.tip = "Ratées : %s tirs manqués + %s cibles expirées. Réussite : %s ; cadence : %s." % [display(misses, 0), display(expired, 0), display(success_pct, 1, "%"), display(hits_per_minute(metrics), 0, "cibles/min")]
+	insights.short_tip = "Visez et cliquez avant l’échéance des cibles." if expired != null and float(expired) > 0.0 else "Prenez un instant pour centrer le viseur avant chaque clic." if misses != null and float(misses) > 0.0 else "Rejouez avec les mêmes échéances pour confirmer cette réussite."
+	insights.advice = insights.short_tip
+	insights.measurements.misses = measurement(misses, "tirs manqués", "Tirs qui ne touchent aucune cible ; les expirations restent séparées.")
+	insights.measurements.targets_expired = measurement(expired, "cibles expirées", "Cibles non touchées avant leur échéance ; aucune expiration ne compte comme un tir.")
+	insights.measurements.failed_actions = measurement(failures, "ratées", "Tirs manqués + cibles expirées.")
+	insights.measurements.effective_accuracy_pct = measurement(success_pct, "%", "100 × touches / (tirs + cibles expirées) ; indisponible sans tir ni expiration.")
+	return insights
+
+
+static func shot_misses(metrics: Dictionary) -> Variant:
+	var misses: Variant = measured(metrics, "misses")
+	if misses != null:
+		return misses
+	var hits: Variant = measured(metrics, "hits")
+	var shots: Variant = measured(metrics, "shots")
+	return float(shots) - float(hits) if shots != null and hits != null and float(hits) <= float(shots) else null
+
+
+static func failed_actions(metrics: Dictionary) -> Variant:
+	var misses: Variant = shot_misses(metrics)
+	var expired: Variant = measured(metrics, "targets_expired")
+	return float(misses) + float(expired) if misses != null and expired != null else measured(metrics, "failed_actions")
+
+
+static func effective_accuracy_pct(metrics: Dictionary) -> Variant:
+	var hits: Variant = measured(metrics, "hits")
+	var shots: Variant = measured(metrics, "shots")
+	var expired: Variant = measured(metrics, "targets_expired")
+	if hits != null and shots != null and expired != null:
+		var attempts: float = float(shots) + float(expired)
+		return 100.0 * float(hits) / attempts if attempts > 0.0 and float(hits) <= float(shots) else null
+	var success_pct: Variant = measured(metrics, "effective_accuracy_pct")
+	return success_pct if success_pct != null and float(success_pct) <= 100.0 else null
+
+
+static func analyze_v1(report: Dictionary) -> Dictionary:
 	var metrics: Dictionary = report.get("metrics", {}) if report.get("metrics", {}) is Dictionary else {}
 	var tracking: bool = report.get("family", "") == "tracking"
 	var hits: Variant = measured(metrics, "hits")

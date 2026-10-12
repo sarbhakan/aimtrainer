@@ -369,7 +369,15 @@ func test_persistence() -> void:
 	for filename in export_files:
 		if filename.ends_with(".csv"):
 			var csv := FileAccess.open(export_dir + "/" + filename, FileAccess.READ)
-			expect(csv.get_csv_line().size() == 20 and csv.get_csv_line().size() == 20, "L'en-tête CSV et les valeurs doivent garder les mêmes colonnes.")
+			var header := csv.get_csv_line()
+			var row := csv.get_csv_line()
+			var legacy_columns := PackedStringArray(["session_id", "created_at_utc", "scenario_id", "scenario_revision", "completed", "valid", "warmup", "dpi", "cm_per_360", "active_duration_s", "shots", "hits", "accuracy_pct", "on_target_ratio", "angular_error_mean_deg", "score", "score_version", "comparison_key", "received_x_counts", "received_y_counts"])
+			expect(header.size() == 24 and row.size() == header.size(), "L'en-tête CSV et les valeurs comprennent les vingt colonnes historiques et quatre mesures temporelles.")
+			expect(header.slice(0, 20) == legacy_columns, "Les vingt colonnes CSV historiques conservent leurs noms et indices.")
+			expect(header.slice(20) == PackedStringArray(["misses", "targets_expired", "effective_accuracy_pct", "failed_actions"]), "Les mesures temporelles sont ajoutées après les colonnes historiques, sans déplacement.")
+			expect(int(row[10]) == report.metrics.shots and int(row[11]) == report.metrics.hits and int(row[16]) == ScoringService.VERSION
+				and int(row[20]) == report.metrics.misses and int(row[21]) == report.metrics.targets_expired and row[22].is_empty() and row[23].is_empty(), "La ligne historique conserve ses compteurs bruts V1 et laisse les mesures V2 indisponibles vides.")
+			csv.close()
 		else:
 			expect(store.read_json(export_dir + "/" + filename).data.sessions.size() == 1, "L'export JSON doit conserver les données brutes.")
 	var calibration := CalibrationService.new()

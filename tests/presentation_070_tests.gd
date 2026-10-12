@@ -68,7 +68,9 @@ func test_arena(arena: Node3D) -> void:
 	var camera := arena.get_node("AimCamera") as AimCamera
 	expect(camera.position == Vector3(0, 1.6, 0) and camera.fov == 75.0 and camera.keep_aspect == Camera3D.KEEP_HEIGHT, "L’origine et le FOV vertical de la caméra de visée restent identiques.")
 	var presentation := arena.get_node("Presentation") as ArenaPresentation
-	expect(presentation.environment_meshes.size() == 7 and arena.find_children("*", "", true, false).size() <= 32, "Le laboratoire simplifié conserve sept volumes et moins de 32 nœuds au total, cibles incluses.")
+	var world_meshes := arena.find_children("*", "MeshInstance3D", true, false)
+	expect(presentation.environment_meshes.size() > 7 and world_meshes.size() == 30 and world_meshes.size() <= 32, "Le laboratoire détaillé conserve trente meshes, cibles comprises, dans son budget de trente-deux volumes.")
+	expect(world_meshes.size() == presentation.environment_meshes.size() + 9, "Le décor ajoute uniquement ses volumes prévus au sol, au fond, aux six cibles et au repère de visée.")
 	expect(not presentation.is_processing() and not presentation.is_physics_processing(), "Le décor reste entièrement statique, sans traitement par frame.")
 	for instance: MeshInstance3D in arena.find_children("*", "MeshInstance3D", true, false):
 		var material := instance.mesh.surface_get_material(0) as StandardMaterial3D
@@ -257,12 +259,12 @@ func test_hitmarker(hud: TrainingHud) -> void:
 		hud.size = dimensions
 		var center_px: Vector2 = dimensions * 0.5
 		var segments := hud.hitmarker_segments()
-		expect(segments.size() == 8 and HudScript.HIT_COLOR != Color.html(hud.crosshair_profile.crosshair_color), "Le hitmarker présente quatre ticks ambre distincts du viseur turquoise.")
+		expect(segments.size() == 8 and HudScript.HIT_COLOR in [Color.WHITE, Color("ffd18a")] and HudScript.HIT_COLOR != Color.html(hud.crosshair_profile.crosshair_color), "Le hitmarker présente quatre branches blanches ou ambre distinctes du viseur turquoise.")
 		for segment_index in 4:
 			var first_px: Vector2 = segments[segment_index * 2] - center_px
 			var last_px: Vector2 = segments[segment_index * 2 + 1] - center_px
-			expect((is_zero_approx(first_px.x) or is_zero_approx(first_px.y)) and is_equal_approx(first_px.distance_to(last_px), 5.0) and first_px.length() > CrosshairProfile.radius_px(hud.crosshair_profile) + 4.0, "Chaque tick reste orthogonal, compact et hors du viseur ; aucune diagonale au centre.")
-		expect((segments[0] + segments[2]).is_equal_approx(center_px * 2.0) and (segments[4] + segments[6]).is_equal_approx(center_px * 2.0), "Les ticks sont symétriques autour du centre aux trois tailles de fenêtre.")
+			expect(not is_zero_approx(first_px.x) and is_equal_approx(absf(first_px.x), absf(first_px.y)) and absf(first_px.distance_to(last_px) - HudScript.HIT_LENGTH_PX) <= 0.001 and first_px.length() >= maxf(20.0, CrosshairProfile.radius_px(hud.crosshair_profile) + 8.0) - 0.001, "Chaque branche du X reste diagonale, compacte et séparée du viseur central à 0,001 px près.")
+		expect((segments[0] + segments[4]).is_equal_approx(center_px * 2.0) and (segments[2] + segments[6]).is_equal_approx(center_px * 2.0), "Les branches opposées du X sont symétriques aux trois tailles de fenêtre.")
 	hud.hit()
 	hud._process(0.06)
 	expect(hud.hit_remaining_s > 0.0, "Une vraie touche conserve son retour compact pendant au moins 60 ms.")
@@ -295,9 +297,9 @@ func test_render(viewport: SubViewport, arena: Node3D, hud: TrainingHud, tree: S
 	for segment_index in 4:
 		var middle_px := (segments[segment_index * 2] + segments[segment_index * 2 + 1]) * 0.5
 		var color := rendered.get_pixel(roundi(middle_px.x), roundi(middle_px.y))
-		expect(color.r > 0.8 and color.g > 0.6 and color.b < 0.65, "Chaque tick ambre est présent dans les pixels réellement rendus.")
-	var diagonal := rendered.get_pixel(roundi(center_px.x + 14.0), roundi(center_px.y + 14.0))
-	expect(not (diagonal.r > 0.9 and diagonal.g > 0.7 and diagonal.b < 0.65), "Le hitmarker n’ajoute aucune diagonale autour du centre rendu.")
+		expect(color.r > 0.8 and color.g > 0.6 and (color.b > 0.85 if HudScript.HIT_COLOR == Color.WHITE else color.b < 0.65), "Chaque branche du X est présente dans les pixels réellement rendus avec sa couleur déclarée.")
+	var center := rendered.get_pixel(roundi(center_px.x), roundi(center_px.y))
+	expect(center.g > center.r and center.b > center.r, "Le centre conserve le viseur turquoise sans superposition du X.")
 	expect(original_camera == camera.global_transform and original_transform == pool.spheres[0].global_transform, "Les feedbacks rendus ne modifient ni caméra ni cible réelle.")
 	var capture_path := "/tmp/aimtrainer-presentation-070.png"
 	expect(rendered.save_png(capture_path) == OK, "La capture réelle est enregistrée hors du checkout partagé.")

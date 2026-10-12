@@ -1,5 +1,46 @@
 # Plan de validation
 
+## Jalon 0.8.0 — 12 octobre 2026, UTC
+
+| Contrôle exécuté | Résultat |
+|---|---|
+| Input/UI/UX/imports/armes/archives/pause | 12 201 assertions, 0 échec ; capture physique du pointeur non exécutée en headless |
+| Géométrie et calibration historique | 2 355 + 906 assertions, 0 échec |
+| Espacement, aperçus et patterns | 385 + 9 042 + 2 711 assertions, 0 échec |
+| Relecture des scores JSON | 36 867 assertions, 0 échec ; données historiques conservées |
+| Calibration progressive et reprise | 9 489 assertions, 0 échec ; protocoles 4 et 5 séparés |
+| Exercices C03/M01/T10 historiques | 139 747 assertions, 0 échec |
+| Cycles, collision, expirations et score V2 | 1 712 assertions, 0 échec ; replays de suivi à 60/144/240 FPS et échéances scindées |
+| Présentation et UI temporelles | 540 + 203 assertions, 0 échec |
+| OpenGL/Mesa/Xorg dummy | 177 captures, 0 échec ; trois tailles, cycles de clic/suivi, hitmarker et résultats synthétiques identifiés |
+| Installation et import sans cache | Deux SHA-512 officiels revérifiés ; import/startup avec codes 0, sans ERROR/SCRIPT ERROR et manifestes sources identiques |
+| Windows release/pack isolé ouvert sous Linux | 18 variantes r6, 3 armes/imports, protocoles 4/5, routine et 4 viseurs ; 0 échec, tests exclus |
+| ZIP Windows et galerie PNG | Intégrité ZIP et SHA-256 vérifiés ; EXE PE x64/PCK/notices, 177 PNG et marqueur CURRENT validé |
+| Windows natif, son entendu, souris/scaling/latence/GPU et ergonomie humaine | Non exécutés |
+
+Total final des douze runners : **216 158 assertions, zéro échec**. L’export final réexécute les douze suites ; leurs passages précédents et les contrôles supplémentaires des agents ne sont pas additionnés. Ces nombres ne représentent ni des joueurs ni des minutes d’entraînement humain.
+
+Contre-exemples traités : expirations groupées par indice consommant le RNG dans un ordre dépendant du pas temporel ; tick de suivi traversant un remplacement ; score_version décodée comme float par JSON ; tests d’occlusion confondant le résultat Vector3/null avec un booléen ; tolérance géométrique tenant compte de la précision Canvas ; ancien test exigeant un pourcentage même lorsque les mesures pertinentes sont des nombres de touches, tirs ratés et cibles oubliées. Les tests vérifient le nouveau contrat sans supprimer les contrôles historiques.
+
+## Réception 0.8 — cycles, oublis et réacquisition
+
+Automatisation dédiée : dix-huit variantes r6, durée/tailles bornées, départ à taille initiale, expirations seedées et chronologiques, identité/RNG identiques après saut temporel ou petits pas. La collision suit exactement le diamètre rétrécissant. À l’échéance, aucune touche rétroactive de la cible disparue ; en pause, aucune expiration supplémentaire.
+
+Score V2 : tirs ratés, cibles expirées et échecs combinés distincts ; pas de tirs fictifs, pénalité effective, cohérence des taux/formules, JSON entier/float, falsifications refusées. CSV à 24 colonnes conservant l’ordre des 20 anciennes et progression à version/empreinte fixes. Scores V1 et ressources historiques inchangés, protocoles 4/5 reconstruits avec leurs propres difficultés. Tests des replays de suivi à 60/144/240 FPS, bornes positives, repositionnement et fragments à 240 Hz traversant les échéances.
+
+Hitmarker X : quatre diagonales à 45/135/225/315°, longueur de 5 px à la précision Canvas, centre ouvert, contour et séparation du viseur à toutes ses tailles ; fondu/arrêt/pause/animations réduites. Décor limité à 32 meshes statiques, matériaux mats éclairés, une lumière mondiale de côté, absence d’obstacles dans les volumes/segments des cibles. Les tests d’occlusion utilisent réellement le résultat Vector3/null d’AABB, pas une conversion implicite invalide.
+
+À vérifier **sur Windows réel** :
+
+1. En multicibles, laisser plusieurs cibles de côté : voir leur rétrécissement, leur disparition à des échéances différentes, puis réapparition ailleurs. Le compteur d’expirations et le score doivent réagir sans augmenter les tirs.
+2. Refaire le même scénario avec nouvelle graine, tester les petites cibles avancées, le bord visuel/hitbox et un clic tout près de l’échéance. Adapter la difficulté seulement dans une future définition versionnée, pas selon le score caché.
+3. Suivre pendant plusieurs cycles : taille finale visable, nouvelle cible ailleurs à taille initiale, réacquisition et temps sur cible mesurés. Les remplacements programmés ne deviennent pas des tirs ratés.
+4. Échap/Alt+Tab pendant le rétrécissement : pas de vieillissement en pause ni reprise implicite. Reprendre un protocole4 existant puis démarrer un protocole5 neuf ; vérifier archives et séparation des conditions.
+5. Vérifier les détails du décor et le contraste des cibles, ombres sous la même source, hitmarkerX distinct du viseur point/croix/cercle/T, fluidité/coûtGPU du MSAA4x et des ombres4096. Tester800/1280/1920px et scaling100/125/150%.
+6. Exporter des résultats contenant touches, tirs ratés et expirations ; vérifier les colonnes séparées, les versions de score et les records à contexte fixe. Aucun transfert vers un FPS ni optimum universel n’est prouvé par ces tests.
+
+Les tableaux historiques suivants restent des résultats de leurs propres versions.
+
 ## Jalon 0.7.0 — 12 octobre 2026, Europe/Paris
 
 | Contrôle exécuté | Résultat |

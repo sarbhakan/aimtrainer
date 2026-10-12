@@ -127,7 +127,7 @@ func test_feedback(viewport: SubViewport, tree: SceneTree) -> void:
 
 func test_selection(browser: TrainingBrowser, viewport: SubViewport, tree: SceneTree) -> void:
 	var selected: Button = browser.cards["C03"]
-	browser.select_definition(ScenarioCatalog.find("C03"))
+	browser.select_definition(ScenarioCatalog.find_practice("C03"))
 	await settle(tree)
 	var minimum := browser.get_combined_minimum_size()
 	var selected_rect := selected.get_global_rect()
@@ -211,18 +211,18 @@ func test_preview_lifecycle(browser: TrainingBrowser, viewport: SubViewport, tre
 		browser.search_input.grab_focus()
 		key(viewport, KEY_TAB)
 		await settle(tree)
-		var first: Button = browser.cards[ScenarioCatalog.DEFINITIONS[0].scenario_id]
+		var first: Button = browser.cards[ScenarioCatalog.practice_definitions()[0].scenario_id]
 		expect(first.has_focus(), "Tab doit rejoindre la première carte à %s." % dimensions)
 		key(viewport, KEY_DOWN)
 		await settle(tree)
-		var below: Button = browser.cards[ScenarioCatalog.DEFINITIONS[browser.grid.columns].scenario_id]
+		var below: Button = browser.cards[ScenarioCatalog.practice_definitions()[browser.grid.columns].scenario_id]
 		expect(below.has_focus() and browser.selected_definition.scenario_id == selected_id, "Flèche bas doit suivre la colonne sans sélectionner à %s." % dimensions)
 		key(viewport, KEY_UP)
 		await settle(tree)
 		expect(first.has_focus() and browser.selected_definition.scenario_id == selected_id, "Flèche haut doit revenir dans la même colonne à %s." % dimensions)
 		first.release_focus()
 		browser.dismiss_card_preview()
-		for definition in ScenarioCatalog.DEFINITIONS:
+		for definition in ScenarioCatalog.practice_definitions():
 			browser.show_card_preview(definition)
 			await settle(tree)
 			expect(Rect2(Vector2.ZERO, Vector2(dimensions)).encloses(browser.preview_popup.get_global_rect()), "L’aperçu %s doit tenir dans %s." % [definition.scenario_id, dimensions])

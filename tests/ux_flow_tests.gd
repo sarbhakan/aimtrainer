@@ -72,9 +72,12 @@ func test_first_steps(dashboard: AimDashboard) -> void:
 	expect(quick_resumes == 1 and guided_resumes == 1, "Les reprises guidée et rapide restent indépendantes même avec deux checkpoints.")
 	expect(dashboard.guided_effort_label.tooltip_text.contains("3–4") and dashboard.guided_effort_label.text.contains("51–68"), "Le parcours guidé annonce 51–68 minutes et précise 3–4 comparaisons à la demande, pas 17 minutes au total.")
 	expect(dashboard.quick_effort_label.text.contains("17") and dashboard.quick_effort_label.text.contains("reprise"), "La comparaison rapide annonce son effort et sa possibilité de reprise.")
-	for definition in ScenarioCatalog.DEFINITIONS:
-		expect(ScenarioCopy.description(definition).length() <= 90, "Chaque activité garde une consigne courte : " + definition.scenario_id)
-		expect(ScenarioCopy.measure(definition).contains("%"), "La mesure de l’activité est expliquée avec une unité compréhensible : " + definition.scenario_id)
+	for definition in ScenarioCatalog.practice_definitions():
+		var description := ScenarioCopy.description(definition)
+		expect(description.get_slice(".", 0).length() <= 90 and ScenarioCopy.description(ScenarioCatalog.find(definition.scenario_id)).length() <= 90, "Chaque activité conserve sa consigne principale courte et sa copie historique : " + definition.scenario_id)
+		expect(description.length() <= 145 and description.contains("rétréc") and description.contains("échéance" if definition.family == "tracking" else "expir"), "La consigne publique ajoute une explication bornée du rétrécissement et du remplacement ou des expirations : " + definition.scenario_id)
+		var measure_text := ScenarioCopy.measure(definition)
+		expect(measure_text.contains("%") if definition.family == "tracking" else measure_text.contains("touches") and measure_text.contains("tirs ratés") and measure_text.contains("cibles oubliées"), "L’unité affichée décrit le taux de suivi ou les trois compteurs temporels, sans jargon de version : " + definition.scenario_id)
 	dashboard.show_page(0)
 	expect(not dashboard.calibration_choices.visible, "Les choix de calibration ne débordent pas dans les autres destinations.")
 
@@ -255,7 +258,7 @@ func test_source_focus(tree: SceneTree) -> void:
 
 
 func session_fixture(scenario_id: String, key: String, identifier: String, stamp: String, score: float) -> Dictionary:
-	var definition := ScenarioCatalog.find(scenario_id)
+	var definition := ScenarioCatalog.find_practice(scenario_id)
 	return {"session_id": identifier, "created_at_utc": stamp, "scenario_id": scenario_id,
 		"family": definition.family, "comparison_key": key, "score": score,
 		"completed": true, "valid": true, "warmup": false, "active_duration_s": 30.0,
@@ -264,7 +267,7 @@ func session_fixture(scenario_id: String, key: String, identifier: String, stamp
 
 
 func summary_fixture(scenario_id: String, key: String, sessions: Array[Dictionary]) -> Dictionary:
-	var definition := ScenarioCatalog.find(scenario_id)
+	var definition := ScenarioCatalog.find_practice(scenario_id)
 	var scores: Array[float] = []
 	for session in sessions:
 		scores.append(float(session.score))

@@ -18,6 +18,7 @@ func run(tree: SceneTree, check: Callable) -> bool:
 		fingerprints.append(definition.fingerprint())
 	test_preview_definitions()
 	test_fixed_difficulty()
+	test_practice_score_sources()
 	await test_countdown_preparation(tree)
 	await test_preview_projection(tree)
 	await test_initial_camera_poses(tree)
@@ -92,6 +93,61 @@ func test_fixed_difficulty() -> void:
 			if definition.family == "tracking":
 				expect(engine.on_target_s > 0.99 if accurate else engine.on_target_s < 0.01, "Les deux replays de suivi doivent réellement produire une tenue presque complète et presque nulle, à difficulté identique.")
 		expect(definition.fingerprint() == original_fingerprint, "Les essais et leurs bilans ne doivent pas modifier la ressource utilisée par la calibration.")
+
+
+func test_practice_score_sources() -> void:
+	var profile := SensitivityService.default_profile()
+	for definition in ScenarioCatalog.practice_definitions():
+		var base := ScenarioCatalog.find(definition.scenario_id)
+		var base_fingerprint := base.fingerprint()
+		var base_engine := ScenarioEngine.new()
+		expect(base_engine.start(base, 42, 12.0), "La référence historique démarre sans activer la difficulté temporelle.")
+		var base_targets := base_engine.targets.duplicate(true)
+		var base_rng_state: int = base_engine.rng.state
+		var engine := ScenarioEngine.new()
+		expect(engine.start(definition, 42, 12.0), "La pratique publique démarre depuis sa vraie définition r6.")
+		if definition.family == "tracking":
+			for sample_index in range(1, 2881):
+				var time_s: float = sample_index / 240.0
+				engine.advance_to(time_s)
+				var direction: Vector3 = engine.target_direction(0, time_s)
+				engine.record_aim(time_s, rad_to_deg(atan2(-direction.x, -direction.z)), rad_to_deg(asin(direction.y)))
+		else:
+			for shot_index in 3:
+				var time_s: float = float(shot_index + 1) * 0.1
+				var direction: Vector3 = engine.target_direction(0, time_s)
+				engine.record_aim(time_s, rad_to_deg(atan2(-direction.x, -direction.z)), rad_to_deg(asin(direction.y)))
+				expect(engine.shoot(time_s, direction), "Les touches temporelles proviennent de la géométrie réellement visée.")
+			expect(not engine.shoot(0.4, Vector3.BACK), "Un vrai tir hors de la zone reste un tir manqué distinct d’une expiration.")
+		engine.record_frame(0.01)
+		engine.record_frame(0.01)
+		engine.advance_to(12.0)
+		var report := engine.result(profile, 16.0 / 9.0, true)
+		var metrics: Dictionary = report.metrics
+		var tracking: bool = definition.family == "tracking"
+		var expected_score: float = round(1000.0 * float(metrics.on_target_ratio)) if tracking else round(1000.0 * float(metrics.hits_per_s)
+			* pow(float(metrics.hits) / float(metrics.shots + metrics.targets_expired), 2.0) / definition.reference_hits_s)
+		expect(report.score_version == ScoringService.version_for(definition) and report.reference_hits_s == definition.reference_hits_s
+			and report.score == expected_score and ScoringService.explain(report).reference_hits_s == definition.reference_hits_s,
+			"Le score public utilise la référence déclarée et la vraie réussite avec expirations, ou le temps sur cible pour le suivi.")
+		expect(metrics.targets_expired > 0 and ScoringService.validate_result(report).is_empty()
+			and ScoringService.comparison_error(report).is_empty(), "Les rapports temporels actifs avec remplacement restent validables et comparables.")
+		if not tracking:
+			expect(report.score_policy == "expiry_accuracy_v2" and metrics.shots == 4 and metrics.hits == 3 and metrics.misses == 1
+				and is_equal_approx(float(metrics.accuracy_fraction), 0.75) and metrics.failed_actions == 1 + metrics.targets_expired,
+				"La réussite V2 ajoute les expirations sans réécrire les quatre tirs et leur précision brute.")
+			var without_reference := report.duplicate(true)
+			without_reference.erase("reference_hits_s")
+			expect(not ScoringService.validate_result(without_reference).is_empty(), "Un rapport V2 sans cadence de référence est refusé.")
+		var altered_reference := report.duplicate(true)
+		altered_reference.reference_hits_s *= 2.0
+		altered_reference.score = ScoringService.score(altered_reference, altered_reference.reference_hits_s)
+		expect(not ScoringService.comparison_error(altered_reference, report.comparison_key).is_empty(), "Même avec un score recalculé, une cadence de référence altérée ne devient pas comparable.")
+		var parsed: Dictionary = JSON.parse_string(JSON.stringify(report, "\t", true, true))
+		expect(ScoringService.validate_result(parsed).is_empty() and ScoringService.comparison_error(parsed).is_empty(), "Le rapport public et sa référence restent cohérents après JSON.")
+		expect(report.comparison_key != ScoringService.comparison_key(base, 12.0, profile, 16.0 / 9.0)
+			and base.fingerprint() == base_fingerprint and base_engine.targets == base_targets and base_engine.rng.state == base_rng_state
+			and base_engine.elapsed_s == 0.0, "La pratique conserve les empreintes, les cibles et le RNG de la référence historique indépendante.")
 
 
 func test_preview_projection(tree: SceneTree) -> void:

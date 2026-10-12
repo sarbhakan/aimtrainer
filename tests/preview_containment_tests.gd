@@ -203,7 +203,7 @@ func test_hover_lifecycle() -> void:
 	for frame_index in 3:
 		await process_frame
 	var initial_definition := browser.selected_definition
-	var definition := ScenarioCatalog.find("C03")
+	var definition := ScenarioCatalog.find_practice("C03")
 	var card: Button = browser.cards[definition.scenario_id]
 	card.grab_focus()
 	check(not browser.preview_popup.visible and not browser.preview_timer.is_stopped(), "Le focus doit respecter le délai d’ouverture de la bulle.")

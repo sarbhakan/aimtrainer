@@ -534,12 +534,12 @@ func export_sessions() -> String:
 	if file == null:
 		last_error = "Impossible de créer l'export CSV."
 		return ""
-	file.store_csv_line(PackedStringArray(["session_id", "created_at_utc", "scenario_id", "scenario_revision", "completed", "valid", "warmup", "dpi", "cm_per_360", "active_duration_s", "shots", "hits", "accuracy_pct", "on_target_ratio", "angular_error_mean_deg", "score", "score_version", "comparison_key", "received_x_counts", "received_y_counts"]))
+	file.store_csv_line(PackedStringArray(["session_id", "created_at_utc", "scenario_id", "scenario_revision", "completed", "valid", "warmup", "dpi", "cm_per_360", "active_duration_s", "shots", "hits", "accuracy_pct", "on_target_ratio", "angular_error_mean_deg", "score", "score_version", "comparison_key", "received_x_counts", "received_y_counts", "misses", "targets_expired", "effective_accuracy_pct", "failed_actions"]))
 	for result in results:
 		var metrics: Dictionary = result.metrics
 		var profile: Dictionary = result.profile
 		var row := PackedStringArray()
-		for value in [result.get("session_id", ""), result.get("created_at_utc", ""), result.get("scenario_id", ""), result.get("scenario_revision", 1), result.get("completed", false), result.get("valid", false), result.get("warmup", false), profile.get("dpi", 0), profile.get("cm_per_360", 0), result.get("active_duration_s", 0), metrics.get("shots", 0), metrics.get("hits", 0), metrics.get("accuracy_pct", null), metrics.get("on_target_ratio", 0), metrics.get("angular_error_mean_deg", 0), result.get("score", 0), result.get("score_version", 1), result.get("comparison_key", ""), metrics.get("received_x_counts", null), metrics.get("received_y_counts", null)]:
+		for value in [result.get("session_id", ""), result.get("created_at_utc", ""), result.get("scenario_id", ""), result.get("scenario_revision", 1), result.get("completed", false), result.get("valid", false), result.get("warmup", false), profile.get("dpi", 0), profile.get("cm_per_360", 0), result.get("active_duration_s", 0), metrics.get("shots", 0), metrics.get("hits", 0), metrics.get("accuracy_pct", null), metrics.get("on_target_ratio", 0), metrics.get("angular_error_mean_deg", 0), result.get("score", 0), result.get("score_version", 1), result.get("comparison_key", ""), metrics.get("received_x_counts", null), metrics.get("received_y_counts", null), metrics.get("misses", null), metrics.get("targets_expired", null), metrics.get("effective_accuracy_pct", null), metrics.get("failed_actions", null)]:
 			row.append("" if value == null else str(value))
 		file.store_csv_line(row)
 	file.flush()

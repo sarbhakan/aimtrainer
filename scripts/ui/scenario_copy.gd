@@ -38,7 +38,27 @@ static func title(definition: ScenarioDefinition) -> String:
 
 
 static func description(definition: ScenarioDefinition) -> String:
-	return str(DESCRIPTIONS.get(definition.scenario_id, definition.instructions))
+	var text: String = str(DESCRIPTIONS.get(definition.scenario_id, definition.instructions))
+	if temporal(definition):
+		if definition.scenario_id == "D01":
+			text = "Touchez la cible avant son échéance."
+		text += " La cible rétrécit puis est remplacée à son échéance." if definition.family == "tracking" else " Les cibles rétrécissent puis expirent."
+	return text
+
+
+static func temporal(definition: ScenarioDefinition) -> bool:
+	return definition.has_lifecycle()
+
+
+static func report_definition(report: Dictionary) -> ScenarioDefinition:
+	var scenario_id: String = str(report.get("scenario_id", ""))
+	if report.has("scenario_fingerprint"):
+		var definition := ScenarioCatalog.resolve(scenario_id, str(report.scenario_fingerprint))
+		if definition != null:
+			return definition
+	if int(report.get("scenario_revision", 1)) >= 6:
+		return ScenarioCatalog.find_practice(scenario_id)
+	return ScenarioCatalog.find(scenario_id)
 
 
 static func family(definition: ScenarioDefinition) -> String:
@@ -50,4 +70,6 @@ static func interaction(definition: ScenarioDefinition) -> String:
 
 
 static func measure(definition: ScenarioDefinition) -> String:
+	if temporal(definition) and definition.family != "tracking":
+		return "Mesures : touches, tirs ratés et cibles oubliées."
 	return "Mesure : % du temps avec le viseur sur la cible. Tir facultatif." if definition.family == "tracking" else "Mesures : % de tirs réussis et cibles touchées par minute."

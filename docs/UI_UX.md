@@ -1,4 +1,10 @@
-# Interface et présentation — 0.7.0
+# Interface et présentation — 0.8.0
+
+## Cibles temporaires
+
+Les cartes et bulles publiques montrent exactement les variantes r6 jouées : cibles rétrécissantes, échéances et remplacement. Le résultat de clic affiche Touches, Ratées et Réussite, avec tirs ratés/expirations distincts ; le score est versionné dans les détails, pas dans les libellés courants. Le suivi garde son temps sur cible et explique que ses remplacements programmés ne sont pas des tirs ratés. Le HUD indique une expiration de clic sans ajouter une liste de chiffres devant la visée.
+
+Le nouveau hitmarker X n’est plus une extension du viseur. Décor plus riche en périphérie, source directionnelle unique de côté et ombres des sphères conservées pour la profondeur. La nouvelle calibration est protocole5 ; les reprises 0.7 gardent leur protocole4 et leurs règles historiques. Les options d’objectif historiques non utilisées par la recherche progressive restent cachées.
 
 ## Parcours long, rendu cohérent
 

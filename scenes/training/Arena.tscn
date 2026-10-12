@@ -48,9 +48,9 @@ script=ExtResource("3_presentation")
 environment=SubResource("Environment")
 
 [node name="Light" type="DirectionalLight3D" parent="."]
-rotation_degrees=Vector3(-40, -25, 0)
+rotation_degrees=Vector3(-34, -58, 0)
 light_color=Color(1, 0.98, 0.95, 1)
-light_energy=0.35
+light_energy=0.55
 shadow_enabled=true
 directional_shadow_mode=0
 directional_shadow_max_distance=32.0

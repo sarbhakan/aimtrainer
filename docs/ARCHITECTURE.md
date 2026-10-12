@@ -59,6 +59,10 @@ L’interface responsive conserve les boutons de lancement et d’enregistrement
 
 ## Recherche progressive 0.7.0
 
+En 0.8, `ScenarioCatalog.practice_definitions()` construit une fois les dix-huit variantes temporelles r6 ; `DEFINITIONS/find` restent les références figées. `resolve(id, fingerprint)` associe un rapport à sa vraie difficulté pour l’expliquer sans changer son score. `ScenarioEngine` choisit les échéances seedées à chaque apparition et traite les expirations dans leur ordre global, rétrécissement/rayon partagés. Le suivi scinde les samples240Hz traversant une échéance et repart sur un parcours d’âge zéro.
+
+`ScoringService.VERSION=1` reste historique ; `EXPIRY_VERSION=2` ajoute la pénalité d’oubli pour le clic temporel. La clé inclut version et empreinte ; raw shots/misses ne reçoivent aucun tir fictif. `ProgressiveCalibrationService` démarre le protocole5 temporel mais restaure le protocole4 sur les références historiques, puis sauvegarde son protocole effectif dans le checkpoint/bilan. La vérification JSON accepte les versions numériques entières décodées en float, pas des versions inconnues.
+
 `ProgressiveCalibrationService` pilote 25 essais de 45/60 s dans cinq activités. Recherche en logarithme de vitesse, baseline/rapide puis branche guidée par l’utilité non arrondie ; contraction au bloc suivant, tie-breaks numériquement stables. La reprise rejoue les rapports validés depuis la référence ; ni gagnant ni intervalle sérialisé arbitraire ne gouverne les décisions. Le rapport final est reconstructible et correspond à un réglage testé dans la dernière activité. Cette heuristique est séquentielle, pas une validation statistique multisession.
 
 `Main` sauvegarde le rapport avant d’accepter l’essai, puis le checkpoint ; un refus restaure l’état précédent et conserve le même rapport/identifiant en mémoire. La sauvegarde d’une séance déjà réussie n’est pas répétée : elle est immuable. Un bilan non écrit propose de réessayer avant de montrer Appliquer. `progressive_calibration_checkpoint.json` et `calibrations/progressive-<id>.json` sont distincts des anciens formats ; archive du précédent sous verrou et octets conservés.

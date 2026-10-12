@@ -242,8 +242,8 @@ func build_home(content: VBoxContainer) -> void:
 	var layout := AimUI.row(hero, AimUI.SPACE_XL)
 	var introduction := AimUI.column(layout)
 	introduction.add_child(AimUI.label("Votre première séance", 28))
-	introduction.add_child(AimUI.label("Cliquez sur les cibles réparties devant vous pendant 30 s.", 15))
-	introduction.add_child(AimUI.label("Résultats : précision (%) et cibles touchées par minute.", 13, AimUI.MUTED))
+	introduction.add_child(AimUI.label("Les cibles rétrécissent puis expirent. Touchez-les avant leur échéance pendant 30 s.", 15))
+	introduction.add_child(AimUI.label("Résultats : touches, ratées (tirs manqués + expirées) et réussite V2.", 13, AimUI.MUTED))
 	var actions := AimUI.flow(introduction)
 	home_start_button = AimUI.button("Lancer les multicibles · 30 s", func() -> void: training_requested.emit("C03", 30.0), true)
 	actions.add_child(home_start_button)
@@ -253,7 +253,7 @@ func build_home(content: VBoxContainer) -> void:
 	preview.custom_minimum_size = Vector2(230, 156)
 	preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	layout.add_child(preview)
-	preview.configure(ScenarioCatalog.find("C03"), true)
+	preview.configure(ScenarioCatalog.find_practice("C03"), true)
 	var routine := AimUI.card(content, AimUI.SPACE_LG)
 	routine.add_child(AimUI.label("Entraînement complet", 20))
 	routine.add_child(AimUI.label("1 · %s   →   2 · %s   →   3 · %s" % [ScenarioCopy.TITLES.M01, ScenarioCopy.TITLES.T10, ScenarioCopy.TITLES.S02], 14, AimUI.MUTED))
@@ -271,7 +271,7 @@ func build_home(content: VBoxContainer) -> void:
 	AimUI.grid_spacing(home_grid)
 	content.add_child(home_grid)
 	for scenario_id in ["C03", "T01", "C02"]:
-		var definition := ScenarioCatalog.find(scenario_id)
+		var definition := ScenarioCatalog.find_practice(scenario_id)
 		var control := TrainingBrowser.scenario_card(definition, func() -> void:
 			browser.selected_family = "all"
 			browser.search_input.clear()
@@ -279,10 +279,10 @@ func build_home(content: VBoxContainer) -> void:
 			browser.select_definition(definition)
 			show_page(1)
 			browser.show_card_preview(definition))
-		control.custom_minimum_size.y = 236.0
+		control.custom_minimum_size.y = 276.0
 		var card_content: VBoxContainer = control.get_child(0).get_child(0)
 		card_content.add_child(AimUI.label(ScenarioCopy.description(definition), 13, AimUI.MUTED))
-		card_content.add_child(AimUI.label("Temps sur cible (%)" if definition.family == "tracking" else "Précision (%) · cibles/min", 12, AimUI.ACCENT))
+		card_content.add_child(AimUI.label("Temps sur cible (%)" if definition.family == "tracking" else "Touches · ratées · réussite V2", 12, AimUI.ACCENT))
 		home_grid.add_child(control)
 		home_cards[scenario_id] = control
 		control.mouse_entered.connect(func() -> void: schedule_home_preview(definition, control))
@@ -436,6 +436,7 @@ func build_calibration(content: VBoxContainer) -> void:
 	dpi_input = SensitivityImport.numeric(setup, "DPI actuels de la souris", 1, 64000, 1)
 	dpi_input.tooltip_text = "Recopiez les DPI indiqués dans le logiciel de votre souris. AIM/LOCAL ne les détecte pas."
 	var goal_row := AimUI.row(setup)
+	goal_row.hide()
 	var goal_label := AimUI.label("Votre priorité")
 	goal_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	goal_row.add_child(goal_label)
@@ -467,8 +468,9 @@ func build_calibration(content: VBoxContainer) -> void:
 	protocol_grid = GridContainer.new()
 	AimUI.grid_spacing(protocol_grid, AimUI.SPACE_MD)
 	details.add_child(protocol_grid)
-	for scenario_index in CalibrationService.SCENARIOS.size():
-		var definition := ScenarioCatalog.find(CalibrationService.SCENARIOS[scenario_index])
+	for scenario_index in ProgressiveCalibrationService.SCENARIOS.size():
+		var scenario_id: String = ProgressiveCalibrationService.SCENARIOS[scenario_index]
+		var definition := ScenarioCatalog.find_practice(scenario_id) if ProgressiveCalibrationService.PROTOCOL_VERSION >= 5 else ScenarioCatalog.find(scenario_id)
 		var block := AimUI.card(protocol_grid, AimUI.SPACE_LG)
 		block.add_child(AimUI.label("%02d · %s" % [scenario_index + 1, ScenarioCopy.title(definition)], 14))
 		block.add_child(AimUI.label(ScenarioCopy.description(definition), 12, AimUI.MUTED))
@@ -563,7 +565,7 @@ func build_history(content: VBoxContainer) -> void:
 			browser.selected_family = "all"
 			browser.search_input.clear()
 			browser.filter_catalog()
-			browser.select_definition(ScenarioCatalog.find(scenario_id)))
+			browser.select_definition(ScenarioCatalog.find_practice(scenario_id)))
 	history_summary = progress_board.summary_label
 	history_content = progress_board
 	var export_actions := AimUI.flow(content)

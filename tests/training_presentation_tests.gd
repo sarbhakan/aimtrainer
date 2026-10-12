@@ -71,7 +71,7 @@ func run(tree: SceneTree, check: Callable) -> bool:
 		var material := mesh.mesh.surface_get_material(0) as StandardMaterial3D
 		expect(material != null and material.shading_mode == BaseMaterial3D.SHADING_MODE_PER_PIXEL and not material.emission_enabled, "Les volumes du laboratoire sont réellement ombrés, pas des aplats émissifs.")
 	expect((app.arena.get_node("Light") as DirectionalLight3D).shadow_enabled, "Le laboratoire possède des ombres directionnelles et un remplissage, sans grille de fond.")
-	for definition in ScenarioCatalog.DEFINITIONS:
+	for definition in ScenarioCatalog.practice_definitions():
 		expect(definition.maximum_distance_m() * (1.0 + sin(deg_to_rad(definition.maximum_angular_diameter_deg() * 0.5))) < 11.0, "Aucune cible, même à taille/profondeur maximale, ne peut être masquée par le fond : " + definition.scenario_id)
 	app.queue_free()
 	await tree.process_frame

@@ -78,6 +78,7 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	store.reject_checkpoint = false
 	app.home.progressive_button.pressed.emit()
 	expect(app.screen == app.Screen.COUNTDOWN and app.is_progressive and app.selected_duration_s == 60.0 and app.training_profile.cm_per_360 == profile.cm_per_360, "L’interface publique démarre un vrai essai de 60 s à la sensibilité exacte.")
+	expect(app.progressive.protocol_version == 5 and app.selected_definition == app.progressive.definition_for("C02") and app.selected_definition == ScenarioCatalog.find_practice("C02"), "Le parcours public associe le protocole 5 à sa définition temporelle.")
 	var first_seed: int = app.selected_seed
 	complete_trial(app)
 	expect(app.screen == app.Screen.REST and not app.session_panel.comfort_row.visible and not app.last_report.warmup, "Le résultat présente les mesures, sans questionnaire de confort ni échauffement de 8 s.")
@@ -150,7 +151,7 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	expect(app.is_routine and app.selected_definition.scenario_id == "M01" and app.selected_duration_s == 45.0, "La séance commence par les grands et petits mouvements mélangés.")
 	var routine_profile: Dictionary = app.training_profile.duplicate(true)
 	for stage_index in 3:
-		expect(app.selected_definition.scenario_id == TrainingRoutineService.SCENARIO_IDS[stage_index] and app.training_profile == routine_profile, "Chaque phase suit son exercice avec le même réglage.")
+		expect(app.selected_definition == ScenarioCatalog.find_practice(TrainingRoutineService.SCENARIO_IDS[stage_index]) and app.training_profile == routine_profile, "Chaque phase suit sa variante temporelle avec le même réglage.")
 		complete_trial(app)
 		app.rest_until_us = 0
 		if stage_index == 0:

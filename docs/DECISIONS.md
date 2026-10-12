@@ -149,3 +149,13 @@ Le checkpoint distinct se reconstruit en rejouant les rapports vérifiés ; pann
 C03 r5 devient scatter libre ; M01 et T10 r5 ajoutent mouvements mixtes et suivi avec profondeur. Plan M01/T10/S02 en trois phases, résultats séparés, graines renouvelées en pratique et reprises explicites après perte de focus. Pas de score global mélangeant les unités ni d’adaptation cachée à la réussite.
 
 Aperçus d’armes nus de profil, bounds mis en cache et cadrage orthographique avec marge, sans changer les viewmodels HUD. Une source directionnelle unique dans l’arène, ambient diffus, biseaux et MSAA4× ; l’arme reste dans son propre monde. Hitmarker ambre orthogonal et décompte PCM préalloué, une émission par chiffre, silence/volume respectés. Rendu logiciel distinct de réception Windows, matériel et écoute audio.
+
+## D28 — Expirations explicites, scores versionnés, 0.8.0
+
+Les références de 0.7 sont figées ; dix-huit variantes r6 sont construites et mises en cache pour les pratiques et nouvelles calibrations. Durées seedées ±15 %, taille décroissante avec plancher positif, échéances chronologiques plutôt qu’un ordre par cible dépendant des frames. Le pool et le rayon d’impact utilisent la même géométrie. Une expiration de clic compte séparément d’un tir raté : shots/misses gardent leur sens ; failed_actions = tirs ratés + expirations. Score V2 fondé sur touches/seconde × (touches/(tirs+expirations))², formule V1 conservée pour les données historiques. Aucun score n’est converti ni record mélangé.
+
+En suivi, cycles de dix secondes nominales, réapparition ailleurs à taille initiale, plancher visable et réacquisition depuis la nouvelle apparition. Le suivi ne transforme pas une expiration programmée en tir manqué. Intégration 240 Hz scindée aux échéances, exposition sans trous. Nouvelle calibration protocole5 sur r6 ; protocole4 rejoué/repris sur ses références d’origine, sans changer les conditions d’une séance interrompue. Le CSV ajoute les expirations et réussites sans réordonner les colonnes existantes.
+
+## D29 — Hitmarker distinct et décor périphérique
+
+Hitmarker original en X, quatre petits traits diagonaux, centre ouvert et séparation au-delà de tout viseur configurable ; aucun asset propriétaire de Call of Duty. Décor détaillé en périphérie/derrière la zone de tir, budget ≤32 meshes statiques, une seule source directionnelle mondiale avec ombres communes aux sphères et bâtiments. L’ambient diffus et le monde séparé du viewmodel n’ajoutent pas d’ombre mondiale contradictoire. Les contours et tests géométriques acceptent uniquement la précision subpixel des coordonnées Canvas, pas des bras de longueur arbitraire.

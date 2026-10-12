@@ -1,5 +1,6 @@
 from hashlib import sha256
 from pathlib import Path
+import json
 import os
 import re
 import struct
@@ -105,7 +106,20 @@ def validate_png(capture):
 project_root = Path(__file__).resolve().parent.parent
 version = re.search(r'config/version="([^"]+)"', (project_root / "project.godot").read_text()).group(1)
 preview_dir = Path(os.environ.get("AIM_LOCAL_SCREENSHOT_DIR") or project_root / "dist" / "preview").expanduser().resolve()
-captures = sorted(preview_dir.glob("*.png"))
+current_marker = preview_dir / "CURRENT"
+try:
+    current = json.loads(current_marker.read_text(encoding="utf-8"))
+except (OSError, ValueError) as error:
+    raise SystemExit(f"Marqueur CURRENT absent ou invalide dans {preview_dir}. Relancer la validation visuelle actuelle.") from error
+if (not isinstance(current, dict) or current.get("app_version") != version
+        or current.get("protocol_version") != 5 or current.get("scenario_revision") != 6):
+    raise SystemExit("La galerie CURRENT ne correspond pas à cette version, au protocole 5 et aux variantes r6.")
+capture_names = current.get("captures", [])
+if (not isinstance(capture_names, list) or not capture_names or len(capture_names) >= 180
+        or any(not isinstance(name, str) or Path(name).name != name or not name.endswith(".png") for name in capture_names)
+        or len(set(capture_names)) != len(capture_names)):
+    raise SystemExit("La liste des captures CURRENT est invalide ou dépasse le budget de moins de 180 images.")
+captures = sorted(preview_dir / name for name in capture_names)
 required = {
     "1280-07-entrainement.png", "800-16-survol.png", "1280-25-impact.png",
     "1280-06-decompte-2.png", "1280-06-decompte-1.png", "1280-21-tir.png", "1280-22-recul.png",
@@ -134,10 +148,24 @@ for duration_s in (45, 60):
         for stage_index in range(1, 4):
             for screen in ("depart", "exercice", "repos-exemple"):
                 required.add(f"{width}-39-routine-{duration_s}-etape-{stage_index}-{screen}.png")
+for phase in ("early", "late", "predeadline", "deadline", "hold-2s"):
+    required.add(f"1280-42-lifeC03-{phase}.png")
+for phase in ("early", "midlife", "predeadline", "cycle-1", "cycle-2"):
+    required.add(f"1280-43-lifeT10-{phase}.png")
+for width in (800, 1280):
+    required.add(f"{width}-44-expirations-score-v2-exemple.png")
+    required.add(f"{width}-45-calibration-protocole4-exemple.png")
 missing = required - {capture.name for capture in captures}
 if missing:
     raise SystemExit(f"Captures manquantes dans {preview_dir} : " + ", ".join(sorted(missing))
                      + ". Lancer bash tools/visual_smoke.sh avec le même AIM_LOCAL_SCREENSHOT_DIR.")
+lifecycle_states = current.get("lifecycle_states", [])
+expected_lifecycle = {name for name in required if "-42-lifeC03-" in name or "-43-lifeT10-" in name}
+if (not isinstance(lifecycle_states, list) or len(lifecycle_states) != 10
+        or any(not isinstance(state, dict) or state.get("active") is not True
+               or state.get("shots") != 0 or state.get("input_events") != 0 for state in lifecycle_states)
+        or {state.get("capture") for state in lifecycle_states} != expected_lifecycle):
+    raise SystemExit("Les dix captures temporelles CURRENT doivent provenir d’exercices actifs sans input.")
 for capture in captures:
     try:
         validate_png(capture)
@@ -149,6 +177,7 @@ archive.parent.mkdir(parents=True, exist_ok=True)
 with ZipFile(archive, "w", ZIP_DEFLATED) as output:
     for capture in captures:
         output.write(capture, capture.name)
+    output.write(current_marker, "CURRENT")
     output.writestr("LIRE-MOI.txt", (
         f"AIM/LOCAL {version} — {len(captures)} captures PNG\n\n"
         "Décompresser sur Mac ou Windows, puis ouvrir les images normalement.\n"
@@ -162,7 +191,8 @@ with ZipFile(archive, "w", ZIP_DEFLATED) as output:
         "17/19-import, 18/20-conversion : exemples d’import physique et conversion.\n"
         "34-sensibilite-en-pause : modification sans mélanger les scores.\n"
         "35-pattern-D01/D02 : instantanés de tailles et mouvements variables.\n\n"
-        "Calibration progressive 0.7 : cinq exercices, chacun avec cinq essais de\n"
+        "Calibration progressive 0.8, protocole 5 : cinq exercices temporels r6,\n"
+        "chacun avec cinq essais de\n"
         "60 secondes, soit 25 essais. Les scores guident les cinq sensibilités\n"
         "testées et resserrent la zone avant le bloc suivant. Le bilan présente\n"
         "une seule sensibilité retenue, sans promesse de sensibilité parfaite.\n"
@@ -171,6 +201,10 @@ with ZipFile(archive, "w", ZIP_DEFLATED) as output:
         "15-repos et 28-guide-affinage : noms compatibles des blocs 1 et 5.\n"
         "10-bilan/30-guide-conseil-exemple : bilan progressif synthétique unique.\n"
         "41-calibration-mesures-exemple : calculs et intervalles dépliés.\n"
+        "Clics et transitions : score V2, réussite = touches / (tirs + expirations).\n"
+        "Les suivis conservent le score V1 et leur vrai temps sur cible.\n"
+        "45-calibration-protocole4-exemple : ancien bilan 0.7, vingt-cinq essais\n"
+        "V1 et définitions historiques conservés, avec mention visible.\n"
         "Les anciens noms guide sont conservés pour compatibilité des captures.\n\n"
         "31-exercice-ID : les dix-huit exercices actuels :\n"
         + "\n".join(f"  {scenario_id} — {title}" for scenario_id, title in EXERCISES.items())
@@ -180,6 +214,14 @@ with ZipFile(archive, "w", ZIP_DEFLATED) as output:
         "39-routine-45/60-etape-1..3 : départ, exercice et repos pour M01 Flicks\n"
         "mixtes, T10 Suivi varié et S02 Transitions mobiles, à 45 et 60 secondes.\n"
         "40-routine-45/60-bilan-exemple : trois résultats séparés, sans total.\n\n"
+        "42-lifeC03 : début, rétrécissement, juste avant la vraie échéance,\n"
+        "remplacement immédiat puis plus de deux secondes sans souris ni tir.\n"
+        "43-lifeT10 : début, milieu et fin de la durée seedée, puis deux cycles\n"
+        "réels de réapparition, avec taille et profondeur calculées par le moteur.\n"
+        "Le HUD reste actif et ses expirations et son score sont actualisés.\n"
+        "44-expirations-score-v2-exemple : 36 touches, 48 tirs, 12 expirations ;\n"
+        "précision brute 75 %, réussite effective V2 60 %, données synthétiques.\n"
+        "CURRENT identifie cette galerie 0.8 et ses états temporels seedés.\n\n"
         "Les bilans, blocs, repos de routine, records et historiques portent une\n"
         "mention visible de données synthétiques. Le résultat 09 utilise une\n"
         "visée et une durée simulées. Aucun score n’est présenté comme une\n"

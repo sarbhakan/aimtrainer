@@ -8,7 +8,7 @@ const PREVIEW_DELAY_S: float = 0.18
 const FAMILY_IDS := ["all", "click", "tracking", "switching"]
 const CARD_WIDTH_PX: float = 192.0
 
-var selected_definition: ScenarioDefinition = ScenarioCatalog.DEFINITIONS[0]
+var selected_definition: ScenarioDefinition = ScenarioCatalog.practice_definitions()[0]
 var selected_family: String = "all"
 var search_input: LineEdit
 var duration_input: OptionButton
@@ -66,7 +66,7 @@ func _ready() -> void:
 	catalog_scroll.add_child(grid)
 	var card_group := ButtonGroup.new()
 	card_group.allow_unpress = false
-	for definition in ScenarioCatalog.DEFINITIONS:
+	for definition in ScenarioCatalog.practice_definitions():
 		var control := scenario_card(definition, func() -> void: select_definition(definition))
 		control.toggle_mode = true
 		control.button_group = card_group
@@ -179,7 +179,7 @@ func filter_catalog() -> void:
 	dismiss_card_preview()
 	var matches: Array[ScenarioDefinition] = []
 	var query := search_input.text.strip_edges().to_lower()
-	for definition in ScenarioCatalog.DEFINITIONS:
+	for definition in ScenarioCatalog.practice_definitions():
 		var visible_card := (selected_family == "all" or definition.family == selected_family) and (query.is_empty() or (ScenarioCopy.title(definition) + " " + ScenarioCopy.description(definition)).to_lower().contains(query))
 		cards[definition.scenario_id].visible = visible_card
 		if visible_card:
@@ -211,7 +211,7 @@ func update_layout() -> void:
 
 func update_card_focus() -> void:
 	var visible_cards: Array[Button] = []
-	for definition in ScenarioCatalog.DEFINITIONS:
+	for definition in ScenarioCatalog.practice_definitions():
 		var control: Button = cards[definition.scenario_id]
 		if control.visible:
 			visible_cards.append(control)

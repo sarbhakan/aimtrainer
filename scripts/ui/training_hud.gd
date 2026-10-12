@@ -5,7 +5,9 @@ const CountdownFeedbackScript := preload("res://scripts/presentation/countdown_f
 const HIT_DURATION_S: float = 0.11
 const COUNTDOWN_PULSE_DURATION_S: float = 0.16
 const GO_DURATION_S: float = 0.45
-const HIT_DIRECTIONS: PackedVector2Array = [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]
+const HIT_DIRECTIONS: PackedVector2Array = [
+	Vector2(0.70710678, 0.70710678), Vector2(-0.70710678, 0.70710678),
+	Vector2(-0.70710678, -0.70710678), Vector2(0.70710678, -0.70710678)]
 const HIT_COLOR: Color = Color("ffd18a")
 const HIT_LENGTH_PX: float = 5.0
 
@@ -14,6 +16,7 @@ var metric_label: Label
 var timer_label: Label
 var stat_label: Label
 var score_label: Label
+var expired_label: Label
 var help_label: Label
 var countdown_label: Label
 var progress: ProgressBar
@@ -69,6 +72,11 @@ func _ready() -> void:
 	score_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	metric_column.add_child(score_label)
+	expired_label = AimUI.label("", 10, AimUI.MUTED)
+	expired_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	expired_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	expired_label.hide()
+	metric_column.add_child(expired_label)
 	progress = ProgressBar.new()
 	progress.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	progress.offset_bottom = 2.0
@@ -160,16 +168,22 @@ func set_training_view(active: bool, preparing: bool) -> void:
 		title_label.text = ""
 
 
-func present_live(elapsed_s: float, duration_s: float, hits: int, shots: int, tracking: bool, on_target_s: float, exposed_s: float, reference_hits_s: float) -> void:
+func present_live(elapsed_s: float, duration_s: float, hits: int, shots: int, tracking: bool, on_target_s: float, exposed_s: float, reference_hits_s: float, expired: int = 0, score_version: int = 1) -> void:
 	var remaining_s := int(ceil(maxf(duration_s - elapsed_s, 0.0)))
 	timer_label.text = "%d:%02d" % [remaining_s / 60, remaining_s % 60]
 	var accuracy := float(hits) / maxf(float(shots), 1.0)
 	var ratio := on_target_s / maxf(exposed_s, 0.000001)
-	stat_label.text = "SUR CIBLE" if tracking else "TOUCHES · PRÉCISION"
-	metric_label.text = "%s %%" % AimUI.number(ratio * 100.0, 0) if tracking else "%d · %s" % [hits, (AimUI.number(accuracy * 100.0, 0) + " %") if shots > 0 else "—"]
-	var metrics := {"accuracy_fraction": accuracy, "hits_per_s": float(hits) / maxf(elapsed_s, 0.000001), "on_target_ratio": ratio}
-	var score := int(ScoringService.score({"family": "tracking" if tracking else "click", "metrics": metrics}, reference_hits_s))
+	var attempts := shots + expired if score_version >= 2 else shots
+	var success := float(hits) / maxf(float(attempts), 1.0)
+	stat_label.text = "SUR CIBLE" if tracking else ("TOUCHES · RÉUSSITE" if score_version >= 2 else "TOUCHES · PRÉCISION")
+	metric_label.text = "%s %%" % AimUI.number(ratio * 100.0, 0) if tracking else "%d · %s" % [hits, (AimUI.number(success * 100.0, 0) + " %") if attempts > 0 else "—"]
+	var metrics := {"accuracy_fraction": accuracy, "hits_per_s": float(hits) / maxf(elapsed_s, 0.000001),
+		"hits": hits, "shots": shots, "targets_expired": expired, "on_target_ratio": ratio}
+	var report := {"family": "tracking" if tracking else "click", "score_version": score_version, "metrics": metrics}
+	var score := int(ScoringService.score(report, reference_hits_s))
 	score_label.text = "Score %d" % score
+	expired_label.visible = not tracking and score_version >= 2 and expired > 0
+	expired_label.text = ("1 cible expirée" if expired == 1 else "%d cibles expirées" % expired) if expired_label.visible else ""
 	progress.max_value = duration_s
 	progress.value = elapsed_s
 
@@ -345,19 +359,30 @@ func draw_crosshair() -> void:
 	CrosshairProfile.draw(crosshair_layer, center, crosshair_profile)
 	if hit_remaining_s > 0.0:
 		var segments := hitmarker_segments()
+		var opacity := hitmarker_opacity()
+		var outline := CrosshairProfile.OUTLINE_COLOR
+		outline.a *= opacity
+		var color := HIT_COLOR
+		color.a *= opacity
 		for segment_index in HIT_DIRECTIONS.size():
 			var first_px := segments[segment_index * 2]
 			var last_px := segments[segment_index * 2 + 1]
 			var direction := HIT_DIRECTIONS[segment_index]
-			crosshair_layer.draw_line(first_px - direction, last_px + direction, CrosshairProfile.OUTLINE_COLOR, 4.0, true)
-			crosshair_layer.draw_line(first_px, last_px, HIT_COLOR, 2.0, true)
+			crosshair_layer.draw_line(first_px - direction, last_px + direction, outline, 4.0, true)
+			crosshair_layer.draw_line(first_px, last_px, color, 2.0, true)
 
 
 func hitmarker_segments() -> PackedVector2Array:
 	var center_px := size * 0.5
-	var inner_px := maxf(CrosshairProfile.radius_px(crosshair_profile) + 5.0, 8.0)
+	var inner_px := maxf(CrosshairProfile.radius_px(crosshair_profile) + 11.0, 14.0)
 	var segments := PackedVector2Array()
 	for direction in HIT_DIRECTIONS:
 		segments.append(center_px + direction * inner_px)
 		segments.append(center_px + direction * (inner_px + HIT_LENGTH_PX))
 	return segments
+
+
+func hitmarker_opacity() -> float:
+	if hit_remaining_s <= 0.0:
+		return 0.0
+	return 1.0 if reduced_motion else clampf(hit_remaining_s / HIT_DURATION_S, 0.0, 1.0)

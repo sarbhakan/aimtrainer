@@ -20,7 +20,7 @@ func smoke() -> void:
 	if DirAccess.dir_exists_absolute("res://tests"):
 		push_error("Le dossier de tests doit être absent du pack produit.")
 		failures += 1
-	for test_path in ["run_tests", "domain_tests", "ui_tests", "sensitivity_import_tests", "geometry_regression_tests", "browser_preview_tests", "weapon_animation_tests", "calibration_block_tests", "checkpoint_migration_tests", "ui_polish_tests", "ux_flow_tests", "crosshair_feedback_tests", "gameplay_quality_tests", "adaptive_calibration_tests", "guided_flow_tests", "record_flow_tests", "revision_archive_tests", "training_presentation_tests", "ui_spacing_tests", "preview_containment_tests", "pause_seed_tests", "pattern_variation_tests", "storage_roundtrip_tests", "exercise_070_tests", "presentation_070_tests", "progressive_ui_tests", "progressive_calibration_tests", "progressive_calibration_flow_tests", "progressive_visual_fixtures", "export_smoke", "benchmark", "visual_smoke"]:
+	for test_path in ["run_tests", "domain_tests", "ui_tests", "sensitivity_import_tests", "geometry_regression_tests", "browser_preview_tests", "weapon_animation_tests", "calibration_block_tests", "checkpoint_migration_tests", "ui_polish_tests", "ux_flow_tests", "crosshair_feedback_tests", "gameplay_quality_tests", "adaptive_calibration_tests", "guided_flow_tests", "record_flow_tests", "revision_archive_tests", "training_presentation_tests", "ui_spacing_tests", "preview_containment_tests", "pause_seed_tests", "pattern_variation_tests", "storage_roundtrip_tests", "exercise_070_tests", "presentation_070_tests", "presentation_080_tests", "temporal_ui_tests", "temporal_tests", "lifecycle_tests", "progressive_ui_tests", "progressive_calibration_tests", "progressive_calibration_flow_tests", "progressive_visual_fixtures", "export_smoke", "benchmark", "visual_smoke"]:
 		if ResourceLoader.exists("res://tests/" + test_path + ".gd"):
 			push_error("Ressource de test présente dans le pack : " + test_path)
 			failures += 1
@@ -47,6 +47,7 @@ func smoke() -> void:
 		push_error("Recherche exportée incohérente : " + search.error)
 		failures += 1
 	smoke_progressive_calibration(app.home.read_profile())
+	smoke_progressive_calibration(app.home.read_profile(), 4)
 	var routine := TrainingRoutineService.new()
 	for duration_s in [45.0, 60.0]:
 		if not routine.begin(duration_s) or routine.plan.size() != 3:
@@ -55,7 +56,7 @@ func smoke() -> void:
 			continue
 		for phase_index in 3:
 			var phase: Dictionary = routine.current_stage(phase_index)
-			if phase.scenario_id != ["M01", "T10", "S02"][phase_index] or phase.duration_s != duration_s or phase.index != phase_index or phase.total != 3 or phase.title != ScenarioCatalog.find(phase.scenario_id).title:
+			if phase.scenario_id != ["M01", "T10", "S02"][phase_index] or phase.duration_s != duration_s or phase.index != phase_index or phase.total != 3 or phase.title != ScenarioCatalog.find_practice(phase.scenario_id).title:
 				push_error("Phase de routine exportée incohérente : " + str(phase_index))
 				failures += 1
 	for style in CrosshairProfile.STYLES:
@@ -85,11 +86,23 @@ func smoke() -> void:
 	for definition in ScenarioCatalog.DEFINITIONS:
 		var expected_revision: int = 5 if definition.scenario_id in ["C03", "M01", "T10"] else 4 if definition.scenario_id in ["D01", "D02", "S02"] else 3
 		if definition.revision != expected_revision or not definition.validate().is_empty():
-			push_error("Définition exportée invalide : " + definition.scenario_id)
+			push_error("Définition historique exportée invalide : " + definition.scenario_id)
+			failures += 1
+	var legacy_definition := ScenarioCatalog.find("C02")
+	if not app.prepare_training(legacy_definition, 1.0, 42, app.home.read_profile()) or app.selected_definition != legacy_definition or app.preparation_engine.definition.fingerprint() != legacy_definition.fingerprint():
+		push_error("La préparation explicite doit conserver la définition historique fournie.")
+		failures += 1
+	app.return_to_menu()
+	if ScenarioCatalog.practice_definitions().size() != 18:
+		push_error("Le catalogue public exporté doit contenir 18 variantes temporelles.")
+		failures += 1
+	for definition in ScenarioCatalog.practice_definitions():
+		if definition.revision != 6 or not definition.has_lifecycle() or not definition.validate().is_empty() or definition.fingerprint() == ScenarioCatalog.find(definition.scenario_id).fingerprint():
+			push_error("Variante temporelle exportée invalide : " + definition.scenario_id)
 			failures += 1
 		app.start_practice(definition.scenario_id, 1.0)
 		app.begin_training(Time.get_ticks_usec())
-		if not app.session_active or app.engine.definition == null or app.engine.definition.scenario_id != definition.scenario_id:
+		if not app.session_active or app.engine.definition == null or app.engine.definition.fingerprint() != definition.fingerprint() or app.selected_definition != definition:
 			push_error("Exercice exporté non démarré : " + definition.scenario_id)
 			failures += 1
 			app.return_to_menu()
@@ -100,7 +113,7 @@ func smoke() -> void:
 			app.engine.shoot(0.1, app.engine.target_direction(0, 0.1))
 		app.clock.accumulated_us = 1000000
 		app.finish_training(true)
-		if not app.last_report.completed or not app.last_report.valid or app.last_report.scenario_id != definition.scenario_id:
+		if not app.last_report.completed or not app.last_report.valid or app.last_report.scenario_id != definition.scenario_id or app.last_report.scenario_revision != 6 or app.last_report.scenario_fingerprint != definition.fingerprint() or app.last_report.score_version != ScoringService.version_for(definition) or not app.last_report.metrics.has("targets_expired") or (app.last_report.score_version == ScoringService.EXPIRY_VERSION and app.last_report.get("score_policy", "") != "expiry_accuracy_v2"):
 			push_error("Exercice exporté invalide : " + definition.scenario_id + " · " + app.last_report.invalid_reason)
 			failures += 1
 		app.return_to_menu()
@@ -118,14 +131,14 @@ func smoke() -> void:
 	await process_frame
 	print("EXPORT SMOKE : 18 exercices embarqués, %d échecs." % failures)
 	print("EXPORT ASSETS : 3 profils d’arme embarqués, %d échecs." % failures)
-	print("EXPORT PROFILES : 3 imports, protocole 4, 25 essais de 60 s et routine 3 phases embarqués, %d échecs." % failures)
+	print("EXPORT PROFILES : 3 imports, protocole 5, 25 essais de 60 s et routine 3 phases embarqués, %d échecs." % failures)
 	print("EXPORT CROSSHAIRS : 4 styles embarqués, %d échecs." % failures)
 	quit(0 if failures == 0 else 1)
 
 
-func smoke_progressive_calibration(profile: Dictionary) -> void:
+func smoke_progressive_calibration(profile: Dictionary, protocol: int = ProgressiveCalibrationService.PROTOCOL_VERSION) -> void:
 	var progressive := ProgressiveCalibrationService.new()
-	if not progressive.begin(profile, 16.0 / 9.0, 42, "export-progressive") or ProgressiveCalibrationService.PROTOCOL_VERSION != 4 or ProgressiveCalibrationService.TOTAL_TRIALS != 25 or ProgressiveCalibrationService.TRIALS_PER_BLOCK != 5 or progressive.duration_s != 60.0:
+	if not progressive.begin(profile, 16.0 / 9.0, 42, "export-progressive-%d" % protocol, 60.0, true, protocol) or ProgressiveCalibrationService.PROTOCOL_VERSION != 5 or progressive.protocol_version != protocol or ProgressiveCalibrationService.TOTAL_TRIALS != 25 or ProgressiveCalibrationService.TRIALS_PER_BLOCK != 5 or progressive.duration_s != 60.0:
 		push_error("Calibration progressive exportée incohérente : " + progressive.error)
 		failures += 1
 		return
@@ -135,7 +148,12 @@ func smoke_progressive_calibration(profile: Dictionary) -> void:
 			push_error("Ordre des essais progressifs exportés incohérent : " + str(trial_index))
 			failures += 1
 			break
-		var definition: ScenarioDefinition = ScenarioCatalog.find(stage.scenario_id)
+		var definition: ScenarioDefinition = progressive.definition_for(stage.scenario_id)
+		var expected_definition: ScenarioDefinition = ScenarioCatalog.find(stage.scenario_id) if protocol == 4 else ScenarioCatalog.find_practice(stage.scenario_id)
+		if definition != expected_definition or definition.has_lifecycle() != (protocol == 5):
+			push_error("Difficulté du protocole progressif exporté incohérente.")
+			failures += 1
+			break
 		var engine := ScenarioEngine.new()
 		if not engine.start(definition, int(stage.seed), float(stage.duration_s)):
 			push_error("Essai progressif exporté non démarré : " + engine.invalid_reason)
@@ -143,6 +161,7 @@ func smoke_progressive_calibration(profile: Dictionary) -> void:
 			break
 		for sample_index in range(1, 3601):
 			var time_s: float = sample_index / 60.0
+			engine.advance_to(time_s)
 			var direction: Vector3 = engine.target_direction(0, time_s)
 			engine.record_aim(time_s, rad_to_deg(atan2(-direction.x, -direction.z)), rad_to_deg(asin(direction.y)))
 			engine.record_frame(1.0 / 60.0)
@@ -158,6 +177,11 @@ func smoke_progressive_calibration(profile: Dictionary) -> void:
 			push_error("Essai progressif exporté refusé : " + progressive.error)
 			failures += 1
 			break
-	if not progressive.completed() or progressive.trials.size() != 25 or progressive.blocks.size() != 5 or not progressive.current_stage().is_empty() or progressive.checkpoint().protocol_version != 4:
+	if not progressive.completed() or progressive.trials.size() != 25 or progressive.blocks.size() != 5 or not progressive.current_stage().is_empty() or progressive.checkpoint().protocol_version != protocol:
 		push_error("Les 25 essais progressifs exportés n'ont pas terminé leurs cinq blocs.")
+		failures += 1
+	var restored := ProgressiveCalibrationService.new()
+	var checkpoint: Dictionary = JSON.parse_string(JSON.stringify(progressive.checkpoint(), "\t", true, true))
+	if not restored.restore(checkpoint) or restored.protocol_version != protocol or not restored.same_value(restored.recommendation(), progressive.recommendation()):
+		push_error("Reprise du protocole progressif exporté incohérente : " + restored.error)
 		failures += 1

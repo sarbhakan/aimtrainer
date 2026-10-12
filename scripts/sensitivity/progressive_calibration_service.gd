@@ -1,7 +1,7 @@
 class_name ProgressiveCalibrationService
 extends RefCounted
 
-const PROTOCOL_VERSION: int = 4
+const PROTOCOL_VERSION: int = 5
 const TRIALS_PER_BLOCK: int = 5
 const SCENARIOS: Array[String] = ["C02", "C04", "S01", "T01", "T05"]
 const TOTAL_TRIALS: int = 25
@@ -22,17 +22,19 @@ var center_log: float = 0.0
 var current_log: float = 0.0
 var block_trials: Array[Dictionary] = []
 var initial_span_log: float = 0.0
+var protocol_version: int = PROTOCOL_VERSION
 
 
-func begin(profile: Dictionary, viewport_aspect: float, seed_value: int, identifier: String, trial_duration_s: float = 60.0, wide_search: bool = true) -> bool:
+func begin(profile: Dictionary, viewport_aspect: float, seed_value: int, identifier: String, trial_duration_s: float = 60.0, wide_search: bool = true, protocol: int = PROTOCOL_VERSION) -> bool:
 	error = SensitivityService.validate_profile(profile)
 	if not error.is_empty():
 		return false
-	if not SensitivityService.positive(viewport_aspect) or not trial_duration_s in [45.0, 60.0] or identifier.is_empty() or not identifier.is_valid_filename() or identifier in [".", ".."] or identifier.length() > 96 or absf(float(seed_value)) > 2147000000:
+	if not protocol in [4, PROTOCOL_VERSION] or not SensitivityService.positive(viewport_aspect) or not trial_duration_s in [45.0, 60.0] or identifier.is_empty() or not identifier.is_valid_filename() or identifier in [".", ".."] or identifier.length() > 96 or absf(float(seed_value)) > 2147000000:
 		error = "Paramètres de calibration progressive invalides."
 		return false
+	protocol_version = protocol
 	for scenario_id in SCENARIOS:
-		var definition := ScenarioCatalog.find(scenario_id)
+		var definition := definition_for(scenario_id)
 		if definition == null or not definition.validate().is_empty() or not definition.fits_view(float(profile.vertical_fov_deg), viewport_aspect):
 			error = "Champ de vision incompatible avec " + scenario_id + "."
 			return false
@@ -55,6 +57,10 @@ func begin(profile: Dictionary, viewport_aspect: float, seed_value: int, identif
 
 func minimum_log() -> float:
 	return log(float(baseline.cm_per_360) / 150.0)
+
+
+func definition_for(scenario_id: String) -> ScenarioDefinition:
+	return ScenarioCatalog.find(scenario_id) if protocol_version == 4 else ScenarioCatalog.find_practice(scenario_id)
 
 
 func maximum_log() -> float:
@@ -83,15 +89,16 @@ func current_stage() -> Dictionary:
 		"duration_s": duration_s, "seed": calibration_seed + blocks.size() * 7919, "scored": true,
 		"profile": profile, "direction": direction, "speed_offset_pct": speed_offset_pct,
 		"active_sensitivity": SensitivityService.game_sensitivity(profile.dpi, profile.cm_per_360, SensitivityService.APP_YAW_DEG),
-		"title": ScenarioCopy.title(ScenarioCatalog.find(SCENARIOS[blocks.size()])), "total_trials": TOTAL_TRIALS,
+		"title": ScenarioCopy.title(definition_for(SCENARIOS[blocks.size()])), "total_trials": TOTAL_TRIALS,
 		"completed_trials": trials.size(), "block_history": block_history()}
 
 
 func block_history() -> Array[Dictionary]:
 	var history: Array[Dictionary] = []
 	for trial in block_trials:
-		history.append({"family": trial.family, "sensitivity": SensitivityService.game_sensitivity(trial.profile.dpi, trial.profile.cm_per_360, SensitivityService.APP_YAW_DEG),
+		history.append({"family": trial.family, "score_version": trial.score_version, "targets_expired": trial.metrics.get("targets_expired", 0), "sensitivity": SensitivityService.game_sensitivity(trial.profile.dpi, trial.profile.cm_per_360, SensitivityService.APP_YAW_DEG),
 			"score": trial.score, "hits": trial.metrics.hits, "misses": trial.metrics.misses, "accuracy_pct": trial.metrics.accuracy_pct,
+			"effective_accuracy_pct": 100.0 * ScoringService.effective_accuracy(trial.metrics) if trial.score_version == 2 else trial.metrics.accuracy_pct,
 			"on_target_ratio": trial.metrics.on_target_ratio, "utility": ScoringService.utility(trial)})
 	return history
 
@@ -126,7 +133,7 @@ func accept(report: Dictionary) -> bool:
 		error = ScoringService.calibration_quality_error(report)
 	if not error.is_empty():
 		return false
-	var definition := ScenarioCatalog.find(stage.scenario_id)
+	var definition := definition_for(stage.scenario_id)
 	if not report.completed or not report.valid or report.get("warmup", true) != false or report.get("calibration_id", "") != calibration_id:
 		error = "L’essai doit être terminé et associé à ce parcours."
 		return false
@@ -244,7 +251,7 @@ func close_block() -> void:
 	var maximum_width := (upper_log - lower_log) * 0.7
 	next_lower = maxf(next_lower, best_log - maximum_width * 0.5)
 	next_upper = minf(next_upper, best_log + maximum_width * 0.5)
-	blocks.append({"scenario_id": SCENARIOS[blocks.size()], "title": ScenarioCopy.title(ScenarioCatalog.find(SCENARIOS[blocks.size()])),
+	blocks.append({"scenario_id": SCENARIOS[blocks.size()], "title": ScenarioCopy.title(definition_for(SCENARIOS[blocks.size()])),
 		"trials": block_trials.duplicate(true), "best_cm_per_360": best.profile.cm_per_360,
 		"moving_range_cm": [float(baseline.cm_per_360) / exp(next_upper), float(baseline.cm_per_360) / exp(next_lower)]})
 	lower_log = next_lower
@@ -257,14 +264,14 @@ func close_block() -> void:
 func checkpoint() -> Dictionary:
 	var fingerprints: Dictionary = {}
 	for scenario_id in SCENARIOS:
-		fingerprints[scenario_id] = ScenarioCatalog.find(scenario_id).fingerprint()
-	return {"schema_version": 1, "protocol_version": PROTOCOL_VERSION, "baseline": baseline.duplicate(true), "aspect": aspect,
+		fingerprints[scenario_id] = definition_for(scenario_id).fingerprint()
+	return {"schema_version": 1, "protocol_version": protocol_version, "baseline": baseline.duplicate(true), "aspect": aspect,
 		"calibration_seed": calibration_seed, "calibration_id": calibration_id, "duration_s": duration_s,
 		"exploration": exploration, "scenario_fingerprints": fingerprints, "trials": trials.duplicate(true)}
 
 
 func restore(data: Dictionary) -> bool:
-	if data.get("schema_version", null) != 1 or data.get("protocol_version", null) != PROTOCOL_VERSION or not data.get("baseline", null) is Dictionary or not data.get("trials", null) is Array or data.trials.size() > TOTAL_TRIALS:
+	if data.get("schema_version", null) != 1 or not ScoringService.number(data.get("protocol_version", null)) or not float(data.protocol_version) in [4.0, float(PROTOCOL_VERSION)] or not data.get("baseline", null) is Dictionary or not data.get("trials", null) is Array or data.trials.size() > TOTAL_TRIALS:
 		error = "Version ou forme du parcours progressif invalide."
 		return false
 	if not ScoringService.number(data.get("aspect", null)) or not ScoringService.number(data.get("duration_s", null)) or not data.get("exploration", null) is bool or not CalibrationService.integer(data.get("calibration_seed", null)) or not data.get("calibration_id", null) is String:
@@ -274,11 +281,12 @@ func restore(data: Dictionary) -> bool:
 		error = "Empreintes de reprise absentes."
 		return false
 	for scenario_id in SCENARIOS:
-		if data.scenario_fingerprints.get(scenario_id, "") != ScenarioCatalog.find(scenario_id).fingerprint():
+		var expected := ScenarioCatalog.find(scenario_id) if data.protocol_version == 4 else ScenarioCatalog.find_practice(scenario_id)
+		if data.scenario_fingerprints.get(scenario_id, "") != expected.fingerprint():
 			error = "La difficulté a changé : le parcours existant est conservé, pas réinterprété."
 			return false
 	var verifier := ProgressiveCalibrationService.new()
-	if not verifier.begin(data.baseline, float(data.aspect), int(data.calibration_seed), data.calibration_id, float(data.duration_s), data.exploration):
+	if not verifier.begin(data.baseline, float(data.aspect), int(data.calibration_seed), data.calibration_id, float(data.duration_s), data.exploration, int(data.protocol_version)):
 		error = verifier.error
 		return false
 	for trial in data.trials:
@@ -302,6 +310,7 @@ func restore(data: Dictionary) -> bool:
 	center_log = verifier.center_log
 	current_log = verifier.current_log
 	initial_span_log = verifier.initial_span_log
+	protocol_version = verifier.protocol_version
 	error = ""
 	return true
 
@@ -310,7 +319,7 @@ func recommendation() -> Dictionary:
 	if not completed():
 		return {}
 	var selected_cm := float(blocks.back().best_cm_per_360)
-	return {"schema_version": 1, "protocol_version": PROTOCOL_VERSION, "calibration_id": calibration_id, "baseline": baseline.duplicate(true),
+	return {"schema_version": 1, "protocol_version": protocol_version, "calibration_id": calibration_id, "baseline": baseline.duplicate(true),
 		"recommended_cm_per_360": selected_cm, "recommended_sensitivity": SensitivityService.game_sensitivity(baseline.dpi, selected_cm, SensitivityService.APP_YAW_DEG),
 		"tested_trials": TOTAL_TRIALS, "duration_s": duration_s, "blocks": blocks.duplicate(true), "status": "complete", "apply_allowed": true,
 		"checkpoint": checkpoint()}
