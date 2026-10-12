@@ -6,6 +6,8 @@ La **0.9.0 — Precision Lab** ajoute des **rythmes de suivi variables** : accé
 
 Priorités : fidélité des mouvements de souris, pertinence des exercices, mesure réelle de la progression.
 
+[Documentation détaillée : les 18 exercices, leur implémentation, les scores et la recherche de sensibilité](docs/EXERCICES_ET_CALIBRATION.markdown).
+
 ![Accueil AIM/LOCAL](docs/screenshots/accueil.png)
 
 [Voir la bibliothèque d’exercices](docs/screenshots/exercices.png) · [Voir le parcours de sensibilité](docs/screenshots/sensibilite.png) · [Choix d’interface et équipements](docs/UI_UX.md)
