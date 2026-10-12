@@ -42,7 +42,8 @@ func validate_scrolls(parent: Node) -> void:
 	for child in parent.get_children():
 		if child is Control and not child.is_visible_in_tree():
 			continue
-		if child is ScrollContainer and child.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED:
+		if child is ScrollContainer:
+			expect(child.vertical_scroll_mode == ScrollContainer.SCROLL_MODE_SHOW_NEVER and not child.get_v_scroll_bar().is_visible_in_tree(), "Le défilement reste disponible sans barre visible : " + str(child.get_path()))
 			for content in child.get_children():
 				if content is Container:
 					expect(content.get_combined_minimum_size().x <= child.size.x + 1.0, "Débordement horizontal : " + str(child.get_path()) + " (" + str(content.get_combined_minimum_size().x) + " > " + str(child.size.x) + ")")
@@ -185,6 +186,14 @@ func run() -> void:
 	app.hud.update_processing()
 	app.pause_test()
 	await capture("1280-08-pause")
+	root.size = Vector2i(800, 450)
+	await capture("800-08-pause")
+	expect(root.get_visible_rect().encloses(app.pause_panel.apply_button.get_global_rect()), "La sensibilité en pause doit rester accessible dans la petite fenêtre.")
+	root.size = Vector2i(1280, 720)
+	app.pause_panel.unit_input.select(1)
+	app.pause_panel.select_unit(1)
+	app.pause_panel.sensitivity_input.value = 0.4
+	await capture("1280-34-sensibilite-en-pause")
 	app.resume_test()
 	app.clock.accumulated_us = 30000000
 	app.finish_training(true)
@@ -264,6 +273,10 @@ func run() -> void:
 	await capture("1280-26-guide-depart")
 	app.begin_training(Time.get_ticks_usec())
 	await capture("1280-27-guide-exercice")
+	app.pause_test()
+	await capture("1280-37-calibration-pause")
+	expect(app.pause_panel.locked and not app.pause_panel.editor.visible, "La pause de calibration garde le réglage visible mais non modifiable.")
+	app.resume_test()
 	app.return_to_menu()
 	app.start_guided_calibration()
 	while not app.calibration.current_stage().is_empty():
@@ -297,6 +310,17 @@ func run() -> void:
 		expect(app.hud.timer_card.is_visible_in_tree() and app.hud.metric_card.is_visible_in_tree(), "Chaque exercice présente temps et performance sans titre permanent.")
 		expect(app.hud.title_label.text.is_empty() and app.hud.help_label.text.is_empty(), "Aucune aide envahissante n’est affichée pendant " + definition.scenario_id)
 		app.return_to_menu()
+	for scenario_id in ["D01", "D02"]:
+		app.prepare_training(ScenarioCatalog.find(scenario_id), 30.0, 42, app.home.read_profile())
+		app.begin_training(Time.get_ticks_usec())
+		app.set_process(false)
+		for sample_index in 3:
+			var sample_s := float(sample_index) * (0.4 if scenario_id == "D01" else 1.0)
+			app.engine.advance_to(sample_s)
+			app.target_pool.sync(app.engine, sample_s)
+			await capture("1280-35-pattern-%s-%d" % [scenario_id, sample_index])
+		app.return_to_menu()
+		app.set_process(true)
 	for weapon in WeaponCatalog.DEFINITIONS:
 		var profile: Dictionary = app.home.read_profile()
 		profile.weapon_id = weapon.weapon_id

@@ -27,7 +27,7 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	test_records()
 	for definition_index in ScenarioCatalog.DEFINITIONS.size():
 		var definition: ScenarioDefinition = ScenarioCatalog.DEFINITIONS[definition_index]
-		expect(definition.revision == 3 and definition.fingerprint() == fingerprints[definition_index], "L’audit ne doit pas modifier la difficulté de révision 3 ou l’empreinte de " + definition.scenario_id + ".")
+		expect(definition.revision == (4 if definition.scenario_id in ["D01", "D02", "S02"] else 3) and definition.fingerprint() == fingerprints[definition_index], "L’audit ne doit pas modifier la difficulté publiée ou l’empreinte de " + definition.scenario_id + ".")
 	return true
 
 
@@ -80,7 +80,7 @@ func test_fixed_difficulty() -> void:
 				var profile: Dictionary = SensitivityService.default_profile()
 				profile.vertical_fov_deg = projection[0]
 				var report: Dictionary = engine.result(profile, float(projection[1]), true)
-				expect(report.valid and ScoringService.validate_result(report).is_empty() and report.scenario_revision == 3 and report.scenario_fingerprint == original_fingerprint and engine.definition.fingerprint() == original_fingerprint, "Performance, FOV et fenêtre ne doivent adapter ni taille, ni vitesse, ni disposition de la difficulté enregistrée.")
+				expect(report.valid and ScoringService.validate_result(report).is_empty() and report.scenario_revision == definition.revision and report.scenario_fingerprint == original_fingerprint and engine.definition.fingerprint() == original_fingerprint, "Performance, FOV et fenêtre ne doivent adapter ni taille, ni vitesse, ni disposition de la difficulté enregistrée.")
 				expect(report.score_version == 1 and report.reference_hits_s == definition.reference_hits_s and report.score == ScoringService.score(report, definition.reference_hits_s), "Les scores doivent conserver leur formule V1 et la référence déclarée par l'exercice.")
 				expect(report.metrics.input_events == (240 if definition.family == "tracking" else 4) and report.metrics.angular_path_deg > 0.0 and report.metrics.input_buffer_overflows == 0, "Le chemin et les événements doivent rester mesurables, sans counts fabriqués ni tampon saturé.")
 			expect(engine.shots == (0 if definition.family == "tracking" else 4) and engine.hits == (4 if accurate and definition.family != "tracking" else 0), "La performance synthétique doit réellement exercer les touches et les ratés, sans changer la cadence de clic.")
@@ -105,7 +105,7 @@ func test_preview_projection(tree: SceneTree) -> void:
 		var dimensions: Vector2i = settings[0]
 		viewport.size = dimensions
 		camera.fov = float(settings[1])
-		preview.size = Vector2(dimensions) + Vector2(0.0, 18.0)
+		preview.size = Vector2(dimensions)
 		for definition in ScenarioCatalog.DEFINITIONS:
 			preview.configure(definition, false, camera.fov, float(dimensions.x) / dimensions.y)
 			var view: Rect2 = preview.projection_rect()
@@ -119,7 +119,8 @@ func test_preview_projection(tree: SceneTree) -> void:
 				var tangent_error_deg: float = 0.0
 				for perimeter_index in range(0, outline.size(), 8):
 					var ray: Vector3 = camera.project_ray_normal(outline[perimeter_index])
-					tangent_error_deg = maxf(tangent_error_deg, absf(AimGeometry.angular_error_deg(direction, ray) - definition.angular_diameter_deg * 0.5))
+					var geometry: Dictionary = preview.engine.target_geometry(target_index, 0.0)
+					tangent_error_deg = maxf(tangent_error_deg, absf(AimGeometry.angular_error_deg(direction, ray) - float(geometry.angular_diameter_deg) * 0.5))
 				expect(tangent_error_deg < 0.00005, definition.scenario_id + " : les points de silhouette doivent être les rayons tangents de la hitbox sphérique visible.")
 	preview.size = Vector2(160.0, 78.0)
 	preview.configure(ScenarioCatalog.find("C05"))
@@ -220,18 +221,19 @@ func test_initial_camera_poses(tree: SceneTree) -> void:
 				for time_s in [0.0, 0.5, 7.5, 30.0]:
 					pool.sync(engine, time_s)
 					for target_index in engine.targets.size():
-						var direction: Vector3 = engine.target_direction(target_index, time_s)
+						var geometry: Dictionary = engine.target_geometry(target_index, time_s)
+						var direction: Vector3 = geometry.direction
 						var sphere: MeshInstance3D = pool.spheres[target_index]
-						var surface_m: float = sphere.global_position.y - engine.radius_m()
+						var surface_m: float = sphere.global_position.y - float(geometry.radius_m)
 						min_surface_m = minf(min_surface_m, surface_m)
 						bounds_valid = bounds_valid and direction.is_equal_approx(nominal.target_direction(target_index, time_s)) and surface_m > floor_height_m
-						bounds_valid = bounds_valid and (sphere.global_position - camera.global_position).is_equal_approx(direction * definition.distance_m)
-						radius_valid = radius_valid and sphere.global_basis.get_scale().is_equal_approx(Vector3.ONE * engine.radius_m()) and (sphere.mesh as SphereMesh).radius == 1.0
+						bounds_valid = bounds_valid and (sphere.global_position - camera.global_position).is_equal_approx(geometry.center_offset_m)
+						radius_valid = radius_valid and sphere.global_basis.get_scale().is_equal_approx(Vector3.ONE * float(geometry.radius_m)) and (sphere.mesh as SphereMesh).radius == 1.0
 						var relative_direction: Vector3 = camera.global_basis.inverse() * direction
-						var fits_frustum: bool = AimGeometry.sphere_fits_view(relative_direction, definition.angular_diameter_deg, camera.fov, 16.0 / 9.0)
+						var fits_frustum: bool = AimGeometry.sphere_fits_view(relative_direction, float(geometry.angular_diameter_deg), camera.fov, 16.0 / 9.0)
 						var fits_real_planes: bool = true
 						for plane in frustum_planes:
-							fits_real_planes = fits_real_planes and plane.distance_to(sphere.global_position) <= -engine.radius_m()
+							fits_real_planes = fits_real_planes and plane.distance_to(sphere.global_position) <= -float(geometry.radius_m)
 						frustum_valid = frustum_valid and fits_frustum == fits_real_planes
 						if fits_frustum:
 							var projected: Vector2 = AimGeometry.project_direction(relative_direction, camera.fov, Rect2(Vector2.ZERO, Vector2(viewport.size)))
@@ -243,7 +245,8 @@ func test_initial_camera_poses(tree: SceneTree) -> void:
 				for yaw_sign in [-1.0, 1.0]:
 					for pitch_sign in [-1.0, 1.0]:
 						var direction: Vector3 = AimGeometry.direction(yaw_sign * definition.yaw_extent_deg, pitch_sign * definition.pitch_extent_deg)
-						var surface_m: float = camera.global_position.y + direction.y * definition.distance_m - engine.radius_m()
+						var maximum_radius_m: float = definition.maximum_distance_m() * sin(deg_to_rad(definition.maximum_angular_diameter_deg() * 0.5))
+						var surface_m: float = camera.global_position.y + direction.y * definition.maximum_distance_m() - maximum_radius_m
 						min_surface_m = minf(min_surface_m, surface_m)
 						bounds_valid = bounds_valid and surface_m > floor_height_m
 				expect(bounds_valid, definition.scenario_id + " : la pose initiale change la visée, pas l’ancrage mondial ni le rayon visible ; même les extrêmes doivent rester au-dessus du sol.")
@@ -370,7 +373,7 @@ func test_insights() -> void:
 	expect(report.get("renderer", "") == "compatibility" and report.comparison_key == ScoringService.reported_comparison_key(report), "Le rapport moteur doit déclarer le renderer déjà inclus dans sa clé de comparaison, sans changer les conditions.")
 	for field in ["primary_label", "primary_value", "secondary_label", "secondary_value", "tempo_label", "tempo_value", "tip", "short_tip", "reason"]:
 		expect(insights.get(field, null) is String, "Le contrat SessionPanel expose " + field + " en String.")
-	expect(insights.primary_label == "Précision" and insights.primary_value == "70,0 %" and insights.secondary_value == "7 / 10" and insights.tempo_value == "1,40 touches/s", "Le bilan doit séparer précision, touches/tirs et cadence réelle.")
+	expect(insights.primary_label == "Précision" and insights.primary_value == "70,0 %" and insights.secondary_value == "7 / 10" and insights.tempo_value == "84 cibles/min", "Le bilan doit séparer précision, touches/tirs et cadence réelle, sans confondre cibles touchées et tirs effectués.")
 	expect(insights.measurements.acquisition_median_ms.available and insights.measurements.acquisition_median_ms.unit == "ms", "Le temps d’acquisition reste disponible avec son unité et sa définition.")
 	expect(report.metrics.acquisition_samples == 7 and insights.score_explanation.expected_score == report.score and is_equal_approx(ScoringService.utility(report), 1.4 * 0.49), "Le score V1 et sa pénalité de précision au carré doivent rester inchangés.")
 	expect(insights.short_tip.contains("centrer le viseur") and not insights.short_tip.contains("%"), "Le conseil court doit proposer une action fondée sur les tirs manqués, sans répéter les chiffres.")

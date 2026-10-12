@@ -1,5 +1,38 @@
 # Plan de validation
 
+## Refonte 0.6.0 — 12 octobre 2026, UTC
+
+Direction artistique produite avant l’implémentation : deux planches conceptuelles originales, puis trois lots UI/armes/patterns et un audit indépendant des sauvegardes. Les concepts sont distincts des captures réelles.
+
+| Contrôle | Résultat final |
+|---|---|
+| Suite intégrée input/UI/UX/calibration/archives/armes/pause | **10 664 assertions, 0 échec** ; capture physique du pointeur non exécutée en headless |
+| Géométrie et silhouettes | **2 049 assertions, 0 échec** ; seize exercices, rayons/depths temporels, frustum, sol et vitesses |
+| Recherche adaptative | **906 assertions, 0 échec** ; protocole 3 conservé |
+| Scroll, espacement et focus | **385 assertions, 0 échec** ; barres invisibles, gestes, clavier, icônes accessibles et précision canonique |
+| Projection des aperçus | **8 176 assertions, 0 échec** ; plus de badge, même silhouette temporelle que la hitbox |
+| Patterns et graines | **1 918 assertions, 0 échec** ; D01/D02/S02 r4, cinq empreintes de calibration r3 et archives r2 inchangées |
+| Relecture des scores JSON | **32 771 assertions, 0 échec** ; 512 graines par exercice, frontières numériques et altérations refusées |
+| Rendu OpenGL Compatibility/Mesa, Xorg dummy | **86 captures, 0 échec** ; trois tailles, pause modifiable/verrouillée, décompte, seize exercices, trois armes et instantanés des variantes |
+| Import sans cache et démarrage isolé | Code 0, journaux sans ERROR/SCRIPT ERROR, manifestes SHA-256 identiques avant/après import |
+| Export Windows et pack ouvert sous Linux hors checkout | EXE PE x64/PCK, seize exercices, trois viewmodels/imports, protocole 3/recherche et quatre viseurs, 0 échec ; trois contrôles supplémentaires du pack final réussis |
+| ZIP Windows et galerie Mac | Intégrité et SHA-256 vérifiés ; seulement les distributions 0.6.0 dans downloads |
+| Débit logiciel | 200 000 événements caméra/timeline : **319,32 ms**, 1,597 µs/événement, tampon max 183/32 768, six cibles ; aucune conclusion comparative ou matérielle |
+| Windows natif, son entendu, souris/scaling/latence/GPU et réception humaine | **Non exécutés** |
+
+Total des sept runners : **56 869 assertions sans échec**. `tools/test.sh` vérifie compilation, assertions positives, marqueur terminal, timeout et erreurs/fuites ; l’export réexécute ces contrôles. Les tests UI supplémentaires de l’agent et ses 18 rendus d’armes sont des contrôles distincts, pas additionnés au total.
+
+Contre-exemples traités avant distribution :
+
+- Avec le scroll horizontal désactivé, le grid pouvait conserver son minimum de cinq colonnes et empêcher une réduction à 800 px. La bibliothèque garde sa largeur flexible ; les autres panneaux restent sans débordement.
+- SHOW_NEVER ne suffisait pas à suivre le focus dans tous les cas : révélation explicite du contrôle ciblé et navigation Page/Fin testées, sans désactiver le scroll.
+- Les anciens tests réservaient encore 18 px au badge et utilisaient le rayon nominal pour S02/D01. Ils vérifient maintenant le cadre complet et la géométrie réellement rendue à chaque instant, sans supprimer les contrôles de collision.
+- Un échec de stockage de l’abandon après réglage pouvait rester silencieux. Le rapport avec UID stable est retenu, le bilan signale l’erreur, la relance réessaie l’écriture et la fermeture demande confirmation. Les quatre entrées de calibration ne laissent pas de flags actifs après refus.
+- Un premier contrôle du pack aléatoire a échoué : la campagne de 8 192 rapports a reproduit cinq scores tracking rejetés après JSON autour de 112,5 points. La vérification admet seulement les deux entiers voisins à la frontière au dernier bit ; les scores V1, utilités et fichiers ne sont pas réécrits. Un point altéré ailleurs, une fraction et deux points à la frontière restent refusés.
+- Un import isolé concurrent s’est terminé par SIGABRT après l’import. Le contrôle a été réexécuté séquentiellement avec arrêt obligatoire sur code non nul ; import et démarrage passent, sources intactes. Le premier journal sans ERROR n’a pas été considéré comme un succès.
+
+Les anciens résultats ci-dessous sont des jalons historiques, pas des preuves matérielles de la 0.6.
+
 ## Refonte 0.5.0 — 12 octobre 2026, Europe/Paris
 
 Godot `4.7.2.stable.official.ed1daf0bf`, Linux. Quatre agents ont implémenté des lots disjoints ; intégration, revue des rendus et publication sont coordonnées séparément.

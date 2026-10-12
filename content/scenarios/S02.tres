@@ -5,11 +5,13 @@
 [resource]
 script=ExtResource("1")
 scenario_id="S02"
-revision=3
+revision=4
 distance_m=5.0
+distance_min_m=3.5
+distance_max_m=5.5
 layout="lanes"
 title="Moving Switch"
-instructions="Quatre sphères mobiles dans des couloirs distincts : rejoindre l'une, cliquer une fois puis passer à une autre. Anticiper son mouvement sans confondre vitesse et précipitation."
+instructions="Quatre sphères mobiles dans des couloirs distincts, chacune entre 3,5 et 5,5 m à chaque apparition : rejoindre l'une, cliquer puis passer à une autre. Le diamètre apparent reste 3,2° à toute profondeur ; anticiper son mouvement."
 family="switching"
 motion="horizontal"
 angular_diameter_deg=3.2

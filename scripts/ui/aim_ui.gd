@@ -22,6 +22,21 @@ const SENSITIVITY_DECIMALS: int = 2
 const FeedbackScript := preload("res://scripts/ui/interaction_feedback.gd")
 const BACKDROP := preload("res://assets/ui/ambient.svg")
 
+class ScrollFocus extends Node:
+	var scroll: ScrollContainer
+
+	func _ready() -> void:
+		get_viewport().gui_focus_changed.connect(follow_control)
+
+	func follow_control(control: Control) -> void:
+		if scroll.follow_focus and scroll.is_ancestor_of(control):
+			reveal_control.call_deferred(control)
+
+	func reveal_control(control: Control) -> void:
+		if is_instance_valid(control) and control.has_focus() and control.is_visible_in_tree():
+			AimUI.ensure_control_visible(scroll, control)
+
+
 static var motion_enabled: bool = true:
 	set(enabled):
 		if motion_enabled == enabled:
@@ -108,6 +123,74 @@ static func button(caption: String, action: Callable, primary: bool = false) -> 
 	style_button(control, &"primary" if primary else &"default")
 	control.ready.connect(func() -> void: feedback(control), CONNECT_ONE_SHOT)
 	return control
+
+
+static func icon_button(icon: Texture2D, caption: String, action: Callable) -> Button:
+	var control := button("", action)
+	control.icon = icon
+	control.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	control.expand_icon = true
+	control.add_theme_constant_override("icon_max_width", 20)
+	control.custom_minimum_size = Vector2(40.0, 40.0)
+	control.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	control.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	control.tooltip_text = caption
+	control.accessibility_name = caption
+	control.focus_mode = Control.FOCUS_ALL
+	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled", "focus"]:
+		control.get_theme_stylebox(state).set_content_margin_all(SPACE_SM)
+	return control
+
+
+static func configure_scroll(control: ScrollContainer, flexible_width: bool = false) -> void:
+	control.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER if flexible_width else ScrollContainer.SCROLL_MODE_DISABLED
+	control.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	control.follow_focus = true
+	control.focus_mode = Control.FOCUS_ALL
+	control.gui_input.connect(func(event: InputEvent) -> void: scroll_keyboard(control, event))
+	var focus_follow := ScrollFocus.new()
+	focus_follow.scroll = control
+	control.add_child(focus_follow, false, Node.INTERNAL_MODE_BACK)
+
+
+static func ensure_control_visible(scroll: ScrollContainer, control: Control) -> void:
+	if not scroll.is_ancestor_of(control) or not control.is_visible_in_tree():
+		return
+	var content := scroll.get_child(0) as Control
+	var panel := scroll.get_theme_stylebox("panel")
+	var visible_height_px := maxf(scroll.size.y - panel.get_minimum_size().y, 0.0)
+	var top_px := float(scroll.scroll_vertical)
+	var bottom_px := top_px + visible_height_px
+	var control_rect: Rect2 = content.get_global_transform().affine_inverse() * control.get_global_rect()
+	if control_rect.size.y > visible_height_px or control_rect.position.y < top_px:
+		scroll.scroll_vertical = maxi(floori(control_rect.position.y), 0)
+	elif control_rect.end.y > bottom_px:
+		scroll.scroll_vertical = maxi(ceili(control_rect.end.y - visible_height_px), 0)
+
+
+static func scroll_keyboard(control: ScrollContainer, event: InputEvent) -> void:
+	var key_event := event as InputEventKey
+	if key_event == null or not key_event.pressed or not control.has_focus():
+		return
+	var next_offset_px := control.scroll_vertical
+	var page_step_px := maxi(roundi(control.size.y) - SPACE_MD, SPACE_2XL)
+	match key_event.keycode:
+		KEY_UP:
+			next_offset_px -= SPACE_2XL
+		KEY_DOWN:
+			next_offset_px += SPACE_2XL
+		KEY_PAGEUP:
+			next_offset_px -= page_step_px
+		KEY_PAGEDOWN:
+			next_offset_px += page_step_px
+		KEY_HOME:
+			next_offset_px = 0
+		KEY_END:
+			next_offset_px = ceili(control.get_v_scroll_bar().max_value)
+		_:
+			return
+	control.scroll_vertical = maxi(next_offset_px, 0)
+	control.accept_event()
 
 
 static func style_button(control: Button, variant: StringName = &"default") -> void:

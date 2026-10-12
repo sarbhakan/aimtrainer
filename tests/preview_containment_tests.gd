@@ -23,6 +23,7 @@ func run_tests() -> void:
 	test_deterministic_playback()
 	test_bounded_process()
 	await test_popup_containment()
+	await test_hover_lifecycle()
 	if "--preview-only" not in OS.get_cmdline_user_args():
 		var browser_tests := load("res://tests/browser_preview_tests.gd") as GDScript
 		if browser_tests == null or not browser_tests.can_instantiate():
@@ -51,10 +52,10 @@ func test_engine_projection() -> void:
 	revised.distance_m *= 1.7
 	revised.revision += 1
 	definitions.append(revised)
-	for dimensions in [Vector2i(800, 450), Vector2i(1280, 720), Vector2i(1920, 1080)]:
+	for dimensions in [Vector2i(800, 450), Vector2i(1280, 720), Vector2i(1600, 900), Vector2i(1920, 1080)]:
 		viewport.size = dimensions
 		camera.fov = 75.0
-		preview.size = Vector2(dimensions) + Vector2(0.0, ScenarioPreview.PLAYBACK_BAR_HEIGHT_PX)
+		preview.size = Vector2(dimensions)
 		for definition in definitions:
 			var fingerprint := definition.fingerprint()
 			preview.configure(definition, true, camera.fov, float(dimensions.x) / dimensions.y)
@@ -77,8 +78,9 @@ func test_engine_projection() -> void:
 				var silhouettes_contained := true
 				var maximum_tangent_error_deg := 0.0
 				for target_index in preview.engine.targets.size():
-					var direction := reference.target_direction(target_index, time_s)
-					var center := camera.unproject_position(camera.global_position + direction * definition.distance_m)
+					var geometry: Dictionary = reference.target_geometry(target_index, time_s)
+					var direction: Vector3 = geometry.direction
+					var center := camera.unproject_position(camera.global_position + geometry.center_offset_m)
 					check(preview.project_direction(direction).distance_to(center) < 0.003, "%s : le centre doit correspondre à Camera3D à %s, avec la profondeur de la définition." % [definition.scenario_id, dimensions])
 					var outline := preview.target_outline(target_index, time_s)
 					check(outline.size() == 128, "La silhouette doit utiliser les tangentes réelles de la sphère, sans rayon en pixels imposé.")
@@ -86,7 +88,7 @@ func test_engine_projection() -> void:
 						silhouettes_contained = silhouettes_contained and preview.projection_rect().grow(0.01).has_point(outline[perimeter_index])
 						if perimeter_index % 16 == 0:
 							var ray := camera.project_ray_normal(outline[perimeter_index])
-							maximum_tangent_error_deg = maxf(maximum_tangent_error_deg, absf(AimGeometry.angular_error_deg(direction, ray) - definition.angular_diameter_deg * 0.5))
+							maximum_tangent_error_deg = maxf(maximum_tangent_error_deg, absf(AimGeometry.angular_error_deg(direction, ray) - float(geometry.angular_diameter_deg) * 0.5))
 				check(silhouettes_contained, "%s : aucun bord de cible ne doit être coupé à %s et %.2f s." % [definition.scenario_id, dimensions, time_s])
 				check(maximum_tangent_error_deg < 0.00005, "Le diamètre projeté doit provenir de la définition courante, y compris après changement de révision et de distance.")
 			check(definition.fingerprint() == fingerprint and preview.engine.definition.fingerprint() == fingerprint, "La démo doit conserver l’empreinte de gameplay sans modifier sa difficulté.")
@@ -130,7 +132,12 @@ func test_bounded_process() -> void:
 	preview._process(600.0)
 	check(preview.elapsed_s <= ScenarioPreview.MAX_PROCESS_STEP_S + ScenarioPreview.REDRAW_INTERVAL_S and preview.engine.shots <= 1, "Une frame longue doit garder un coût borné, sans rattrapage de centaines de tirs.")
 	preview.size = Vector2(276.0, 174.0)
-	check(Rect2(Vector2.ZERO, preview.size).encloses(preview.playback_badge_rect()), "Le badge doit rester contenu même dans la plus petite démo de bulle.")
+	check(preview.playback_caption().is_empty() and not preview.playback_badge_rect().has_area(), "Le plus petit aperçu ne doit garder aucun badge animé ou fixe.")
+	preview.size = Vector2(320.0, 180.0)
+	check(preview.projection_rect().is_equal_approx(Rect2(Vector2.ZERO, preview.size)), "Un cadre au ratio demandé doit utiliser toute sa hauteur, sans réserver une barre.")
+	var animated_projection := preview.projection_rect()
+	preview.animated = false
+	check(preview.projection_rect().is_equal_approx(animated_projection), "Les animations réduites ne doivent pas modifier le cadrage.")
 	preview.free()
 
 
@@ -149,7 +156,7 @@ func test_popup_containment() -> void:
 	host.add_child(popup)
 	var previous_motion_enabled := AimUI.motion_enabled
 	AimUI.motion_enabled = true
-	for dimensions in [Vector2i(800, 450), Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(800, 450)]:
+	for dimensions in [Vector2i(800, 450), Vector2i(1280, 720), Vector2i(1600, 900), Vector2i(1920, 1080), Vector2i(800, 450)]:
 		viewport.size = dimensions
 		for definition in ScenarioCatalog.DEFINITIONS:
 			anchor.position = Vector2(dimensions) - anchor.size
@@ -167,13 +174,59 @@ func test_popup_containment() -> void:
 				check(label.get_line_count() == label.get_visible_line_count() and label.get_combined_minimum_size().y <= label.size.y + 1.0, "Toutes les lignes doivent tenir dans la bulle : " + context)
 			check(popup.title_label.text == ScenarioCopy.title(definition) and popup.description_label.text == ScenarioCopy.description(definition), "La bulle doit présenter le titre et la consigne de l’exercice consulté.")
 			var view := popup.preview.projection_rect()
-			var badge := popup.preview.playback_badge_rect()
-			check(Rect2(Vector2.ZERO, popup.preview.size).encloses(view) and Rect2(Vector2.ZERO, popup.preview.size).encloses(badge) and not view.intersects(badge), "La démo et son badge doivent tenir dans leur cadre.")
-			check(absf(view.size.x - popup.preview.size.x) <= 1.0 and absf(view.size.y + ScenarioPreview.PLAYBACK_BAR_HEIGHT_PX - popup.preview.size.y) <= 1.0, "La bulle doit montrer le ratio complet au lieu d’écraser la démo.")
-			check(popup.preview.playback_caption() == "Démo animée" and popup.preview.is_processing(), "Le badge doit annoncer une animation réellement active.")
+			check(Rect2(Vector2.ZERO, popup.preview.size).encloses(view), "La projection entière doit tenir dans son cadre.")
+			check(absf(view.size.x - popup.preview.size.x) <= 1.0 and absf(view.size.y - popup.preview.size.y) <= 1.0, "La bulle doit montrer le ratio complet sans réserver de barre ni écraser la démo.")
+			check(popup.preview.playback_caption().is_empty() and not popup.preview.playback_badge_rect().has_area() and popup.preview.is_processing(), "La démonstration doit rester animée sans afficher de badge.")
 			check(host.get_combined_minimum_size().is_zero_approx() and popup.get_parent() == host and popup.is_set_as_top_level(), "L’aperçu flottant ne doit pas imposer sa hauteur au Control hôte.")
+			for corner in [Vector2.ZERO, Vector2(float(dimensions.x) - anchor.size.x, 0.0), Vector2(0.0, float(dimensions.y) - anchor.size.y)]:
+				anchor.position = corner
+				popup.place_in_viewport()
+				check(viewport.get_visible_rect().grow(-11.0).encloses(popup.get_global_rect()), "La bulle doit rester contenue depuis chaque coin de la fenêtre : " + context)
 	popup.dismiss()
 	check(not popup.visible and not popup.preview.is_processing(), "La fermeture doit immédiatement arrêter la démo.")
+	AimUI.motion_enabled = previous_motion_enabled
+	viewport.queue_free()
+	await process_frame
+
+
+func test_hover_lifecycle() -> void:
+	var previous_motion_enabled := AimUI.motion_enabled
+	AimUI.motion_enabled = true
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(800, 450)
+	viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	root.add_child(viewport)
+	var browser := TrainingBrowser.new()
+	browser.theme = preload("res://assets/ui_theme.tres")
+	viewport.add_child(browser)
+	browser.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for frame_index in 3:
+		await process_frame
+	var initial_definition := browser.selected_definition
+	var definition := ScenarioCatalog.find("C03")
+	var card: Button = browser.cards[definition.scenario_id]
+	card.grab_focus()
+	check(not browser.preview_popup.visible and not browser.preview_timer.is_stopped(), "Le focus doit respecter le délai d’ouverture de la bulle.")
+	await create_timer(TrainingBrowser.PREVIEW_DELAY_S + 0.04).timeout
+	check(browser.preview_popup.visible and browser.preview_popup.definition == definition and browser.selected_definition == initial_definition, "La bulle au focus doit représenter la carte consultée sans changer la sélection.")
+	check(browser.preview_popup.preview.is_processing() and not browser.preview.is_processing(), "Une bulle ouverte doit rester la seule démonstration animée.")
+	AimUI.motion_enabled = false
+	check(not browser.preview_popup.preview.is_processing() and not browser.preview.is_processing() and browser.preview_popup.preview.playback_caption().is_empty(), "Les animations réduites doivent figer la bulle sans ajouter de badge.")
+	AimUI.motion_enabled = true
+	var cancel := InputEventKey.new()
+	cancel.keycode = KEY_ESCAPE
+	cancel.pressed = true
+	viewport.push_input(cancel, true)
+	check(not browser.preview_popup.visible and browser.preview_timer.is_stopped(), "Échap doit fermer la bulle et son délai sans naviguer.")
+	card.release_focus()
+	browser.show_card_preview(definition, card)
+	var initial_scroll_px := browser.catalog_scroll.scroll_vertical
+	browser.catalog_scroll.scroll_vertical = initial_scroll_px + AimUI.SPACE_2XL
+	await process_frame
+	check(browser.catalog_scroll.scroll_vertical != initial_scroll_px and not browser.preview_popup.visible and not browser.preview_popup.preview.is_processing(), "Défiler sans barre visible doit fermer une bulle devenue mal ancrée.")
+	browser.schedule_card_preview(definition, card)
+	browser.hide()
+	check(not browser.preview_popup.visible and browser.preview_timer.is_stopped() and not browser.preview.is_processing(), "Masquer la page doit annuler les bulles et animations en attente.")
 	AimUI.motion_enabled = previous_motion_enabled
 	viewport.queue_free()
 	await process_frame

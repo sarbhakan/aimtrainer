@@ -78,18 +78,22 @@ func _ready() -> void:
 	add_child(preparation)
 	var countdown_content := AimUI.column(preparation, AimUI.SPACE_MD)
 	countdown_content.custom_minimum_size.x = 480.0
-	title_label = AimUI.label("", 16)
+	title_label = AimUI.label("", 16, Color("172a36"))
+	title_label.add_theme_color_override("font_outline_color", Color("efeee8"))
+	title_label.add_theme_constant_override("outline_size", 2)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	countdown_content.add_child(title_label)
-	countdown_label = AimUI.label("", 88, AimUI.ACCENT)
+	countdown_label = AimUI.label("", 88, Color("172a36"))
 	countdown_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	countdown_label.custom_minimum_size = Vector2(128.0, 112.0)
 	countdown_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	countdown_label.add_theme_color_override("font_outline_color", Color("09121d"))
+	countdown_label.add_theme_color_override("font_outline_color", Color("efeee8"))
 	countdown_label.add_theme_constant_override("outline_size", 3)
 	countdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	countdown_content.add_child(countdown_label)
-	help_label = AimUI.label("", 14, AimUI.MUTED)
+	help_label = AimUI.label("", 14, Color("172a36"))
+	help_label.add_theme_color_override("font_outline_color", Color("efeee8"))
+	help_label.add_theme_constant_override("outline_size", 2)
 	help_label.custom_minimum_size.x = 480.0
 	help_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	countdown_content.add_child(help_label)
@@ -102,7 +106,9 @@ func _ready() -> void:
 	go_center.offset_top = 24.0
 	go_center.offset_bottom = 76.0
 	add_child(go_center)
-	go_label = AimUI.label("GO", 28, AimUI.ACCENT)
+	go_label = AimUI.label("GO", 28, Color("172a36"))
+	go_label.add_theme_color_override("font_outline_color", Color("efeee8"))
+	go_label.add_theme_constant_override("outline_size", 2)
 	go_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	go_label.hide()
 	go_center.add_child(go_label)

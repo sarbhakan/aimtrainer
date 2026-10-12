@@ -23,13 +23,17 @@ func check(condition: bool, description: String) -> void:
 
 
 func run_standalone() -> void:
+	var started_us := Time.get_ticks_usec()
 	await run_suite(self, check)
-	if "--capture-weapons" in OS.get_cmdline_user_args():
+	if "--capture-weapons" in OS.get_cmdline_user_args() or "--capture-live-weapons" in OS.get_cmdline_user_args():
 		if DisplayServer.get_name() == "headless":
 			check(false, "Un affichage graphique est requis pour les captures d’arme.")
+		elif "--capture-live-weapons" in OS.get_cmdline_user_args():
+			await capture_live_weapons()
 		else:
 			await capture_weapons()
 	print("WEAPON ANIMATION : %d assertions, %d échecs." % [assertion_count, failure_count])
+	print("WEAPON ELAPSED : %.3f s." % [float(Time.get_ticks_usec() - started_us) / 1000000.0])
 	quit(0 if failure_count == 0 else 1)
 
 
@@ -41,8 +45,12 @@ static func run_suite(tree: SceneTree, verify: Callable) -> void:
 	await tree.process_frame
 	verify.call(feedback.players.size() == 4 and feedback.get_child_count() == 5, "Quatre voix de tir et une boucle sont préallouées.")
 	test_models(feedback, verify)
+	test_surfaces(feedback, verify)
+	test_geometry(feedback, verify)
+	test_grips(feedback, verify)
 	var allocated_nodes := count_nodes(feedback)
 	for definition in WeaponCatalog.DEFINITIONS:
+		test_small_window_envelope(feedback, definition, verify)
 		test_alignment(feedback, definition, verify)
 		test_shot(feedback, definition, verify)
 		test_continuous(feedback, definition, verify)
@@ -92,6 +100,128 @@ static func test_models(feedback: WeaponFeedback, verify: Callable) -> void:
 	without_sprite.muzzle_uv = Vector2(0.99, 0.99)
 	feedback.configure(without_sprite, false, 0.0, true, false)
 	verify.call(viewmodel.visible and viewmodel.muzzle != null, "Le renderer ne dépend plus du sprite ni de son ancienne position de canon.")
+
+
+static func test_surfaces(feedback: WeaponFeedback, verify: Callable) -> void:
+	var viewmodel := feedback.viewmodel
+	var ivory_mesh: MeshInstance3D = viewmodel.models["pulse"].get_node("Slide/ChargingShroud")
+	var graphite_mesh: MeshInstance3D = viewmodel.models["vector"].get_node("SlimReceiver")
+	var steel_mesh: MeshInstance3D = viewmodel.models["classic"].get_node("Slide/SlideBody")
+	var glove_mesh: MeshInstance3D = viewmodel.models["pulse"].get_node("GrippingHand/GlovedPalm")
+	var ivory := ivory_mesh.material_override as StandardMaterial3D
+	var graphite := graphite_mesh.material_override as StandardMaterial3D
+	var steel := steel_mesh.material_override as StandardMaterial3D
+	var glove := glove_mesh.material_override as StandardMaterial3D
+	verify.call(ivory.albedo_color.get_luminance() > graphite.albedo_color.get_luminance() * 2.0, "La culasse perle se distingue franchement du châssis graphite.")
+	verify.call(steel.metallic > ivory.metallic and steel.roughness < ivory.roughness and glove.roughness > ivory.roughness, "Acier satiné, revêtement perle et gant mat possèdent des réponses lumineuses distinctes.")
+	var opaque_lit: bool = true
+	var untextured: bool = true
+	var no_glow: bool = true
+	var casts_shadow: bool = true
+	for instance in viewmodel.meshes:
+		var surface := instance.material_override as StandardMaterial3D
+		untextured = untextured and surface.albedo_texture == null and surface.normal_texture == null and surface.roughness_texture == null and surface.metallic_texture == null
+		if viewmodel.flash.is_ancestor_of(instance):
+			verify.call(instance.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "Le flash translucide ne projette aucune ombre.")
+			continue
+		opaque_lit = opaque_lit and surface.shading_mode == BaseMaterial3D.SHADING_MODE_PER_PIXEL and surface.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED
+		no_glow = no_glow and not surface.emission_enabled
+		casts_shadow = casts_shadow and instance.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	verify.call(untextured and opaque_lit and no_glow, "Armes et mains utilisent des volumes opaques éclairés sans texture ni émission décorative.")
+	verify.call(casts_shadow, "Les volumes opaques peuvent porter leurs ombres locales dans le monde isolé.")
+	var lights := viewmodel.stage.find_children("*", "DirectionalLight3D", true, false)
+	var shadow_lights: int = 0
+	for light: DirectionalLight3D in lights:
+		if light.shadow_enabled:
+			shadow_lights += 1
+			verify.call(light.directional_shadow_max_distance <= 5.0 and light.directional_shadow_mode == DirectionalLight3D.SHADOW_ORTHOGONAL, "L’ombre principale se limite à une projection et à la profondeur du viewmodel.")
+	verify.call(lights.size() == 2 and shadow_lights == 1, "Une seule key projette des ombres ; le fill reste léger.")
+
+
+static func test_geometry(feedback: WeaponFeedback, verify: Callable) -> void:
+	var valid_normals: bool = true
+	var valid_winding: bool = true
+	var beveled_normals: bool = false
+	var triangle_count: int = 0
+	for instance in feedback.viewmodel.meshes:
+		triangle_count += instance.mesh.get_faces().size() / 3
+		if not instance.mesh is ArrayMesh:
+			continue
+		for surface_index in instance.mesh.get_surface_count():
+			var arrays := instance.mesh.surface_get_arrays(surface_index)
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+			var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+			valid_normals = valid_normals and normals.size() == vertices.size()
+			for normal in normals:
+				valid_normals = valid_normals and normal.is_finite() and absf(normal.length_squared() - 1.0) < 0.001
+				if absf(normal.x) > 0.1 and absf(normal.y) > 0.1:
+					beveled_normals = true
+			var element_count := vertices.size() if indices.is_empty() else indices.size()
+			for element_index in range(0, element_count, 3):
+				var first_index := element_index if indices.is_empty() else indices[element_index]
+				var second_index := element_index + 1 if indices.is_empty() else indices[element_index + 1]
+				var third_index := element_index + 2 if indices.is_empty() else indices[element_index + 2]
+				var face := (vertices[second_index] - vertices[first_index]).cross(vertices[third_index] - vertices[first_index])
+				valid_winding = valid_winding and face.length_squared() > 0.00000000000001 and face.dot(normals[first_index]) < 0.0
+	verify.call(valid_normals and beveled_normals, "Les surfaces procédurales possèdent des normales unitaires finies, avec de vraies transitions de chanfrein.")
+	verify.call(valid_winding, "Les triangles de chaque profil et chanfrein sont non dégénérés et orientés pour le culling Godot.")
+	verify.call(feedback.viewmodel.meshes.size() <= 200 and triangle_count <= 24000, "Les trois armes, mains et flash restent dans un budget borné de 200 meshes et 24 000 triangles.")
+	print("VIEWMODEL GEOMETRY : %d meshes, %d triangles préalloués." % [feedback.viewmodel.meshes.size(), triangle_count])
+
+
+static func mesh_bounds_m(instance: MeshInstance3D) -> AABB:
+	return instance.global_transform * instance.mesh.get_aabb()
+
+
+static func test_grips(feedback: WeaponFeedback, verify: Callable) -> void:
+	for model: Node3D in feedback.viewmodel.models.values():
+		var hand: Node3D = model.get_node("GrippingHand")
+		var grip: MeshInstance3D = model.get_node("Grip")
+		var palm: MeshInstance3D = hand.get_node("GlovedPalm")
+		var wrist: MeshInstance3D = hand.get_node("Wrist")
+		var cuff: MeshInstance3D = hand.get_node("Cuff")
+		var sleeve: MeshInstance3D = hand.get_node("Sleeve")
+		verify.call(mesh_bounds_m(grip).intersects(mesh_bounds_m(palm)), "La paume enveloppe réellement la poignée de %s." % model.name)
+		verify.call(mesh_bounds_m(palm).intersects(mesh_bounds_m(wrist)) and mesh_bounds_m(wrist).intersects(mesh_bounds_m(cuff)) and mesh_bounds_m(cuff).intersects(mesh_bounds_m(sleeve)), "La prise de %s se prolonge sans séparation jusqu’à la manche." % model.name)
+		verify.call(hand.has_node("ThumbTip") and hand.has_node("IndexTip") and hand.has_node("Fingertip2") and not model.get_node("Slide").is_ancestor_of(hand), "Les doigts sont articulés et la main de %s ne suit pas le recul propre de la culasse." % model.name)
+		for finger_index in 3:
+			var fingertip: MeshInstance3D = hand.get_node("Fingertip%d" % finger_index)
+			verify.call(mesh_bounds_m(fingertip).intersects(mesh_bounds_m(grip)), "L’extrémité du doigt %d de %s revient au contact de la poignée après l’enroulement." % [finger_index, model.name])
+	var vector: Node3D = feedback.viewmodel.models["vector"]
+	var support_palm: MeshInstance3D = vector.get_node("SupportHand/Palm")
+	var foreguard: MeshInstance3D = vector.get_node("AngularForeguard")
+	verify.call(mesh_bounds_m(support_palm).intersects(mesh_bounds_m(foreguard)), "La main de soutien de la carabine reste au contact du garde-main, sans marge artificielle.")
+
+
+static func projected_bounds_px(viewmodel: WeaponViewmodel, instance: MeshInstance3D) -> Rect2:
+	var bounds_m := mesh_bounds_m(instance)
+	var bounds_px := Rect2(viewmodel.project_to_control(bounds_m.get_endpoint(0)), Vector2.ZERO)
+	for corner_index in range(1, 8):
+		bounds_px = bounds_px.expand(viewmodel.project_to_control(bounds_m.get_endpoint(corner_index)))
+	return bounds_px
+
+
+static func test_small_window_envelope(feedback: WeaponFeedback, definition: WeaponDefinition, verify: Callable) -> void:
+	feedback.size = Vector2(800, 450)
+	feedback.set_hud_mode(true)
+	feedback.configure(definition, false, 0.0, true, false)
+	var viewmodel := feedback.viewmodel
+	var model: Node3D = viewmodel.models[definition.weapon_id]
+	var reservation_px := Rect2(feedback.size * 0.5 - Vector2.ONE * feedback.crosshair_clearance_px, Vector2.ONE * feedback.crosshair_clearance_px * 2.0)
+	var sleeve: MeshInstance3D = model.get_node("GrippingHand/Sleeve")
+	for weight: float in [0.0, 0.25, 0.5, 0.75, 1.0]:
+		viewmodel.apply_pose(weight, 1.0)
+		verify_axis(feedback, verify)
+		verify.call(viewmodel.region_px.has_point(feedback.muzzle_position()), "À 800×450, le canon de %s reste visible à chaque amplitude de recul." % definition.title)
+		var clear_center: bool = true
+		for instance in viewmodel.meshes:
+			if model.is_ancestor_of(instance) or viewmodel.flash.is_ancestor_of(instance):
+				var visible_bounds_px := projected_bounds_px(viewmodel, instance).intersection(viewmodel.region_px)
+				clear_center = clear_center and not visible_bounds_px.intersects(reservation_px)
+		verify.call(clear_center, "À 800×450, aucun volume de %s ni son flash ne recouvre la réserve centrale." % definition.title)
+		verify.call(projected_bounds_px(viewmodel, sleeve).end.y >= feedback.size.y, "À 800×450, la manche de %s rejoint le bord bas au repos comme au tir." % definition.title)
+	feedback.stop()
 
 
 static func verify_axis(feedback: WeaponFeedback, verify: Callable) -> void:
@@ -396,28 +526,94 @@ func capture_weapons() -> void:
 	if directory.is_empty():
 		directory = "/tmp/aimlocal-weapon-visual"
 	check(DirAccess.make_dir_recursive_absolute(directory) == OK, "Le dossier isolé des captures est disponible.")
-	var hud: TrainingHud = HudScript.new()
-	root.add_child(hud)
-	hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	hud.title_label.text = "Retour de tir · contrôle graphique"
-	hud.metric_label.text = "Données synthétiques"
-	hud.help_label.text = "Le modèle 3D, le flash et le tracer restent cosmétiques."
-	hud.countdown_label.hide()
-	for dimensions in [Vector2i(800, 450), Vector2i(1280, 720), Vector2i(1920, 1080)]:
+	var background := ColorRect.new()
+	background.color = Color("dedbd4")
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(background)
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var feedback: WeaponFeedback = FeedbackScript.new()
+	root.add_child(feedback)
+	feedback.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	feedback.set_hud_mode(true)
+	for dimensions: Vector2i in [Vector2i(800, 450), Vector2i(1280, 720), Vector2i(1920, 1080)]:
 		root.size = dimensions
 		await create_timer(0.1).timeout
 		for definition in WeaponCatalog.DEFINITIONS:
-			hud.weapon_feedback.configure(definition, false, 0.0, true, false)
+			feedback.configure(definition, false, 0.0, true, false)
 			for phase in ["repos", "tir", "retour"]:
-				hud.weapon_feedback.stop()
+				feedback.stop()
 				if phase != "repos":
-					hud.weapon_feedback.play_shot()
+					feedback.play_shot()
 					if phase == "retour":
-						hud.weapon_feedback._process(0.11)
-					hud.weapon_feedback.set_process(false)
+						feedback._process(0.11)
+					feedback.set_process(false)
 				await RenderingServer.frame_post_draw
+				var capture := root.get_texture().get_image()
+				if dimensions.x == 800:
+					var center_clear: bool = true
+					var center_px: Vector2i = dimensions / 2
+					var radius_px := int(feedback.crosshair_clearance_px)
+					for vertical_px in range(center_px.y - radius_px, center_px.y + radius_px + 1):
+						for horizontal_px in range(center_px.x - radius_px, center_px.x + radius_px + 1):
+							var pixel := capture.get_pixel(horizontal_px, vertical_px)
+							center_clear = center_clear and absf(pixel.r - background.color.r) < 0.01 and absf(pixel.g - background.color.g) < 0.01 and absf(pixel.b - background.color.b) < 0.01
+					check(center_clear, "La capture réelle 800×450 de %s/%s conserve tous les pixels de la réserve du viseur." % [definition.weapon_id, phase])
 				var path := directory.path_join("%d-%s-%s.png" % [dimensions.x, definition.weapon_id, phase])
-				check(root.get_texture().get_image().save_png(path) == OK, "Le rendu de l’arme a été capturé : " + path)
-	hud.queue_free()
+				check(capture.save_png(path) == OK, "Le rendu de l’arme a été capturé : " + path)
+	feedback.queue_free()
+	background.queue_free()
 	await process_frame
 	print("WEAPON CAPTURES : 27 rendus isolés dans " + directory)
+
+
+static func reserve_matches(reference: Image, capture: Image, center_px: Vector2i, radius_px: int) -> bool:
+	for vertical_px in range(center_px.y - radius_px, center_px.y + radius_px + 1):
+		for horizontal_px in range(center_px.x - radius_px, center_px.x + radius_px + 1):
+			var before := reference.get_pixel(horizontal_px, vertical_px)
+			var after := capture.get_pixel(horizontal_px, vertical_px)
+			if absf(before.r - after.r) > 0.01 or absf(before.g - after.g) > 0.01 or absf(before.b - after.b) > 0.01:
+				return false
+	return true
+
+
+func capture_live_weapons() -> void:
+	var directory := OS.get_environment("AIM_LOCAL_WEAPON_CAPTURE_DIR")
+	if directory.is_empty():
+		directory = "/tmp/aimlocal-weapon-live"
+	check(DirAccess.make_dir_recursive_absolute(directory) == OK, "Le dossier isolé des captures live est disponible.")
+	var main_scene := load("res://scenes/app/Main.tscn") as PackedScene
+	var app := main_scene.instantiate()
+	app.store = LocalStore.new("user://tests/weapon-live-" + LocalStore.new().identifier())
+	var previous_mouse_mode := Input.mouse_mode
+	root.add_child(app)
+	app.start_practice("C03", 30.0)
+	app.begin_training(Time.get_ticks_usec())
+	app.set_process(false)
+	app.hud.set_process(false)
+	var feedback: WeaponFeedback = app.hud.weapon_feedback
+	for dimensions: Vector2i in [Vector2i(1280, 720), Vector2i(800, 450)]:
+		root.size = dimensions
+		await create_timer(0.1).timeout
+		feedback.configure(WeaponCatalog.DEFINITIONS[0], false, 0.0, false, false)
+		await RenderingServer.frame_post_draw
+		var reference := root.get_texture().get_image()
+		for definition in WeaponCatalog.DEFINITIONS:
+			feedback.configure(definition, false, 0.0, true, false)
+			for phase in ["repos", "tir", "retour"]:
+				feedback.stop()
+				if phase != "repos":
+					feedback.play_shot()
+					if phase == "retour":
+						feedback._process(0.11)
+					feedback.set_process(false)
+				await RenderingServer.frame_post_draw
+				var capture := root.get_texture().get_image()
+				if dimensions.x == 800:
+					check(reserve_matches(reference, capture, dimensions / 2, int(feedback.crosshair_clearance_px)), "Le rendu live 800×450 de %s/%s conserve les pixels centraux de l’arène et du viseur." % [definition.weapon_id, phase])
+				var path := directory.path_join("%d-live-%s-%s.png" % [dimensions.x, definition.weapon_id, phase])
+				check(capture.save_png(path) == OK, "Le rendu live de l’arme a été capturé : " + path)
+	feedback.stop()
+	app.queue_free()
+	Input.mouse_mode = previous_mouse_mode
+	await process_frame
+	print("WEAPON LIVE CAPTURES : 18 rendus de l’arène et du HUD dans " + directory)

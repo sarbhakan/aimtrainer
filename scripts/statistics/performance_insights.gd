@@ -7,6 +7,14 @@ static func measured(metrics: Dictionary, field: String) -> Variant:
 	return float(value) if ScoringService.number(value) and float(value) >= 0.0 else null
 
 
+static func hits_per_minute(metrics: Dictionary) -> Variant:
+	var hits_per_s: Variant = measured(metrics, "hits_per_s")
+	if hits_per_s == null:
+		return null
+	var cadence_hits_min: float = float(hits_per_s) * 60.0
+	return cadence_hits_min if is_finite(cadence_hits_min) else null
+
+
 static func display(value: Variant, decimals: int, unit: String = "") -> String:
 	if value == null:
 		return "—"
@@ -24,6 +32,7 @@ static func analyze(report: Dictionary) -> Dictionary:
 	var shots: Variant = measured(metrics, "shots")
 	var accuracy_pct: Variant = 100.0 * float(hits) / float(shots) if hits != null and shots != null and float(shots) > 0.0 and float(hits) <= float(shots) else null
 	var cadence_hits_s: Variant = measured(metrics, "hits_per_s")
+	var cadence_hits_min: Variant = hits_per_minute(metrics)
 	var on_target_ratio: Variant = measured(metrics, "on_target_ratio")
 	if on_target_ratio != null and float(on_target_ratio) > 1.000001:
 		on_target_ratio = null
@@ -48,22 +57,23 @@ static func analyze(report: Dictionary) -> Dictionary:
 	elif hits != null and shots != null and float(shots) > 0.0:
 		var misses: float = maxf(float(shots) - float(hits), 0.0)
 		short_tip = "Prenez un instant pour centrer le viseur avant chaque clic." if misses > 0.0 else "Essayez de cliquer un peu plus vite en gardant cette précision."
-		tip = "%s tirs manqués sur %s, cadence de %s." % [display(misses, 0), display(shots, 0), display(cadence_hits_s, 2, "touches/s")]
+		tip = "%s tirs manqués sur %s, cadence de %s." % [display(misses, 0), display(shots, 0), display(cadence_hits_min, 0, "cibles/min")]
 		tip += " Soigner les clics avant d’accélérer, puis comparer précision et cadence." if misses > 0.0 else " Essayer une cadence plus élevée en conservant cette précision."
 	else:
 		short_tip = "Bougez le viseur et cliquez sur les cibles pour commencer."
 		tip = "Aucun tir mesurable : effectuer des clics et déplacer le viseur pour établir une référence."
 	return {"eligible": reason.is_empty(), "primary_label": "Temps sur cible" if tracking else "Précision",
 		"primary_value": display(tracking_pct if tracking else accuracy_pct, 1, "%"), "primary_unit": "%",
-		"secondary_label": "Temps suivi" if tracking else "Cibles touchées", "secondary_value": secondary_value,
+		"secondary_label": "Temps suivi" if tracking else "Touches / tirs", "secondary_value": secondary_value,
 		"secondary_unit": "s" if tracking else "touches / tirs", "tempo_label": "Acquisition / retour" if tracking else "Cadence",
-		"tempo_value": display(reacquisition_ms, 0, "ms") if tracking else display(cadence_hits_s, 2, "touches/s"),
-		"tempo_unit": "ms" if tracking else "touches/s", "tip": tip, "short_tip": short_tip, "advice": short_tip, "reason": reason,
+		"tempo_value": display(reacquisition_ms, 0, "ms") if tracking else display(cadence_hits_min, 0, "cibles/min"),
+		"tempo_unit": "ms" if tracking else "cibles/min", "tip": tip, "short_tip": short_tip, "advice": short_tip, "reason": reason,
 		"score_explanation": ScoringService.explain(report), "measurements": {
 			"hits": measurement(hits, "touches", "Clics dont le rayon intersecte la sphère visible."),
 			"shots": measurement(shots, "tirs", "Un clic validé compte un tir ; le tracking n’exige pas de clic."),
 			"accuracy_pct": measurement(accuracy_pct, "%", "100 × touches / tirs ; indisponible sans tir."),
 			"hits_per_s": measurement(cadence_hits_s if not tracking else null, "touches/s", "Touches divisées par la durée active ; aucune pause au dénominateur."),
+			"hits_per_min": measurement(cadence_hits_min if not tracking else null, "cibles/min", "60 × touches par seconde de durée active ; pauses exclues."),
 			"acquisition_median_ms": measurement(acquisition_ms if not tracking else null, "ms", "Clic : apparition jusqu’à la touche réussie ; transitions : intervalle entre touches réussies."),
 			"on_target_time_s": measurement(on_target_time_s if tracking else null, "s", "Temps où le rayon de visée intersecte la silhouette sphérique."),
 			"on_target_ratio": measurement(on_target_ratio if tracking else null, "ratio", "Temps sur cible divisé par le temps exposé intégré."),

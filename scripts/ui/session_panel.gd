@@ -58,8 +58,7 @@ func _ready() -> void:
 	header.add_child(AimUI.button("Retour au menu", func() -> void: menu_requested.emit()))
 	var scroll := ScrollContainer.new()
 	result_scroll = scroll
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.follow_focus = true
+	AimUI.configure_scroll(scroll)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	layout.add_child(scroll)
 	result_grid = GridContainer.new()

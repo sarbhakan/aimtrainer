@@ -1,40 +1,35 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/input/aim_camera.gd" id="1_camera"]
 [ext_resource type="Script" path="res://scripts/training/target_pool.gd" id="2_pool"]
 [ext_resource type="Script" path="res://scripts/presentation/arena_presentation.gd" id="3_presentation"]
-[ext_resource type="Shader" path="res://assets/shaders/training_surface.gdshader" id="4_surface"]
 
 [sub_resource type="Environment" id="Environment"]
 background_mode=1
-background_color=Color(0.025, 0.04, 0.059, 1)
+background_color=Color(0.67, 0.72, 0.76, 1)
 ambient_light_source=3
-ambient_light_color=Color(0.85, 0.91, 1, 1)
-ambient_light_energy=0.6
+ambient_light_color=Color(0.87, 0.92, 1, 1)
+ambient_light_energy=0.85
 tonemap_mode=0
 
-[sub_resource type="ShaderMaterial" id="FloorMaterial"]
-shader=ExtResource("4_surface")
-shader_parameter/surface_color=Color(0.036, 0.058, 0.077, 1)
-shader_parameter/seam_color=Color(0.075, 0.126, 0.154, 1)
-shader_parameter/panel_count=Vector2(20, 20)
-shader_parameter/seam_strength=0.38
+[sub_resource type="StandardMaterial3D" id="FloorMaterial"]
+albedo_color=Color(0.45, 0.47, 0.47, 1)
+roughness=0.84
 
 [sub_resource type="PlaneMesh" id="FloorMesh"]
 material=SubResource("FloorMaterial")
 size=Vector2(40, 40)
 
-[sub_resource type="ShaderMaterial" id="WallMaterial"]
-shader=ExtResource("4_surface")
-shader_parameter/panel_count=Vector2(6, 4)
-shader_parameter/seam_strength=0.42
+[sub_resource type="StandardMaterial3D" id="WallMaterial"]
+albedo_color=Color(0.62, 0.61, 0.57, 1)
+roughness=0.96
 
 [sub_resource type="BoxMesh" id="WallMesh"]
 material=SubResource("WallMaterial")
 size=Vector3(30, 14, 0.2)
 
 [sub_resource type="StandardMaterial3D" id="ReferenceMaterial"]
-albedo_color=Color(0.39, 0.9, 0.85, 1)
+albedo_color=Color(1.0, 0.3, 0.16, 1)
 roughness=1.0
 
 [sub_resource type="SphereMesh" id="ReferenceMesh"]
@@ -53,8 +48,18 @@ script=ExtResource("3_presentation")
 environment=SubResource("Environment")
 
 [node name="Light" type="DirectionalLight3D" parent="."]
-rotation_degrees=Vector3(-45, -25, 0)
-light_energy=0.8
+rotation_degrees=Vector3(-38, -32, 0)
+light_color=Color(1, 0.94, 0.84, 1)
+light_energy=0.3
+shadow_enabled=true
+directional_shadow_mode=0
+directional_shadow_max_distance=32.0
+shadow_blur=2.0
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+rotation_degrees=Vector3(-20, 145, 0)
+light_color=Color(0.76, 0.86, 1, 1)
+light_energy=0.15
 shadow_enabled=false
 
 [node name="Floor" type="MeshInstance3D" parent="."]

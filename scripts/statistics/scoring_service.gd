@@ -156,12 +156,15 @@ static func explain(result: Dictionary) -> Dictionary:
 	elif not tracking and number(metrics.get("hits_per_s", null)) and number(metrics.get("accuracy_fraction", null)) and float(metrics.hits_per_s) >= 0.0 and float(metrics.accuracy_fraction) >= 0.0 and float(metrics.accuracy_fraction) <= 1.0:
 		measured_utility = utility(result)
 	var expected_score: Variant = null
+	var score_rounding_range: Array[float] = []
 	if measured_utility != null and (tracking or reference_hits_s != null):
-		expected_score = round(1000.0 * float(measured_utility) / (1.0 if tracking else float(reference_hits_s)))
+		var unrounded_score := 1000.0 * float(measured_utility) / (1.0 if tracking else float(reference_hits_s))
+		score_rounding_range = rounding_range(unrounded_score)
+		expected_score = float(result.score) if number(result.get("score", null)) and float(result.score) in score_rounding_range else round(unrounded_score)
 	return {"score_version": VERSION, "utility": measured_utility, "utility_unit": "ratio" if tracking else "touches/s",
 		"utility_formula": "temps sur cible / temps exposé" if tracking else "cadence de touches × précision²",
 		"score_formula": "arrondi(1000 × temps sur cible / temps exposé)" if tracking else "arrondi(1000 × cadence de touches × précision² / cadence de référence)",
-		"reference_hits_s": reference_hits_s, "expected_score": expected_score,
+		"reference_hits_s": reference_hits_s, "expected_score": expected_score, "score_rounding_range": score_rounding_range,
 		"components": {"hits_per_s": metrics.get("hits_per_s", null), "accuracy_fraction": metrics.get("accuracy_fraction", null),
 			"on_target_time_s": metrics.get("on_target_time_s", null), "target_exposed_time_s": metrics.get("target_exposed_time_s", null),
 			"on_target_ratio": metrics.get("on_target_ratio", null)},
@@ -206,6 +209,15 @@ static func utility(result: Dictionary) -> float:
 	if result.get("family", "") == "tracking":
 		return float(metrics.get("on_target_ratio", 0.0))
 	return float(metrics.get("hits_per_s", 0.0)) * pow(float(metrics.get("accuracy_fraction", 0.0)), 2.0)
+
+
+static func rounding_range(unrounded_score: float) -> Array[float]:
+	var nearest: float = round(unrounded_score)
+	var lower: float = floor(unrounded_score)
+	var tolerance := minf(0.000001, 8.0 * 2.220446049250313e-16 * maxf(absf(unrounded_score), 1.0))
+	if absf(unrounded_score - lower - 0.5) <= tolerance:
+		return [lower, lower + 1.0]
+	return [nearest]
 
 
 static func score(result: Dictionary, reference_hits_s: float) -> float:

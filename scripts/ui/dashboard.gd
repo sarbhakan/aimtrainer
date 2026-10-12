@@ -16,6 +16,8 @@ signal quit_requested
 const PAGE_TITLES: Array[String] = ["Accueil", "Entraînement", "Ma sensibilité", "Conversion", "Progression", "Réglages"]
 const NAV_ICONS: Array[Texture2D] = [preload("res://assets/ui/home.svg"), preload("res://assets/ui/train.svg"), preload("res://assets/ui/sensitivity.svg"), preload("res://assets/ui/convert.svg"), preload("res://assets/ui/progress.svg"), preload("res://assets/ui/settings.svg")]
 const HomePreviewPopupScript := preload("res://scripts/ui/exercise_preview_popup.gd")
+const COPY_ICON := preload("res://assets/ui/copy.svg")
+const REFRESH_ICON := preload("res://assets/ui/refresh.svg")
 
 var dpi_input: SensitivityImport.ReadableSpinBox
 var distance_input: SensitivityImport.ReadableSpinBox
@@ -96,6 +98,7 @@ var reference_import: SensitivityImport
 var calibration_grid: GridContainer
 var protocol_grid: GridContainer
 var conversion_copy_button: Button
+var history_refresh_button: Button
 var conversion_reference_label: Label
 var destination_yaw_deg: float = 0.022
 
@@ -197,8 +200,7 @@ func build_sidebar(parent: Node) -> void:
 func page(caption: String) -> VBoxContainer:
 	var scroll := ScrollContainer.new()
 	scroll.name = caption
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.follow_focus = true
+	AimUI.configure_scroll(scroll)
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	page_host.add_child(scroll)
@@ -229,7 +231,7 @@ func build_home(content: VBoxContainer) -> void:
 	var introduction := AimUI.column(layout)
 	introduction.add_child(AimUI.label("Votre première séance", 28))
 	introduction.add_child(AimUI.label("Cliquez sur les cibles de la grille pendant 30 s.", 15))
-	introduction.add_child(AimUI.label("Résultats : tirs réussis (%) et cibles touchées par minute.", 13, AimUI.MUTED))
+	introduction.add_child(AimUI.label("Résultats : précision (%) et cibles touchées par minute.", 13, AimUI.MUTED))
 	var actions := AimUI.flow(introduction)
 	home_start_button = AimUI.button("Lancer la grille · 30 s", func() -> void: training_requested.emit("C03", 30.0), true)
 	actions.add_child(home_start_button)
@@ -259,7 +261,7 @@ func build_home(content: VBoxContainer) -> void:
 		control.custom_minimum_size.y = 236.0
 		var card_content: VBoxContainer = control.get_child(0).get_child(0)
 		card_content.add_child(AimUI.label(ScenarioCopy.description(definition), 13, AimUI.MUTED))
-		card_content.add_child(AimUI.label("Temps sur cible (%)" if definition.family == "tracking" else "Tirs réussis (%) · touches/min", 12, AimUI.ACCENT))
+		card_content.add_child(AimUI.label("Temps sur cible (%)" if definition.family == "tracking" else "Précision (%) · cibles/min", 12, AimUI.ACCENT))
 		home_grid.add_child(control)
 		home_cards[scenario_id] = control
 		control.mouse_entered.connect(func() -> void: schedule_home_preview(definition, control))
@@ -286,7 +288,7 @@ func schedule_home_preview(definition: ScenarioDefinition, anchor: Control) -> v
 		return
 	dismiss_home_preview()
 	if anchor.has_focus():
-		home_scroll.ensure_control_visible(anchor)
+		AimUI.ensure_control_visible(home_scroll, anchor)
 	home_preview_definition = definition
 	home_preview_anchor = anchor
 	home_preview_timer.start()
@@ -444,16 +446,17 @@ func build_conversion(content: VBoxContainer) -> void:
 	game_row.add_child(game_input)
 	destination_dpi = SensitivityImport.numeric(setup, "DPI utilisés dans le jeu", 1, 64000, 1)
 	var result := AimUI.card(conversion_grid)
-	result.add_child(AimUI.label("SENSIBILITÉ À RECOPIER", 11, AimUI.ACCENT))
+	var result_heading := AimUI.row(result)
+	result_heading.add_child(AimUI.label("SENSIBILITÉ À RECOPIER", 11, AimUI.ACCENT))
+	conversion_copy_button = AimUI.icon_button(COPY_ICON, "Copier la sensibilité convertie", func() -> void:
+		if SensitivityService.positive(conversion_value):
+			DisplayServer.clipboard_set("%.6f" % conversion_value)
+			set_status("Valeur copiée. Collez-la dans les réglages du jeu."))
+	result_heading.add_child(conversion_copy_button)
 	conversion_label = AimUI.label("", 42)
 	result.add_child(conversion_label)
 	conversion_reference_label = AimUI.label("", 13, AimUI.MUTED)
 	result.add_child(conversion_reference_label)
-	conversion_copy_button = AimUI.button("Copier la valeur", func() -> void:
-		if SensitivityService.positive(conversion_value):
-			DisplayServer.clipboard_set("%.6f" % conversion_value)
-			set_status("Valeur copiée. Collez-la dans les réglages du jeu."), true)
-	result.add_child(conversion_copy_button)
 	setup.add_child(AimUI.button("Importer le réglage de mon jeu", func() -> void: show_page(2)))
 	content.add_child(AimUI.label("Rotation sans zoom : vérifiez-la dans le jeu. Zoom et accélération peuvent changer le ressenti.", 13, AimUI.MUTED))
 	var advanced := AimUI.foldout(content, "Réglages du jeu et détails")
@@ -476,7 +479,8 @@ func build_conversion(content: VBoxContainer) -> void:
 func build_history(content: VBoxContainer) -> void:
 	var actions := AimUI.row(content)
 	actions.add_child(AimUI.label("Retrouvez vos séances par activité", 18))
-	actions.add_child(AimUI.button("Actualiser", func() -> void: history_requested.emit()))
+	history_refresh_button = AimUI.icon_button(REFRESH_ICON, "Actualiser les résultats", func() -> void: history_requested.emit())
+	actions.add_child(history_refresh_button)
 	progress_board = ProgressBoard.new()
 	content.add_child(progress_board)
 	progress_board.activity_requested.connect(func(scenario_id: String) -> void:

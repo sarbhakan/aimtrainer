@@ -65,7 +65,7 @@ func expect_contents(browser: TrainingBrowser, definition: ScenarioDefinition) -
 	expect(popup.visible and popup.definition == definition and popup.preview.definition == definition, "La bulle et sa démonstration doivent représenter l’ID demandé, pas la sélection précédente.")
 	expect(popup.title_label.text == ScenarioCopy.title(definition), "Le titre court doit correspondre à la carte consultée.")
 	expect(popup.description_label.text == ScenarioCopy.description(definition), "La bulle doit expliquer une seule action pour le bon exercice.")
-	expect(popup.preview.playback_caption() == ("Démo animée" if AimUI.motion_enabled else "Aperçu fixe"), "Le badge doit annoncer clairement si la démonstration est animée.")
+	expect(popup.preview.playback_caption().is_empty() and popup.preview.playback_badge_rect().size.is_zero_approx(), "La démo ne comporte ni légende redondante ni espace réservé à un badge.")
 
 
 func visible_controls(parent: Node) -> Array[Control]:
@@ -102,7 +102,7 @@ func expect_containment(popup: ExercisePreviewPopup, dimensions: Vector2i) -> vo
 	var view := popup.preview.projection_rect()
 	var preview_rect := Rect2(Vector2.ZERO, popup.preview.size)
 	var badge := popup.preview.playback_badge_rect()
-	expect(preview_rect.encloses(view) and preview_rect.encloses(badge) and not view.intersects(badge), "La projection entière et le badge doivent tenir dans leur cadre sans se recouvrir : " + context)
+	expect(preview_rect.encloses(view) and badge.size.is_zero_approx(), "La projection entière tient dans le cadre sans bande de légende : " + context)
 	expect(absf(view.size.x - popup.preview.size.x) <= 1.0 and absf(view.size.y + ScenarioPreview.PLAYBACK_BAR_HEIGHT_PX - popup.preview.size.y) <= 1.0, "Le cadre doit réserver la hauteur du ratio complet, sans comprimer la démo : " + context)
 	var silhouettes_contained := true
 	for target_index in popup.preview.engine.targets.size():
@@ -224,9 +224,9 @@ func test_motion(browser: TrainingBrowser, tree: SceneTree) -> void:
 	AimUI.motion_enabled = true
 	var demo := browser.preview_popup.preview
 	demo.reset_demo()
-	var light_color := demo.playback_light_color()
+	var initial_direction := demo.engine.target_direction(0, 0.0)
 	demo.advance_demo(0.25)
-	expect(demo.is_processing() and demo.playback_caption() == "Démo animée" and demo.playback_light_color() != light_color and not browser.preview.is_processing(), "Réactiver l’animation doit allumer le badge et animer uniquement la bulle.")
+	expect(demo.is_processing() and demo.playback_caption().is_empty() and demo.engine.target_direction(0, 0.25) != initial_direction and not browser.preview.is_processing(), "Réactiver l’animation fait réellement bouger la cible, uniquement dans la bulle visible.")
 	AimUI.motion_enabled = false
 	browser.dismiss_card_preview()
 	expect(not browser.preview.is_processing(), "Fermer la bulle ne doit pas contourner l’option animations réduites.")

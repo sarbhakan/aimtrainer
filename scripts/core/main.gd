@@ -32,6 +32,9 @@ var initial_x_counts: float = 0.0
 var initial_y_counts: float = 0.0
 var start_pose_ready: bool = true
 var preparation_engine := ScenarioEngine.new()
+var pending_abandon_report: Dictionary = {}
+var pending_restart_profile: Dictionary = {}
+var unsaved_exit_dialog: ConfirmationDialog
 
 @onready var arena: Node3D = $Arena
 @onready var aim_camera: AimCamera = $Arena/AimCamera
@@ -42,9 +45,9 @@ var preparation_engine := ScenarioEngine.new()
 @onready var hud_title: Label = hud.title_label
 @onready var angles_label: Label = hud.metric_label
 @onready var help_label: Label = hud.help_label
-@onready var pause_panel: Control = $Interface/PausePanel
-@onready var resume_button: Button = $Interface/PausePanel/Center/Card/Content/ResumeButton
-@onready var menu_button: Button = $Interface/PausePanel/Center/Card/Content/MenuButton
+@onready var pause_panel: TrainingPause = $Interface/PausePanel
+@onready var resume_button: Button = pause_panel.resume_button
+@onready var menu_button: Button = pause_panel.menu_button
 @onready var session_panel: SessionPanel = $Interface/SessionPanel
 @onready var test_button: Button = home.test_button
 @onready var quit_button: Button = home.quit_button
@@ -66,8 +69,9 @@ func _ready() -> void:
 	home.calibration_resume_requested.connect(resume_calibration)
 	home.history_requested.connect(refresh_history)
 	home.export_requested.connect(export_history)
-	resume_button.pressed.connect(resume_test)
-	menu_button.pressed.connect(return_to_menu)
+	pause_panel.resume_requested.connect(resume_test)
+	pause_panel.menu_requested.connect(return_to_menu)
+	pause_panel.sensitivity_requested.connect(apply_paused_sensitivity)
 	session_panel.next_requested.connect(next_calibration_stage)
 	session_panel.retry_requested.connect(retry_training)
 	session_panel.menu_requested.connect(return_to_menu)
@@ -162,7 +166,13 @@ func _notification(what: int) -> void:
 func start_test() -> void:
 	if screen != Screen.HOME or not window_has_focus:
 		return
-	var profile := home.read_profile()
+	is_calibrating = false
+	is_guided = false
+	activate_test(home.read_profile())
+
+
+func activate_test(profile: Dictionary) -> void:
+	training_profile = profile.duplicate(true)
 	apply_profile(profile)
 	hud.configure(profile)
 	aim_camera.reset_aim()
@@ -190,6 +200,7 @@ func pause_test() -> void:
 	hud.stop()
 	screen = Screen.PAUSED
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	pause_panel.bind(training_profile, is_calibrating)
 	pause_panel.show()
 	resume_button.grab_focus()
 
@@ -206,9 +217,61 @@ func resume_test() -> void:
 	pause_panel.hide()
 
 
+func apply_paused_sensitivity(profile: Dictionary) -> void:
+	if screen != Screen.PAUSED or not window_has_focus or is_calibrating:
+		return
+	var expected := training_profile.duplicate(true)
+	expected.cm_per_360 = profile.get("cm_per_360", NAN)
+	var error := SensitivityService.validate_profile(expected)
+	if error.is_empty() and paused_from != Screen.TEST and not selected_definition.fits_view(float(expected.vertical_fov_deg), current_aspect()):
+		error = "Rétablissez le format de fenêtre avant de recommencer."
+	if profile != expected or not error.is_empty():
+		pause_panel.set_error(error if not error.is_empty() else "Seule la sensibilité peut changer ici.")
+		return
+	if expected.cm_per_360 == training_profile.cm_per_360:
+		return
+	if not store.save_profile(expected):
+		pause_panel.set_error(store.last_error)
+		return
+	home.bind_profile(expected)
+	if session_active and not finish_training(false, false):
+		pending_abandon_report = last_report.duplicate(true)
+		pending_restart_profile = expected.duplicate(true)
+		screen = Screen.RESULTS
+		hud.hide()
+		pause_panel.hide()
+		arena.hide()
+		session_panel.present_result(last_report, result_text(last_report), false, 0, 0)
+		session_panel.set_notice("Essai non sauvegardé. Rejouer réessaie l’enregistrement avant de démarrer. " + store.last_error)
+		return
+	if paused_from == Screen.TEST:
+		activate_test(expected)
+	else:
+		prepare_training(selected_definition, selected_duration_s, next_practice_seed(), expected)
+
+
+func next_practice_seed() -> int:
+	var seed_value := int(Crypto.new().generate_random_bytes(4).decode_u32(0) & 0x7fffffff)
+	if seed_value == selected_seed:
+		seed_value = (seed_value + 1) & 0x7fffffff
+	return seed_value
+
+
+func save_pending_abandon() -> bool:
+	if pending_abandon_report.is_empty():
+		return true
+	if not store.save_session(pending_abandon_report):
+		return false
+	pending_abandon_report.clear()
+	return true
+
+
 func return_to_menu() -> void:
 	if session_active:
 		finish_training(false, false)
+	pending_restart_profile.clear()
+	if not save_pending_abandon():
+		home.set_status("Essai interrompu non sauvegardé : " + store.last_error)
 	is_calibrating = false
 	is_guided = false
 	screen = Screen.HOME
@@ -256,10 +319,16 @@ func start_practice(scenario_id: String, duration_s: float) -> void:
 		return
 	is_calibrating = false
 	is_guided = false
-	prepare_training(ScenarioCatalog.find(scenario_id), duration_s, 1337, home.read_profile())
+	prepare_training(ScenarioCatalog.find(scenario_id), duration_s, next_practice_seed(), home.read_profile())
 
 
 func prepare_training(definition: ScenarioDefinition, duration_s: float, seed_value: int, profile: Dictionary) -> bool:
+	if not save_pending_abandon():
+		var notice := "Essai précédent non sauvegardé : " + store.last_error
+		home.set_status(notice)
+		if screen != Screen.HOME:
+			session_panel.set_notice(notice)
+		return false
 	var error := SensitivityService.validate_profile(profile)
 	if not window_has_focus or definition == null:
 		return false
@@ -308,7 +377,7 @@ func exercise_zone_fits_start_pose() -> bool:
 	for yaw_sign in [-1.0, 1.0]:
 		for pitch_sign in [-1.0, 1.0]:
 			var direction := AimGeometry.direction(selected_definition.yaw_extent_deg * yaw_sign, selected_definition.pitch_extent_deg * pitch_sign)
-			if not AimGeometry.sphere_fits_view(view_basis * direction, selected_definition.angular_diameter_deg, aim_camera.fov, current_aspect()):
+			if not AimGeometry.sphere_fits_view(view_basis * direction, selected_definition.maximum_angular_diameter_deg(), aim_camera.fov, current_aspect()):
 				return false
 	return true
 
@@ -341,9 +410,9 @@ func queue_finish() -> void:
 		finish_training.call_deferred(true)
 
 
-func finish_training(finished: bool, show_result: bool = true) -> void:
+func finish_training(finished: bool, show_result: bool = true) -> bool:
 	if not session_active:
-		return
+		return false
 	session_active = false
 	finish_queued = false
 	engine.paused = false
@@ -351,6 +420,7 @@ func finish_training(finished: bool, show_result: bool = true) -> void:
 	clock.pause(Time.get_ticks_usec())
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	last_report = engine.result(training_profile, training_aspect, finished)
+	last_report.session_id = store.identifier()
 	last_report.metrics.received_x_counts = aim_camera.received_x_counts - initial_x_counts
 	last_report.metrics.received_y_counts = aim_camera.received_y_counts - initial_y_counts
 	last_report.warmup = is_calibrating and not calibration.current_stage().get("scored", false)
@@ -362,7 +432,7 @@ func finish_training(finished: bool, show_result: bool = true) -> void:
 	if not saved:
 		body += "\n\nÉchec de sauvegarde : " + store.last_error
 	if not show_result:
-		return
+		return saved
 	hud.hide()
 	pause_panel.hide()
 	arena.hide()
@@ -384,6 +454,7 @@ func finish_training(finished: bool, show_result: bool = true) -> void:
 		session_panel.set_notice("Résultat non sauvegardé : " + store.last_error)
 	elif record_eligible and int(previous_summary.count) > 0 and float(last_report.score) > float(previous_summary.best):
 		session_panel.present_record(float(previous_summary.best), bool(training_profile.get("reduced_motion", false)))
+	return saved
 
 
 func result_text(report: Dictionary) -> String:
@@ -397,7 +468,7 @@ func result_text(report: Dictionary) -> String:
 			metrics.angular_error_p95_deg, metrics.reacquisition_median_ms, report.score]
 	else:
 		var accuracy := "N/A" if metrics.accuracy_pct == null else "%.1f %%" % metrics.accuracy_pct
-		body += "Touches : %d · ratés : %d · tirs : %d · cibles expirées : %d\nPrécision : %s · cadence : %.1f touches/min\nAcquisition/transition : médiane %.0f ms · p95 %.0f ms\nErreur médiane au clic : %.2f° · efficacité de trajet : %.1f %%\nScore v1 : %.0f (1000 × cadence × précision² / référence ; sans plafond artificiel)" % [metrics.hits, metrics.misses,
+		body += "Cibles touchées : %d · ratés : %d · tirs : %d · cibles expirées : %d\nPrécision : %s · rythme : %.0f cibles/min\nAcquisition/transition : médiane %.0f ms · p95 %.0f ms\nErreur médiane au clic : %.2f° · efficacité de trajet : %.1f %%\nScore v1 : %.0f (1000 × cadence × précision² / référence ; sans plafond artificiel)" % [metrics.hits, metrics.misses,
 			metrics.shots, metrics.targets_expired, accuracy, metrics.hits_per_s * 60.0,
 			metrics.acquisition_median_ms, metrics.acquisition_p95_ms, metrics.shot_error_median_deg,
 			metrics.path_efficiency_median * 100.0, report.score]
@@ -412,6 +483,9 @@ func result_text(report: Dictionary) -> String:
 
 func start_guided_calibration() -> void:
 	if screen != Screen.HOME or not window_has_focus:
+		return
+	if not save_pending_abandon():
+		home.set_status("Essai précédent non sauvegardé : " + store.last_error)
 		return
 	var search := AdaptiveSensitivityService.new()
 	if not search.begin(home.read_profile(), current_aspect(), randi_range(1, 1000000000), store.identifier()):
@@ -437,6 +511,9 @@ func start_guided_calibration() -> void:
 
 func resume_guided_calibration() -> void:
 	if screen != Screen.HOME or not window_has_focus:
+		return
+	if not save_pending_abandon():
+		home.set_status("Essai précédent non sauvegardé : " + store.last_error)
 		return
 	var checkpoint := store.load_guided_checkpoint()
 	if checkpoint.is_empty():
@@ -536,6 +613,9 @@ func show_guided_recommendation() -> void:
 func start_calibration() -> void:
 	if screen != Screen.HOME or not window_has_focus:
 		return
+	if not save_pending_abandon():
+		home.set_status("Essai précédent non sauvegardé : " + store.last_error)
+		return
 	is_guided = false
 	var profile := home.read_profile()
 	if not calibration.begin(profile, current_aspect(), randi_range(1, 1000000000), store.identifier()):
@@ -556,6 +636,9 @@ func start_calibration() -> void:
 
 func resume_calibration() -> void:
 	if screen != Screen.HOME:
+		return
+	if not save_pending_abandon():
+		home.set_status("Essai précédent non sauvegardé : " + store.last_error)
 		return
 	is_guided = false
 	if not calibration.restore(store.load_checkpoint()):
@@ -665,10 +748,17 @@ func retry_training() -> void:
 		return
 	if screen == Screen.REST and Time.get_ticks_usec() < rest_until_us:
 		return
+	if not pending_restart_profile.is_empty():
+		if not save_pending_abandon():
+			session_panel.set_notice("Essai non sauvegardé : " + store.last_error)
+			return
+		if prepare_training(selected_definition, selected_duration_s, next_practice_seed(), pending_restart_profile):
+			pending_restart_profile.clear()
+		return
 	if is_calibrating:
 		start_calibration_stage()
 	else:
-		prepare_training(selected_definition, selected_duration_s, selected_seed, training_profile)
+		prepare_training(selected_definition, selected_duration_s, next_practice_seed(), training_profile)
 
 
 func refresh_history() -> void:
@@ -706,6 +796,7 @@ func update_telemetry() -> void:
 		hud_title.text = "Vérification souris"
 		angles_label.text = "Yaw %+.2f° · Pitch %+.2f°\nCounts X %.0f / Y %.0f" % [aim_camera.yaw_deg, aim_camera.pitch_deg, aim_camera.received_x_counts, aim_camera.received_y_counts]
 		help_label.text = "Faites un tour complet avec la souris."
+		help_label.show()
 		hud.queue_redraw()
 		return
 	var prefix := ""
@@ -717,7 +808,8 @@ func update_telemetry() -> void:
 	if screen == Screen.COUNTDOWN:
 		hud_title.text = prefix + ScenarioCopy.title(selected_definition)
 		hud.countdown_label.text = "%.0f" % ceil(maxf(COUNTDOWN_DURATION_S - clock.elapsed_s(Time.get_ticks_usec()), 1.0)) if start_pose_ready else "↓" if aim_camera.pitch_deg > 0.0 else "↑" if aim_camera.pitch_deg < 0.0 else "→" if aim_camera.yaw_deg > 0.0 else "←"
-		help_label.text = ScenarioCopy.description(selected_definition) if start_pose_ready else "Revenez vers le repère pour démarrer."
+		help_label.text = "" if start_pose_ready else "Revenez vers le repère pour démarrer."
+		help_label.visible = not start_pose_ready
 	else:
 		hud.present_live(engine.elapsed_s, engine.duration_s, engine.hits, engine.shots, selected_definition.family == "tracking", engine.on_target_s, engine.integrated_s, selected_definition.reference_hits_s)
 	hud.queue_redraw()
@@ -726,6 +818,18 @@ func update_telemetry() -> void:
 func quit_application() -> void:
 	hud.weapon_feedback.stop()
 	home.weapon_preview.stop()
+	if not save_pending_abandon():
+		if unsaved_exit_dialog == null:
+			unsaved_exit_dialog = ConfirmationDialog.new()
+			unsaved_exit_dialog.title = "Essai non sauvegardé"
+			unsaved_exit_dialog.dialog_text = "L’essai interrompu n’est pas enregistré. Quitter le perdra."
+			unsaved_exit_dialog.ok_button_text = "Quitter sans enregistrer"
+			unsaved_exit_dialog.cancel_button_text = "Rester"
+			unsaved_exit_dialog.theme = home.theme
+			unsaved_exit_dialog.confirmed.connect(func() -> void: get_tree().quit())
+			add_child(unsaved_exit_dialog)
+		unsaved_exit_dialog.popup_centered(Vector2i(460, 0))
+		return
 	if session_active:
 		finish_training(false, false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

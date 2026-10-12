@@ -224,14 +224,14 @@ func measurement_text(session: Dictionary) -> String:
 		return "%s %% du temps sur cible" % AimUI.number(float(ratio) * 100.0, 1) if ScoringService.number(ratio) else "Mesure indisponible"
 	var accuracy: Variant = metrics.get("accuracy_fraction", null)
 	var accuracy_pct: Variant = metrics.get("accuracy_pct", null)
-	var cadence: Variant = metrics.get("hits_per_s", null)
+	var cadence_hits_min: Variant = PerformanceInsights.hits_per_minute(metrics)
 	var parts: Array[String] = []
 	if ScoringService.number(accuracy):
 		parts.append("%s %% de tirs réussis" % AimUI.number(float(accuracy) * 100.0, 1))
 	elif ScoringService.number(accuracy_pct):
 		parts.append("%s %% de tirs réussis" % AimUI.number(float(accuracy_pct), 1))
-	if ScoringService.number(cadence):
-		parts.append("%s touches/min" % AimUI.number(float(cadence) * 60.0, 1))
+	if cadence_hits_min != null:
+		parts.append("%s cibles/min" % AimUI.number(float(cadence_hits_min), 0))
 	return "\n".join(parts) if not parts.is_empty() else "Mesure indisponible"
 
 

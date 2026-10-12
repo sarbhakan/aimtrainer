@@ -1,12 +1,13 @@
 from hashlib import sha256
 from pathlib import Path
 import re
+import os
 from zipfile import ZIP_DEFLATED, ZipFile
 
 
 project_root = Path(__file__).resolve().parent.parent
 version = re.search(r'config/version="([^"]+)"', (project_root / "project.godot").read_text()).group(1)
-preview_dir = project_root / "dist" / "preview"
+preview_dir = Path(os.environ.get("AIM_LOCAL_SCREENSHOT_DIR", project_root / "dist" / "preview"))
 captures = sorted(preview_dir.glob("*.png"))
 required = {"1280-00-accueil.png", "1280-02-sensibilite.png", "1280-07-entrainement.png",
             "800-16-survol.png", "1280-25-impact.png", "1280-32-arme-vector.png"}
@@ -31,6 +32,8 @@ with ZipFile(archive, "w", ZIP_DEFLATED) as output:
         "16-survol/23-accueil-survol : bulles ; 24-viseur : personnalisation.\n"
         "21-tir/22-recul/25-impact : effets cosmétiques et impact du moteur.\n"
         "31-exercice-ID : les seize exercices ; 32-arme-ID : les trois modèles 3D.\n\n"
+        "34-sensibilite-en-pause : modification sans mélanger les scores.\n"
+        "35-pattern-D01/D02 : instantanés de tailles et mouvements variables.\n\n"
         "Les bilans, records, historiques et conseils sont des fixtures synthétiques\n"
         "isolées sous user://tests, pas les performances réelles d'un joueur.\n"
         "Les effets très brefs sont figés pour leur capture sur le rendu logiciel ;\n"

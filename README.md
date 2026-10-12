@@ -2,7 +2,7 @@
 
 Aim trainer 3D hors ligne pour Windows, en **Godot 4.7.2 stable + GDScript**.
 
-La **0.5.0** revoit le cadrage des 16 exercices, agrandit les cibles d’entrée et remplace les sprites par des armes originales en **3D**. Menus espacés, démonstrations contenues dans leur bulle, sensibilités lisibles à deux décimales, décor virtuel et HUD compact : temps à gauche, performance et score à droite. Départ **3, 2, 1, GO**, sans changer la fidélité de la souris. La [spécification originale](docs/SPECIFICATION.md) reste la cible complète : les 55 exercices, le déplacement du joueur, l’ADS et les routines personnalisées ne sont pas encore implémentés.
+La **0.6.0 — Precision Lab** applique une direction artistique claire et des armes originales **3D** mieux définies. Scroll sans barres, actions par icônes, démos sans légende redondante et réglage de sensibilité en pause. Les entraînements rejoués renouvellent leurs patterns ; trois variantes ajoutent tailles évolutives, destinations non cycliques et profondeurs variables. HUD compact, départ **3, 2, 1, GO**, sans changer la fidélité de la souris. La [spécification originale](docs/SPECIFICATION.md) reste la cible complète : les 55 exercices, le déplacement du joueur, l’ADS et les routines personnalisées ne sont pas encore implémentés.
 
 Priorités : fidélité des mouvements de souris, pertinence des exercices, mesure réelle de la progression.
 
@@ -10,11 +10,11 @@ Priorités : fidélité des mouvements de souris, pertinence des exercices, mesu
 
 [Voir la bibliothèque d’exercices](docs/screenshots/exercices.png) · [Voir le parcours de sensibilité](docs/screenshots/sensibilite.png) · [Choix d’interface et équipements](docs/UI_UX.md)
 
-**Sur Mac :** [voir la galerie](docs/screenshots/README.md) ou [télécharger les 77 captures PNG](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.5.0-visuels.zip), menus, calibration, seize exercices et armes 3D. Ce ZIP est une galerie, pas un exécutable Mac. Pour le régénérer : `bash tools/visual_smoke.sh`, puis `python3 tools/package_visuals.py`.
+**Sur Mac :** [voir la galerie](docs/screenshots/README.md) ou [télécharger les captures PNG](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.6.0-visuels.zip), menus, calibration, seize exercices, patterns et armes 3D. [Direction artistique et concepts](docs/art-direction/README.md). Le ZIP est une galerie, pas un exécutable Mac. Pour le régénérer : `bash tools/visual_smoke.sh`, puis `python3 tools/package_visuals.py`.
 
 ## Ouvrir sous Windows
 
-Télécharger [AimLocal-0.5.0-windows-x64.zip](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.5.0-windows-x64.zip), puis extraire **tout** le dossier et lancer `AimLocal.exe` : **aucune installation de Godot nécessaire**. Vérification facultative : [somme SHA-256](downloads/AimLocal-0.5.0-windows-x64.zip.sha256), ou `Get-FileHash .\AimLocal-0.5.0-windows-x64.zip -Algorithm SHA256` sous PowerShell. Seule la dernière distribution est conservée dans `downloads/`.
+Télécharger [AimLocal-0.6.0-windows-x64.zip](https://github.com/sarbhakan/aimtrainer/raw/refs/heads/main/downloads/AimLocal-0.6.0-windows-x64.zip), puis extraire **tout** le dossier et lancer `AimLocal.exe` : **aucune installation de Godot nécessaire**. Vérification facultative : [somme SHA-256](downloads/AimLocal-0.6.0-windows-x64.zip.sha256), ou `Get-FileHash .\AimLocal-0.6.0-windows-x64.zip -Algorithm SHA256` sous PowerShell. Seule la dernière distribution est conservée dans `downloads/`.
 
 Pour ouvrir les sources, installer l'édition standard de Godot **4.7.2 stable** et ses export templates de la même version depuis les [releases officielles](https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable). Importer `project.godot`, puis lancer le projet avec F6 depuis `Main.tscn`, ou F5.
 
@@ -31,12 +31,14 @@ Pour ouvrir les sources, installer l'édition standard de Godot **4.7.2 stable**
 - **Réglages** : Pulse, Vector ou Classic, sons et volume, arme masquée ou visible, animations réduites. Cliquer produit un tir ; en suivi, maintenir le clic joue un son continu facultatif **sans modifier le score**. Enregistrer pour conserver ces préférences.
 - **Viseur** : point, croix, cercle ou T ; taille, épaisseur, espacement, couleur et contour, avec aperçu immédiat. Hitmarker après impact, sans recul de caméra ni modification de hitbox.
 - **Test souris**, dans les réglages avancés : repère 3D sans score. **Échap** et perte de focus suspendent le jeu et arrêtent les sons ; la reprise reste explicite.
+- **En pause** : modifier la sensibilité AIM/LOCAL, Valorant ou CS2 puis appliquer. L’essai redémarre pour séparer les scores ; ce réglage reste verrouillé pendant la calibration.
+- **Precision Lab** : décor clair, matériaux ombrés, cibles corail, scroll sans barre et actions par icônes. Les démos n’affichent plus de légende redondante ; aucune consigne n’est répétée pendant le décompte.
 
 Défaut : **800 DPI, 35 cm/360°, FOV vertical 75°**, soit `914,4 / (800 × 35)` degré par count. Aucun lissage, accélération ni facteur de delta temporel n'est ajouté à la souris. Les DPI ne sont pas détectés matériellement. La calibration conseille un réglage dans la plage testée, **pas un optimum universel garanti** : relire le [protocole et les formules](docs/CALIBRATION.md), retester un autre jour et mesurer la distance réelle à la règle.
 
 Les données sont dans `user://aim_local`, soit **`%APPDATA%\AIM_LOCAL\aim_local` sous Windows**. Séances et bilans sont immuables ; profil et checkpoint utilisent un remplacement atomique avec backup. Un fichier corrompu est conservé et signalé, jamais écrasé silencieusement.
 
-Les exercices passent en **révision 3**, avec des tailles, amplitudes et distances choisies selon leur objectif : [détail des mécaniques](docs/EXERCISE_DESIGN_050.md). Le protocole 3 garde ses facteurs et contrebalancements. Une comparaison 0.3/0.4 reconnue est archivée avant un nouveau départ, jamais poursuivie sur une autre difficulté ; les fichiers incohérents restent protégés. La recherche guidée sauvegarde son historique et sa comparaison ensemble, avec rollback en cas de panne. Les anciennes séances restent conservées ; seuls les contextes cohérents et identiques sont comparés.
+Les variantes **D01/D02/S02 passent en révision 4** : taille évoluant pendant l’exposition, destinations non cycliques et profondeurs par cible. Chaque entraînement rejoué renouvelle sa graine ; le rapport la conserve pour les replays logiciels. Les autres exercices et les cinq empreintes de calibration restent en révision 3 : [détail des nouvelles mécaniques](docs/EXERCISE_DESIGN_060.md). Le protocole 3 garde ses graines communes et contrebalancements. Une comparaison 0.3/0.4 reconnue est archivée avant un nouveau départ, jamais poursuivie sur une autre difficulté ; les fichiers incohérents restent protégés. La recherche guidée sauvegarde son historique et sa comparaison ensemble, avec rollback en cas de panne. Les anciennes séances restent conservées ; seuls les contextes cohérents et identiques sont comparés.
 
 ## Développer dans le cloud Linux
 
@@ -66,8 +68,8 @@ bash tools/export_windows.sh
 Ce script importe, exécute les tests, exporte en release, ouvre le pack avec le moteur Linux dans un dossier isolé, vérifie le format PE x86-64 et le PCK embarqué, puis crée :
 
 - `dist/AimLocal.exe`
-- `dist/AimLocal-0.5.0-windows-x64.zip`, avec l’exécutable, les instructions et les notices Godot/tiers.
-- `dist/AimLocal-0.5.0-windows-x64.zip.sha256`
+- `dist/AimLocal-0.6.0-windows-x64.zip`, avec l’exécutable, les instructions et les notices Godot/tiers.
+- `dist/AimLocal-0.6.0-windows-x64.zip.sha256`
 
 Sous Windows, depuis PowerShell :
 

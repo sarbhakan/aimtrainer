@@ -5,12 +5,15 @@
 [resource]
 script=ExtResource("1")
 scenario_id="D01"
-revision=3
+revision=4
 distance_m=4.0
 title="Pop-up"
-instructions="Une sphère visible pendant une seconde : repérer son apparition, la rejoindre et cliquer avant son expiration. Une touche la remplace immédiatement ; les cibles expirées comptent aussi."
+instructions="Une sphère apparaît avec un diamètre entre 3° et 3,8°, puis rétrécit progressivement vers 3° avant de disparaître après une seconde. Repérer la cible et cliquer avant son expiration ; touches et expirations comptent."
 family="click"
 angular_diameter_deg=3.4
+angular_diameter_min_deg=3.0
+angular_diameter_max_deg=3.8
+diameter_motion="shrink"
 yaw_extent_deg=16
 pitch_extent_deg=9
 min_transition_deg=4.5

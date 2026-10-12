@@ -73,7 +73,7 @@ func fit_width() -> void:
 	var width_px := minf(clampf(viewport_size.x * 0.29, 320.0, 420.0), viewport_size.x - AimUI.SPACE_MD * 2.0)
 	custom_minimum_size.x = maxf(width_px, 0.0)
 	var frame_width_px := get_theme_stylebox("panel").get_minimum_size().x + preview_frame.get_theme_stylebox("panel").get_minimum_size().x
-	preview.custom_minimum_size.y = maxf((custom_minimum_size.x - frame_width_px) / preview.display_aspect, 0.0) + ScenarioPreview.PLAYBACK_BAR_HEIGHT_PX
+	preview.custom_minimum_size.y = maxf((custom_minimum_size.x - frame_width_px) / preview.display_aspect, 0.0)
 	size.x = custom_minimum_size.x
 	fit_content_size.call_deferred()
 

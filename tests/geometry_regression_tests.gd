@@ -3,6 +3,7 @@ extends SceneTree
 const ArenaScene: PackedScene = preload("res://scenes/training/Arena.tscn")
 const FORMATS: Array[Vector2i] = [Vector2i(800, 450), Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(1280, 1024), Vector2i(2560, 1080)]
 const CALIBRATION_IDS: Array[String] = ["C02", "C04", "S01", "T01", "T05"]
+const VARIABLE_IDS: Array[String] = ["D01", "D02", "S02"]
 
 var assertion_count: int = 0
 var failure_count: int = 0
@@ -111,7 +112,7 @@ func test_definition_policy() -> void:
 	check(defaults.angular_diameter_deg == 1.5 and defaults.yaw_extent_deg == 12.0 and defaults.pitch_extent_deg == 6.0 and defaults.min_transition_deg == 2.5 and defaults.speed_deg_s == 12.0 and defaults.reference_hits_s == 2.0, "Les valeurs implicites historiques doivent rester inchangées ; les nouvelles difficultés sont explicites dans les ressources.")
 	var depths: Array[float] = []
 	for definition in ScenarioCatalog.DEFINITIONS:
-		check(definition.revision == 3 and definition.validate().is_empty(), definition.scenario_id + " : le catalogue doit exposer une définition valide de révision 3.")
+		check(definition.revision == (4 if definition.scenario_id in VARIABLE_IDS else 3) and definition.validate().is_empty(), definition.scenario_id + " : chaque difficulté publiée doit avoir sa révision explicite et valide.")
 		check(definition.distance_m >= 3.0 and definition.distance_m <= 8.0 and definition.minimum_surface_height_m() > 0.25, definition.scenario_id + " : la profondeur nominale doit garder la silhouette entière à plus de 25 cm du sol, même aux extrêmes déclarés.")
 		check(definition.fits_view(75.0, 16.0 / 9.0), definition.scenario_id + " : tout l'exercice doit tenir dans le cadrage minimal 16:9 au FOV vertical par défaut de 75°.")
 		if definition.scenario_id in ["C05", "T09"]:
@@ -150,8 +151,9 @@ func test_angular_pixels() -> void:
 			var scenario_id: String = definition.scenario_id
 			var engine: ScenarioEngine = ScenarioEngine.new()
 			engine.start(definition, 42, 1.0)
-			var recovered_deg: float = rad_to_deg(2.0 * asin(engine.radius_m() / definition.distance_m))
-			check(absf(recovered_deg - definition.angular_diameter_deg) < 0.000001, scenario_id + " : le rayon de sphère doit préserver exactement le diamètre angulaire.")
+			var geometry: Dictionary = engine.target_geometry(0, 0.0)
+			var recovered_deg: float = rad_to_deg(2.0 * asin(float(geometry.radius_m) / float(geometry.distance_m)))
+			check(absf(recovered_deg - float(geometry.angular_diameter_deg)) < 0.000001, scenario_id + " : le rayon de sphère doit préserver exactement le diamètre angulaire déclaré à cet instant.")
 			var expected_px: float = float(format.y) * tan(deg_to_rad(definition.angular_diameter_deg * 0.5)) / tan(deg_to_rad(camera.fov * 0.5))
 			var baseline_px: float = 0.0
 			for distance_m in [2.0, 4.0, 8.0]:
@@ -230,7 +232,7 @@ func test_full_frustum() -> void:
 			viewport.size = format
 			for vertical_fov_deg in [40.0, 60.0, 75.0, 90.0, 110.0]:
 				camera.fov = vertical_fov_deg
-				var bounds: Rect2 = silhouette_pixels(AimGeometry.direction(definition.yaw_extent_deg, definition.pitch_extent_deg), definition.distance_m, definition.angular_diameter_deg)
+				var bounds: Rect2 = silhouette_pixels(AimGeometry.direction(definition.yaw_extent_deg, definition.pitch_extent_deg), definition.maximum_distance_m(), definition.maximum_angular_diameter_deg())
 				var contained: bool = bounds.position.x >= 0.0 and bounds.position.y >= 0.0 and bounds.end.x <= format.x and bounds.end.y <= format.y
 				check(definition.fits_view(vertical_fov_deg, float(format.x) / format.y) == contained, definition.scenario_id + " : la garde FOV doit correspondre à la silhouette complète projetée par Camera3D pour tous les FOV de profil.")
 	camera.fov = 75.0
@@ -252,19 +254,21 @@ func test_catalog_bounds() -> void:
 				var time_s: float = float(sample_index) * 0.5
 				pool.sync(engine, time_s)
 				for target_index in engine.targets.size():
-					var direction: Vector3 = engine.target_direction(target_index, time_s)
+					var geometry: Dictionary = engine.target_geometry(target_index, time_s)
+					var direction: Vector3 = geometry.direction
 					var yaw_deg: float = rad_to_deg(atan2(-direction.x, -direction.z))
 					var pitch_deg: float = rad_to_deg(asin(direction.y))
 					bounds_valid = bounds_valid and absf(yaw_deg) <= definition.yaw_extent_deg + 0.00001 and absf(pitch_deg) <= definition.pitch_extent_deg + 0.00001
 					var sphere: MeshInstance3D = pool.spheres[target_index]
-					var surface_m: float = sphere.global_position.y - engine.radius_m()
+					var surface_m: float = sphere.global_position.y - float(geometry.radius_m)
 					if surface_m < lowest_surface_m:
 						lowest_surface_m = surface_m
 						minimum_seed = seed_value
-					transforms_valid = transforms_valid and (sphere.global_position - camera.global_position).is_equal_approx(direction * definition.distance_m)
-					transforms_valid = transforms_valid and sphere.global_position.z - engine.radius_m() > wall_front_m
-					transforms_valid = transforms_valid and definition.distance_m - engine.radius_m() > camera.near and definition.distance_m + engine.radius_m() < camera.far
-		check(definition.validate().is_empty() and definition.revision == 3, definition.scenario_id + " : la nouvelle difficulté doit être versionnée.")
+					transforms_valid = transforms_valid and (sphere.global_position - camera.global_position).is_equal_approx(geometry.center_offset_m)
+					transforms_valid = transforms_valid and sphere.global_basis.get_scale().is_equal_approx(Vector3.ONE * float(geometry.radius_m))
+					transforms_valid = transforms_valid and sphere.global_position.z - float(geometry.radius_m) > wall_front_m
+					transforms_valid = transforms_valid and float(geometry.distance_m) - float(geometry.radius_m) > camera.near and float(geometry.distance_m) + float(geometry.radius_m) < camera.far
+		check(definition.validate().is_empty() and definition.revision == (4 if definition.scenario_id in VARIABLE_IDS else 3), definition.scenario_id + " : la nouvelle difficulté doit être versionnée.")
 		check(definition.distance_m >= 3.0 and definition.distance_m <= 8.0, definition.scenario_id + " : la profondeur nominale doit rester dans l'arène de 3 à 8 mètres.")
 		check(bounds_valid, definition.scenario_id + " : toutes les positions seedées doivent rester dans les bornes angulaires déclarées.")
 		check(transforms_valid, definition.scenario_id + " : positions visibles, rayon logique, near/far et mur doivent être cohérents.")
@@ -404,15 +408,16 @@ func test_collision_boundaries() -> void:
 	for definition in ScenarioCatalog.DEFINITIONS:
 		var engine: ScenarioEngine = ScenarioEngine.new()
 		engine.start(definition, 42, 1.0)
-		var center_direction: Vector3 = engine.target_direction(0, 0.2)
+		var geometry: Dictionary = engine.target_geometry(0, 0.2)
+		var center_direction: Vector3 = geometry.direction
 		var tangent: Vector3 = center_direction.cross(Vector3.UP).normalized()
-		var inside_rad: float = deg_to_rad(definition.angular_diameter_deg * 0.5 - 0.001)
-		var outside_rad: float = deg_to_rad(definition.angular_diameter_deg * 0.5 + 0.001)
+		var inside_rad: float = deg_to_rad(float(geometry.angular_diameter_deg) * 0.5 - 0.001)
+		var outside_rad: float = deg_to_rad(float(geometry.angular_diameter_deg) * 0.5 + 0.001)
 		var inside: Vector3 = center_direction * cos(inside_rad) + tangent * sin(inside_rad)
 		var outside: Vector3 = center_direction * cos(outside_rad) + tangent * sin(outside_rad)
-		var center: Vector3 = center_direction * definition.distance_m
-		check(not is_inf(AimGeometry.ray_sphere_distance(inside, center, engine.radius_m())), definition.scenario_id + " : un rayon juste à l'intérieur de la silhouette sphérique doit toucher.")
-		check(is_inf(AimGeometry.ray_sphere_distance(outside, center, engine.radius_m())), definition.scenario_id + " : un rayon juste à l'extérieur doit rater, sans aim assist.")
+		var center: Vector3 = geometry.center_offset_m
+		check(not is_inf(AimGeometry.ray_sphere_distance(inside, center, float(geometry.radius_m))), definition.scenario_id + " : un rayon juste à l'intérieur de la silhouette sphérique doit toucher.")
+		check(is_inf(AimGeometry.ray_sphere_distance(outside, center, float(geometry.radius_m))), definition.scenario_id + " : un rayon juste à l'extérieur doit rater, sans aim assist.")
 	check(is_inf(AimGeometry.ray_sphere_distance(Vector3(NAN, 0.0, -1.0), Vector3.FORWARD, 0.1)), "Une direction de tir non finie doit être refusée.")
 	check(is_inf(AimGeometry.ray_sphere_distance(Vector3.FORWARD, Vector3(INF, 0.0, -1.0), 0.1)), "Une position de cible non finie doit être refusée.")
 
@@ -449,11 +454,19 @@ func test_replays() -> void:
 				check(reference_metrics == report.metrics and reference_targets == engine.targets and reference_rng_state == engine.rng.state, definition.scenario_id + " : mêmes métriques, trajet, événements, cibles et RNG à 60/144/240 FPS pour les mêmes événements horodatés.")
 		var alternative_depth: ScenarioDefinition = definition.duplicate() as ScenarioDefinition
 		alternative_depth.distance_m = 2.0
+		if definition.has_distance_variation():
+			alternative_depth.distance_min_m *= alternative_depth.distance_m / definition.distance_m
+			alternative_depth.distance_max_m *= alternative_depth.distance_m / definition.distance_m
 		var previous_engine: ScenarioEngine = ScenarioEngine.new()
 		var current_engine: ScenarioEngine = ScenarioEngine.new()
-		previous_engine.start(alternative_depth, 42, 2.0)
-		current_engine.start(definition, 42, 2.0)
-		check(previous_engine.targets == current_engine.targets and previous_engine.rng.state == current_engine.rng.state, definition.scenario_id + " : le changement de profondeur seul ne doit changer ni la génération seedée ni l'état du RNG.")
+		check(previous_engine.start(alternative_depth, 42, 2.0) and current_engine.start(definition, 42, 2.0), "Les deux profondeurs du test doivent être valides.")
+		var previous_targets: Array[Dictionary] = previous_engine.targets.duplicate(true)
+		var current_targets: Array[Dictionary] = current_engine.targets.duplicate(true)
+		for target_index in previous_targets.size():
+			previous_targets[target_index].erase("distance_m")
+			current_targets[target_index].erase("distance_m")
+			check(previous_engine.target_direction(target_index, 0.5).is_equal_approx(current_engine.target_direction(target_index, 0.5)), "La profondeur seule ne change pas le parcours angulaire du viseur.")
+		check(previous_targets == current_targets and previous_engine.rng.state == current_engine.rng.state, definition.scenario_id + " : changer uniquement l'échelle des profondeurs ne change ni positions angulaires, ni phases, ni RNG.")
 		check(alternative_depth.fingerprint() != definition.fingerprint(), definition.scenario_id + " : une autre profondeur doit créer un contexte distinct sans prétendre être une fixture historique.")
 
 

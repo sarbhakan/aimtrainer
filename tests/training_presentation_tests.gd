@@ -21,6 +21,7 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	app.home.bind_profile(profile)
 	app.start_practice("C03", 30.0)
 	expect(app.screen == app.Screen.COUNTDOWN and app.hud.countdown_label.text == "3", "Chaque départ commence par trois secondes lisibles.")
+	expect(app.hud.help_label.text.is_empty() and not app.hud.help_label.visible, "Le décompte ne répète pas la description déjà montrée avant le lancement.")
 	expect(not app.session_active and not app.hud.timer_card.visible and not app.hud.metric_card.visible, "La préparation ne comporte ni mesure active ni compteurs superflus.")
 	expect(app.target_pool.spheres[0].visible, "Les cibles de départ sont visibles avant la mesure pour repérer la zone.")
 	var initial_target: Vector3 = app.preparation_engine.target_direction(0, 0.0)
@@ -66,8 +67,12 @@ func run(tree: SceneTree, check: Callable) -> bool:
 	app.return_to_menu()
 	var presentation: ArenaPresentation = app.arena.get_node("Presentation")
 	expect(presentation.environment_meshes.size() <= 32 and not presentation.is_processing(), "Le décor virtuel est statique et son coût en nœuds est borné.")
+	for mesh in presentation.environment_meshes:
+		var material := mesh.mesh.surface_get_material(0) as StandardMaterial3D
+		expect(material != null and material.shading_mode == BaseMaterial3D.SHADING_MODE_PER_PIXEL and not material.emission_enabled, "Les volumes du laboratoire sont réellement ombrés, pas des aplats émissifs.")
+	expect((app.arena.get_node("Light") as DirectionalLight3D).shadow_enabled, "Le laboratoire possède des ombres directionnelles et un remplissage, sans grille de fond.")
 	for definition in ScenarioCatalog.DEFINITIONS:
-		expect(definition.distance_m + definition.distance_m * sin(deg_to_rad(definition.angular_diameter_deg * 0.5)) < 11.0, "Aucune cible ne peut être masquée par le fond virtuel : " + definition.scenario_id)
+		expect(definition.maximum_distance_m() * (1.0 + sin(deg_to_rad(definition.maximum_angular_diameter_deg() * 0.5))) < 11.0, "Aucune cible, même à taille/profondeur maximale, ne peut être masquée par le fond : " + definition.scenario_id)
 	app.queue_free()
 	await tree.process_frame
 	return true

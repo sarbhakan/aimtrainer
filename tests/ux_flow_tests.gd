@@ -305,7 +305,7 @@ func test_progress(dashboard: AimDashboard) -> void:
 	expect(board.displayed_sessions.size() == 3 and board.displayed_sessions[0].session_id == "tracking" and board.displayed_sessions[1].session_id == "newer", "Le tableau ordonne les vrais détails fournis et exclut les autres contextes, échauffements et invalides.")
 	expect(board.context_label.text.contains("30 s") and board.context_label.text.contains("800 DPI"), "La durée et les DPI de comparaison sont visibles.")
 	expect(board.measurement_text(board.displayed_sessions[0]).contains("75,0 % du temps"), "Le suivi exprime le temps sur cible en pourcentage.")
-	expect(board.measurement_text(board.displayed_sessions[1]).contains("80,0 % de tirs") and board.measurement_text(board.displayed_sessions[1]).contains("8,0 touches/min"), "Le clic exprime la précision et la cadence avec leurs unités.")
+	expect(board.measurement_text(board.displayed_sessions[1]).contains("80,0 % de tirs") and board.measurement_text(board.displayed_sessions[1]).contains("8 cibles/min"), "Le clic exprime précision et cibles réussies par minute, pas un taux de tirs inventé.")
 	board.family_input.select(2)
 	board.family_input.item_selected.emit(2)
 	expect(board.comparable_count == 1 and board.displayed_summaries.size() == 1 and board.displayed_sessions[0].family == "tracking", "Le filtre de famille utilise le champ family fourni par le parent.")

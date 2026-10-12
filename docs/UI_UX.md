@@ -1,10 +1,16 @@
-# Interface et présentation — 0.5.0
+# Interface et présentation — 0.6.0
 
 ## Une seule échelle visuelle
 
 Espacements communs de 4/8/12/16/24/32 px, champs alignés, descriptions raccourcies et deux décimales pour les sensibilités visibles. Une valeur positive trop petite pour cet arrondi est indiquée « <0,01 », pas zéro. Le coefficient technique `m_yaw`, replié, conserve ses décimales utiles pour distinguer un réglage personnalisé. Le float canonique reste indépendant de l’affichage : ouvrir/quitter un champ ne réinterprète pas l’arrondi comme une saisie. La conversion copiée conserve sa précision utile.
 
-En jeu : timer isolé à gauche, touches/précision ou temps sur cible et score évolutif à droite. Aucune consigne ni nom d’exercice permanent dans la zone de visée. La préparation affiche 3, 2, 1 avec une impulsion et une seule consigne ; GO disparaît rapidement au-dessus du viseur. Les cibles initiales sont montrées sans avancer les mesures.
+En jeu : timer isolé à gauche, touches/précision ou temps sur cible et score évolutif à droite. Aucune consigne ni nom d’exercice permanent dans la zone de visée. La préparation affiche 3, 2, 1 avec une impulsion, sans répéter la consigne déjà présentée ; GO disparaît rapidement au-dessus du viseur. Les cibles initiales sont montrées sans avancer les mesures.
+
+La direction [Precision Lab](art-direction/README.md) précède l’implémentation : concepts distincts des captures réelles, laboratoire clair, matériaux mats ombrés, cibles corail et armes perle/graphite/acier. Les actions évidentes Actualiser/Copier utilisent seulement une icône, avec nom accessible et infobulle. Une démo ne conserve ni bande ni texte « Démo animée ».
+
+Le scroll reste natif et les barres sont masquées, pas le défilement : molette, gestes de pavé tactile, flèches/Page haut/Page bas quand le conteneur a le focus et révélation du contrôle ciblé. La bibliothèque garde une largeur flexible pour éviter le cycle de minimum du grid lors d’un passage du grand au petit format. Aucun champ n’est tronqué pour cacher un débordement.
+
+Échap propose la sensibilité locale ou son équivalent Valorant/CS2. Reprendre et Menu ont la taille de leurs libellés. Appliquer redémarre l’essai après sauvegarde ; la comparaison de calibration verrouille le réglage. Un échec d’écriture de l’abandon est visible avant la relance et peut être retenté.
 
 ## Finition native
 
@@ -12,7 +18,7 @@ Les composants partagent des états de survol, pression, sélection et focus cla
 
 Ma sensibilité distingue **Je cherche un point de départ** et **J’ai déjà un réglage**, avec durée et reprise propres. Les paragraphes redondants laissent place à une action et une consigne. Le formulaire source affiche des nombres lisibles tout en conservant son float canonique : ouvrir/quitter sans éditer n’est pas une nouvelle saisie.
 
-Le résultat associe le score à des mesures utiles : précision, touches/tirs et cadence pour le clic ; fraction et secondes réellement suivies, retour sur cible pour le tracking. Un objectif court propose quoi essayer ensuite, sans diagnostiquer magiquement la sensibilité. Les actions restent dans un pied fixe. Un record n’est célébré qu’après écriture, à contexte identique.
+Le résultat associe le score à des mesures utiles : précision, touches/tirs et **cibles réussies/minute** pour le clic ; fraction et secondes réellement suivies, retour sur cible pour le tracking. Un objectif court propose quoi essayer ensuite, sans diagnostiquer magiquement la sensibilité. Les actions restent dans un pied fixe. Un record n’est célébré qu’après écriture, à contexte identique.
 
 Progression dispose de filtres famille/exercice, de courbes et d’un tableau limité aux vingt dernières séances comparables. Record, médiane et tendance sont distincts. Les préférences de viseur/arme restent hors de la clé mécanique ; changer leur perception peut influencer une performance, ce n’est pas une preuve causale de progrès technique.
 
@@ -95,9 +101,9 @@ Sortie de survol/focus, défilement, changement de filtre, changement de page et
 
 ## Cibles lisibles et profondeur cohérente
 
-Les distances, tailles et amplitudes sont choisies par exercice : [mécaniques et objectifs](EXERCISE_DESIGN_050.md). Les cibles d’entrée sont nettement plus visibles, les exercices de précision avancée restent identifiés comme exigeants. Décor virtuel sombre, panneaux et repères de profondeur sobres ; pas d’ombres dynamiques ni de caméra mobile.
+Les distances, tailles et amplitudes sont choisies par exercice : [mécaniques et objectifs](EXERCISE_DESIGN_060.md). Les cibles d’entrée restent lisibles, les exercices de précision avancée sont identifiés comme exigeants. Laboratoire clair et cibles corail, avec ombres directionnelles et remplissage doux. Le décor reste statique et la caméra ne se déplace pas ; seules les rotations suivent les counts souris.
 
-La taille utile reste angulaire, jamais automatiquement agrandie selon la résolution. Silhouette et hitbox conservent le même rayon depuis l’origine de la caméra. Les exercices passent en révision 3 : anciennes séances conservées mais jamais mélangées aux nouveaux records. Les checkpoints reconnus sont archivés, pas poursuivis sur une difficulté différente. Ce contrôle logiciel ne prouve pas un ressenti de souris physique.
+La taille utile reste angulaire, jamais automatiquement agrandie selon la résolution. Silhouette et hitbox conservent le même rayon depuis l’origine de la caméra. D01/D02/S02 passent en révision 4 ; les autres restent en révision 3 : anciennes séances conservées mais jamais mélangées aux records d’une nouvelle difficulté. Les checkpoints r2 reconnus sont archivés, pas poursuivis sur une difficulté différente. Ce contrôle logiciel ne prouve pas un ressenti de souris physique.
 
 ## Profils d’arme extensibles
 

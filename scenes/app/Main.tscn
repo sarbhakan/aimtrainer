@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Home.tscn" id="2_home"]
@@ -6,6 +6,7 @@
 [ext_resource type="Theme" path="res://assets/ui_theme.tres" id="4_theme"]
 [ext_resource type="Script" path="res://scripts/ui/session_panel.gd" id="5_panel"]
 [ext_resource type="Script" path="res://scripts/ui/training_hud.gd" id="6_hud"]
+[ext_resource type="Script" path="res://scripts/ui/training_pause.gd" id="7_pause"]
 
 [node name="Main" type="Node"]
 script=ExtResource("1_main")
@@ -39,57 +40,7 @@ anchor_bottom=1.0
 grow_horizontal=2
 grow_vertical=2
 theme=ExtResource("4_theme")
-
-[node name="Shade" type="ColorRect" parent="Interface/PausePanel"]
-layout_mode=1
-anchors_preset=15
-anchor_right=1.0
-anchor_bottom=1.0
-grow_horizontal=2
-grow_vertical=2
-mouse_filter=2
-color=Color(0.025, 0.04, 0.075, 0.96)
-
-[node name="Center" type="CenterContainer" parent="Interface/PausePanel"]
-layout_mode=1
-anchors_preset=15
-anchor_right=1.0
-anchor_bottom=1.0
-grow_horizontal=2
-grow_vertical=2
-
-[node name="Card" type="PanelContainer" parent="Interface/PausePanel/Center"]
-custom_minimum_size=Vector2(390, 0)
-layout_mode=2
-
-[node name="Content" type="VBoxContainer" parent="Interface/PausePanel/Center/Card"]
-layout_mode=2
-theme_override_constants/separation=16
-
-[node name="Eyebrow" type="Label" parent="Interface/PausePanel/Center/Card/Content"]
-layout_mode=2
-theme_override_colors/font_color=Color(0.39, 0.9, 0.85, 1)
-theme_override_font_sizes/font_size=11
-text="À VOTRE RYTHME"
-
-[node name="Title" type="Label" parent="Interface/PausePanel/Center/Card/Content"]
-layout_mode=2
-theme_override_font_sizes/font_size=28
-text="En pause"
-
-[node name="Description" type="Label" parent="Interface/PausePanel/Center/Card/Content"]
-layout_mode=2
-theme_override_colors/font_color=Color(0.6, 0.67, 0.77, 1)
-theme_override_font_sizes/font_size=14
-text="Prenez une pause. Votre séance attend."
-
-[node name="ResumeButton" type="Button" parent="Interface/PausePanel/Center/Card/Content"]
-layout_mode=2
-text="Reprendre  →"
-
-[node name="MenuButton" type="Button" parent="Interface/PausePanel/Center/Card/Content"]
-layout_mode=2
-text="Retour au menu"
+script=ExtResource("7_pause")
 
 [node name="SessionPanel" type="Control" parent="Interface"]
 visible=false

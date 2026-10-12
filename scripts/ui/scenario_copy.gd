@@ -17,8 +17,8 @@ const DESCRIPTIONS: Dictionary = {
 	"C04": "Enchaînez de grands déplacements du viseur et cliquez.",
 	"C05": "Défi avancé facultatif : cliquez sur les six petites cibles.",
 	"C07": "Cliquez sur les cibles en haut et en bas.",
-	"D01": "Cliquez sur la cible avant qu’elle disparaisse.",
-	"D02": "Cliquez sur la cible pendant qu’elle se déplace.",
+	"D01": "Touchez la cible avant qu’elle rétrécisse et disparaisse.",
+	"D02": "Touchez la cible malgré ses changements de direction.",
 	"T01": "Gardez le viseur sur la cible qui va de gauche à droite.",
 	"T02": "Gardez le viseur sur la cible qui monte et descend.",
 	"T03": "Gardez le viseur sur la cible qui se déplace en diagonale.",
@@ -26,7 +26,7 @@ const DESCRIPTIONS: Dictionary = {
 	"T05": "Gardez le viseur sur la cible à chaque changement de direction.",
 	"T09": "Défi avancé facultatif : suivez la petite cible lente.",
 	"S01": "Cliquez sur une cible, puis visez la suivante.",
-	"S02": "Visez une cible mobile, cliquez, puis passez à la suivante."
+	"S02": "Passez entre les cibles mobiles, proches et lointaines."
 }
 
 

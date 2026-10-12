@@ -3,6 +3,7 @@ extends RefCounted
 
 const SAMPLE_STEP_S: float = 1.0 / 240.0
 const ERROR_BIN_DEG: float = 0.1
+const MAX_DURATION_S: float = 120.0
 
 var definition: ScenarioDefinition
 var timeline := AimTimeline.new()
@@ -43,7 +44,7 @@ func _init() -> void:
 
 
 func start(source: ScenarioDefinition, seed_value: int, seconds: float, initial_yaw_deg: float = 0.0, initial_pitch_deg: float = 0.0) -> bool:
-	if source == null or not source.validate().is_empty() or not is_finite(seconds) or seconds <= 0.0 or seconds > 120.0:
+	if source == null or not source.validate().is_empty() or not is_finite(seconds) or seconds <= 0.0 or seconds > MAX_DURATION_S:
 		invalid_reason = "Définition ou durée invalide."
 		return false
 	definition = source.duplicate()
@@ -121,7 +122,7 @@ func spawn_target(target_index: int, time_s: float) -> void:
 		for other_index in targets.size():
 			if other_index == target_index or (float(targets[other_index].born_s) == 0.0 and int(targets[other_index].get("id", 0)) == 0):
 				continue
-			if AimGeometry.angular_error_deg(candidate, target_direction(other_index, time_s)) < definition.angular_diameter_deg * 1.7:
+			if AimGeometry.angular_error_deg(candidate, target_direction(other_index, time_s)) < definition.maximum_angular_diameter_deg() * 1.7:
 				found = false
 				break
 		if found:
@@ -133,6 +134,12 @@ func spawn_target(target_index: int, time_s: float) -> void:
 	target.born_s = time_s
 	target.attempts = 0
 	target.phase_rad = rng.randf_range(0.0, TAU)
+	if definition.has_diameter_variation():
+		target.angular_diameter_deg = rng.randf_range(definition.angular_diameter_min_deg, definition.angular_diameter_max_deg)
+	if definition.has_distance_variation():
+		target.distance_m = rng.randf_range(definition.distance_min_m, definition.distance_max_m)
+	if definition.motion == "reactive":
+		build_reactive_path(target)
 	target.path_start_deg = timeline.angular_path_deg
 	spawned += 1
 	target.id = spawned
@@ -146,6 +153,8 @@ func target_direction(target_index: int, time_s: float) -> Vector3:
 	var pitch_deg: float = float(target.pitch_deg)
 	if definition.motion == "static":
 		return AimGeometry.direction(yaw_deg, pitch_deg)
+	if definition.motion == "reactive":
+		return AimGeometry.direction(yaw_deg + reactive_offset_deg(target, time_s), pitch_deg)
 	var amplitude_yaw_deg := definition.yaw_extent_deg * (0.9 if definition.family == "tracking" else 0.45)
 	var amplitude_pitch_deg := definition.pitch_extent_deg * (0.9 if definition.family == "tracking" else 0.45)
 	var amplitude_deg := amplitude_pitch_deg if definition.motion == "vertical" else amplitude_yaw_deg
@@ -171,6 +180,51 @@ func target_direction(target_index: int, time_s: float) -> Vector3:
 	return AimGeometry.direction(yaw_deg, pitch_deg)
 
 
+func build_reactive_path(target: Dictionary) -> void:
+	var amplitude_deg: float = definition.yaw_extent_deg * 0.45
+	var interval_s: float = 3.0 * amplitude_deg / definition.speed_deg_s + definition.turn_duration_s
+	var offsets_deg := PackedFloat64Array()
+	offsets_deg.resize(ceili(MAX_DURATION_S / interval_s) + 2)
+	for waypoint_index in offsets_deg.size():
+		offsets_deg[waypoint_index] = rng.randf_range(-amplitude_deg, amplitude_deg)
+	target.reactive_interval_s = interval_s
+	target.reactive_offsets_deg = offsets_deg
+
+
+func reactive_offset_deg(target: Dictionary, time_s: float) -> float:
+	var offsets_deg: PackedFloat64Array = target.reactive_offsets_deg
+	var coordinate: float = clampf((time_s - float(target.born_s)) / float(target.reactive_interval_s), 0.0, float(offsets_deg.size() - 1))
+	var waypoint_index: int = mini(floori(coordinate), offsets_deg.size() - 2)
+	return lerpf(offsets_deg[waypoint_index], offsets_deg[waypoint_index + 1], smoothstep(0.0, 1.0, coordinate - waypoint_index))
+
+
+func target_geometry(target_index: int, time_s: float) -> Dictionary:
+	if definition == null or target_index < 0 or target_index >= targets.size() or not is_finite(time_s) or time_s < 0.0:
+		return {}
+	var direction: Vector3 = target_direction(target_index, time_s)
+	var distance_m: float = target_distance_m(target_index, time_s)
+	var diameter_deg: float = target_angular_diameter_deg(target_index, time_s)
+	return {"direction": direction, "distance_m": distance_m, "angular_diameter_deg": diameter_deg,
+		"center_offset_m": direction * distance_m, "radius_m": distance_m * sin(deg_to_rad(diameter_deg) * 0.5)}
+
+
+func target_distance_m(target_index: int, time_s: float) -> float:
+	if definition == null or target_index < 0 or target_index >= targets.size() or not is_finite(time_s) or time_s < 0.0:
+		return 0.0
+	return float(targets[target_index].get("distance_m", definition.distance_m))
+
+
+func target_angular_diameter_deg(target_index: int, time_s: float) -> float:
+	if definition == null or target_index < 0 or target_index >= targets.size() or not is_finite(time_s) or time_s < 0.0:
+		return 0.0
+	var target: Dictionary = targets[target_index]
+	var initial_diameter_deg: float = float(target.get("angular_diameter_deg", definition.angular_diameter_deg))
+	if definition.diameter_motion == "shrink":
+		var age_fraction: float = clampf((time_s - float(target.born_s)) / definition.lifetime_s, 0.0, 1.0)
+		return lerpf(initial_diameter_deg, definition.angular_diameter_min_deg, age_fraction)
+	return initial_diameter_deg
+
+
 func strafe_offset_deg(time_s: float, phase_rad: float, amplitude_deg: float) -> float:
 	var turn_s: float = definition.turn_duration_s
 	var half_period_s: float = 2.0 * amplitude_deg / definition.speed_deg_s + turn_s * 0.5
@@ -188,8 +242,8 @@ func strafe_offset_deg(time_s: float, phase_rad: float, amplitude_deg: float) ->
 	return -offset_deg if second_half else offset_deg
 
 
-func radius_m() -> float:
-	return definition.distance_m * sin(deg_to_rad(definition.angular_diameter_deg) * 0.5)
+func radius_m(target_index: int = 0, time_s: float = 0.0) -> float:
+	return target_distance_m(target_index, time_s) * sin(deg_to_rad(target_angular_diameter_deg(target_index, time_s)) * 0.5)
 
 
 func expire_targets(time_s: float) -> void:
@@ -205,8 +259,9 @@ func expire_targets(time_s: float) -> void:
 func integrate_sample(midpoint_s: float, weight_s: float) -> void:
 	var pose := timeline.sample(midpoint_s)
 	var direction := AimGeometry.direction(pose.x, pose.y)
-	var error_deg := AimGeometry.angular_error_deg(direction, target_direction(0, midpoint_s))
-	var is_on_target := error_deg <= definition.angular_diameter_deg * 0.5
+	var geometry: Dictionary = target_geometry(0, midpoint_s)
+	var error_deg := AimGeometry.angular_error_deg(direction, geometry.direction)
+	var is_on_target := error_deg <= float(geometry.angular_diameter_deg) * 0.5
 	angular_error_sum_deg_s += error_deg * weight_s
 	error_histogram[clampi(int(floor(error_deg / ERROR_BIN_DEG)), 0, error_histogram.size() - 1)] += weight_s
 	if is_on_target:
@@ -251,12 +306,13 @@ func shoot(time_s: float, aim_direction: Vector3) -> bool:
 	var closest_error_deg: float = 180.0
 	var nearest_index: int = 0
 	for target_index in targets.size():
-		var center_direction := target_direction(target_index, time_s)
+		var geometry: Dictionary = target_geometry(target_index, time_s)
+		var center_direction: Vector3 = geometry.direction
 		var error_deg := AimGeometry.angular_error_deg(aim_direction, center_direction)
 		if error_deg < closest_error_deg:
 			closest_error_deg = error_deg
 			nearest_index = target_index
-		var distance_m := AimGeometry.ray_sphere_distance(aim_direction, center_direction * definition.distance_m, radius_m())
+		var distance_m := AimGeometry.ray_sphere_distance(aim_direction, geometry.center_offset_m, float(geometry.radius_m))
 		if distance_m < nearest_distance_m:
 			nearest_distance_m = distance_m
 			hit_index = target_index
@@ -276,7 +332,8 @@ func shoot(time_s: float, aim_direction: Vector3) -> bool:
 	last_hit_s = time_s
 	if definition.motion == "static":
 		var path_deg := timeline.angular_path_deg - float(target.path_start_deg)
-		path_efficiencies.append(clampf(maxf(float(target.initial_error_deg) - definition.angular_diameter_deg * 0.5, 0.0) / maxf(path_deg, 0.000001), 0.0, 1.0))
+		var diameter_deg: float = float(target_geometry(hit_index, time_s).angular_diameter_deg)
+		path_efficiencies.append(clampf(maxf(float(target.initial_error_deg) - diameter_deg * 0.5, 0.0) / maxf(path_deg, 0.000001), 0.0, 1.0))
 	spawn_target(hit_index, time_s)
 	return true
 

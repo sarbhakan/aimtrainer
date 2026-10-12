@@ -121,3 +121,19 @@ Le score V1 et le protocole 3 restent identiques, pas leurs empreintes d’exerc
 Godot permet des viewmodels réellement 3D et une UI responsive : migrer le moteur n’est pas nécessaire pour corriger ces problèmes visuels. Trois armes originales procédurales sont rendues dans un monde isolé ; recul et flash n’atteignent ni caméra de visée ni hitbox. L’option de masquage reste disponible. Décor virtuel statique, sans ombres dynamiques, et surfaces sobres favorisent le contraste des cibles. Les sensations, sons et performances GPU Windows restent à réceptionner.
 
 Les composants emploient une échelle commune de 4/8/12/16/24/32 px. Sensibilités affichées à deux décimales, float canonique conservé indépendamment des champs lisibles ; aucune quantification de l’input ni du profil. Les coefficients techniques ne sont pas des sensibilités et restent dans les réglages avancés. Les démos sont contenues et n’affichent plus de FOV/ratio permanent ; ce sont des animations du moteur, pas des vidéos propriétaires.
+
+## D23 — Direction artistique avant réalisation, 0.6.0
+
+Deux planches originales précèdent le code : Precision Lab clair, perle/béton, graphite/cobalt, cibles corail et trois silhouettes d’armes. Elles restent explicitement des concepts, pas des captures. Matériaux éclairés, lumière directionnelle/ombres et remplissage remplacent la grille sombre ; géométrie du décor statique bornée à 32 meshes. Viewmodels biseautés et gantés, cache des meshes, aucun mouvement de caméra ou de hitbox. Les captures réelles et les essais GPU/son matériels restent distincts.
+
+Scroll natif sans barre, commandes Actualiser/Copier par icônes accessibles, démos sans badge et countdown sans consigne répétée. Le suivi du focus est explicite lorsque SHOW_NEVER ne révèle pas seul le contrôle ciblé. La largeur flexible du catalogue évite une boucle de minimum du grid lors du redimensionnement.
+
+## D24 — Changement consenti, conditions séparées
+
+En pause, modifier la valeur locale ou Valorant/CS2 puis appliquer redémarre l’essai. Le profil est sauvegardé d’abord ; l’ancien passage garde son profil et devient un abandon exclu des records. Un refus de profil conserve le passage suspendu. Un refus de rapport conserve celui-ci en mémoire, présente l’erreur et bloque la relance avant enregistrement ; la fermeture exige de confirmer sa perte. Les quatre entrées de calibration vérifient cette sauvegarde avant d’activer leurs flags. Pendant la comparaison, le réglage reste verrouillé.
+
+## D25 — Variations explicites et relecture numérique
+
+Chaque pratique rejouée renouvelle sa graine, conservée dans le rapport ; les graines appariées et les cinq empreintes r3 de calibration restent inchangées. D01/D02/S02 uniquement passent en r4 : rétrécissement borné par l’âge de la cible, destinations non cycliques interpolées et profondeurs par apparition. Même fonction géométrique pour silhouette, rayon et métriques ; aucune adaptation à la réussite. Les anciens records restent stockés dans leurs contextes propres.
+
+Le score V1, ses valeurs générées et ses utilités ne changent pas. La relecture JSON peut déplacer un float d’un dernier bit autour d’un demi-point : cinq replays seedés ont reproduit le rejet de rapports intacts à 112,5 points. La vérification admet uniquement les deux entiers voisins lorsque le score non arrondi est à huit epsilon doubles relatifs du demi-point (tolérance plafonnée à 0,000001 point). Hors de cette frontière, même un point altéré est rejeté ; à la frontière, fractions et écarts de deux points le sont. Le rapport et son score ne sont pas réécrits. Cette borne numérique ne constitue pas une certification anti-triche des données locales.

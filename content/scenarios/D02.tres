@@ -5,12 +5,13 @@
 [resource]
 script=ExtResource("1")
 scenario_id="D02"
-revision=3
+revision=4
 distance_m=3.5
 title="Clic mobile"
-instructions="Rejoindre la sphère qui glisse horizontalement, garder le viseur dessus puis cliquer une fois. Le clic utilise sa position exacte à cet instant."
+instructions="Rejoindre la sphère dont les destinations horizontales changent selon une séquence seedée, avec freinages et reprises continus, puis cliquer une fois. La trajectoire ne répète pas un cycle ; le clic utilise la position exacte à cet instant."
 family="click"
-motion="horizontal"
+motion="reactive"
+turn_duration_s=0.24
 angular_diameter_deg=3
 yaw_extent_deg=16
 pitch_extent_deg=6

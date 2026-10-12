@@ -56,8 +56,7 @@ func _ready() -> void:
 	var catalog := AimUI.column(layout)
 	catalog.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	catalog_scroll = ScrollContainer.new()
-	catalog_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
-	catalog_scroll.follow_focus = true
+	AimUI.configure_scroll(catalog_scroll, true)
 	catalog_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	catalog.add_child(catalog_scroll)
 	grid = GridContainer.new()
@@ -90,8 +89,7 @@ func _ready() -> void:
 	detail_column.size_flags_horizontal = Control.SIZE_FILL
 	detail_column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail_scroll = ScrollContainer.new()
-	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	detail_scroll.follow_focus = true
+	AimUI.configure_scroll(detail_scroll)
 	detail_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail_column.add_child(detail_scroll)
 	var detail := AimUI.card(detail_scroll, AimUI.SPACE_LG)
@@ -202,7 +200,7 @@ func update_layout() -> void:
 	if grid != null:
 		add_theme_constant_override("separation", AimUI.SPACE_SM if size.y < 420.0 else AimUI.SPACE_LG)
 		detail_column.custom_minimum_size.x = clampf(size.x * 0.30, 228.0, 420.0)
-		var catalog_width_px := catalog_scroll.size.x - catalog_scroll.get_theme_stylebox("panel").get_minimum_size().x - catalog_scroll.get_v_scroll_bar().get_combined_minimum_size().x
+		var catalog_width_px := catalog_scroll.size.x - catalog_scroll.get_theme_stylebox("panel").get_minimum_size().x
 		grid.columns = clampi(floori((catalog_width_px + AimUI.SPACE_MD) / (CARD_WIDTH_PX + AimUI.SPACE_MD)), 1, 5)
 		preview.visible = size.y >= 420.0
 		update_card_focus()
@@ -236,7 +234,7 @@ func schedule_card_preview(definition: ScenarioDefinition, anchor: Control) -> v
 		return
 	dismiss_card_preview()
 	if anchor.has_focus() and grid.is_ancestor_of(anchor):
-		catalog_scroll.ensure_control_visible(anchor)
+		AimUI.ensure_control_visible(catalog_scroll, anchor)
 	pending_definition = definition
 	pending_anchor = anchor
 	preview_timer.start()
