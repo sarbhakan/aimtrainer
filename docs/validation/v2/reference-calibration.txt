@@ -1,0 +1,76 @@
+{
+  "checks_passed": true,
+  "fixture_statuses": {
+    "repeated_improvement": "repeated_improvement",
+    "close_observed": "close_observed",
+    "same_gain_null_qa": "close_observed",
+    "repeated_regression": "repeated_regression",
+    "mixed_tradeoff": "mixed_tradeoff",
+    "opposite_days": "undetermined",
+    "linear_drift_null": "close_observed",
+    "missing_second_day": "incomplete",
+    "technical_blocker": "unstable_conditions",
+    "exploratory_only": "exploratory_only",
+    "floor_uninformative": "undetermined"
+  },
+  "plan": {
+    "ok": true,
+    "scored_cells": 44,
+    "deck_count": 52,
+    "programmed_seconds": 2712,
+    "runtime_ready": false,
+    "remaining_runtime_blockers": [
+      "integrate_manifests_with_Godot_runtime",
+      "validate_render_and_input_on_actual_machine",
+      "replace_example_condition_snapshot_and_save_real_plan_before_play"
+    ]
+  },
+  "two_gain_express_plan": {
+    "ok": true,
+    "scored_cells": 40,
+    "deck_count": 52,
+    "programmed_seconds": 2490,
+    "runtime_ready": false,
+    "remaining_runtime_blockers": [
+      "integrate_manifests_with_Godot_runtime",
+      "validate_render_and_input_on_actual_machine",
+      "replace_example_condition_snapshot_and_save_real_plan_before_play"
+    ]
+  },
+  "negative_plan_fixtures": [
+    {
+      "id": "shift_interior_period_minus_10s",
+      "rejected_with": "PERIOD_START_NOT_ON_FROZEN_TIMELINE"
+    },
+    {
+      "id": "B_period_applies_A_gain",
+      "rejected_with": "PERIOD_APPLIED_GAIN_MISMATCH"
+    },
+    {
+      "id": "undeclared_cell_candidate",
+      "rejected_with": "CELL_CANDIDATE_MISMATCH"
+    },
+    {
+      "id": "score_cell_shortened_to_23s",
+      "rejected_with": "WRONG_SCORED_CELL_DURATION"
+    },
+    {
+      "id": "restore_baseline_between_periods",
+      "rejected_with": "REST_GAIN_CONTINUITY_BROKEN"
+    },
+    {
+      "id": "shortened_rest",
+      "rejected_with": "REST_DURATION_MISMATCH"
+    },
+    {
+      "id": "cell_uses_other_condition_snapshot",
+      "rejected_with": "CELL_CONDITION_SNAPSHOT_MISMATCH"
+    },
+    {
+      "id": "warmup_included_in_comparison",
+      "rejected_with": "WARMUP_SCORE_OR_TASK_COUNT_MISMATCH"
+    }
+  ],
+  "deterministic_example_plan_hash": "429eb898dbd4981f7d1047152fd4df2eebec04f3c74c28f08d2033d4fa685c22",
+  "scope": "calculator_schedule_static_geometry_and_shared_reference_motion_not_Godot_or_human_validation"
+}

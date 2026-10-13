@@ -1,0 +1,499 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (2 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | V2Shell[39m[0m
+[  33% ] [90m[1mupdate_scripts_classes[22m | V2AppController[39m[0m
+[92m[ DONE ][39m [1mupdate_scripts_classes[22m
+[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Started Loading editor (5 steps)[39m[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Loading editor layout...[39m[0m
+[  16% ] [90m[1mloading_editor_layout[22m | Loading docks...[39m[0m
+[92m[ DONE ][39m [1mloading_editor_layout[22m
+[0m
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+NON EXÉCUTÉ : capture réelle du pointeur ; le serveur headless conserve MOUSE_MODE_VISIBLE.
+VIEWMODEL GEOMETRY : 160 meshes, 16782 triangles préalloués.
+GAMEPLAY POSE CASE : C07 seed 23, caméra (30.0, -30.0), centre (-0.115992, 0.604446, -2.827617), bas 0.525915 m, erreur regard 27.180490°, écran (870.8884, 291.2238), frustum true.
+GAMEPLAY INITIAL POSE : yaw 30°, pitch -30°, surface minimale 0.303 m ; 128 silhouettes hors du frustum depuis cette visée.
+GAMEPLAY POSE CASE : C07 seed 23, caméra (30.0, 30.0), centre (-0.115992, 0.604446, -2.827617), bas 0.525915 m, erreur regard 56.101685°, écran (1008.27, 953.2131), frustum false.
+GAMEPLAY INITIAL POSE : yaw 30°, pitch 30°, surface minimale 0.303 m ; 169 silhouettes hors du frustum depuis cette visée.
+GAMEPLAY INITIAL POSE : yaw -30°, pitch -30°, surface minimale 0.303 m ; 117 silhouettes hors du frustum depuis cette visée.
+GAMEPLAY INITIAL POSE : yaw -30°, pitch 30°, surface minimale 0.303 m ; 145 silhouettes hors du frustum depuis cette visée.
+GAMEPLAY INITIAL POSE : yaw 30°, pitch -89°, surface minimale 0.303 m ; 544 silhouettes hors du frustum depuis cette visée.
+GAMEPLAY INITIAL POSE : yaw 30°, pitch 89°, surface minimale 0.303 m ; 544 silhouettes hors du frustum depuis cette visée.
+GAMEPLAY INITIAL POSE : yaw 732°, pitch -89°, surface minimale 0.303 m ; 544 silhouettes hors du frustum depuis cette visée.
+GAMEPLAY INITIAL POSE : yaw -732°, pitch 89°, surface minimale 0.303 m ; 544 silhouettes hors du frustum depuis cette visée.
+GAMEPLAY INITIAL POSE : yaw 180°, pitch 0°, surface minimale 0.303 m ; 544 silhouettes hors du frustum depuis cette visée.
+GAMEPLAY INITIAL POSE : yaw 0°, pitch 0°, surface minimale 0.303 m ; 0 silhouettes hors du frustum depuis cette visée.
+NON EXÉCUTÉ : rendu des aperçus ; les projections sont comparées à Camera3D sans affichage.
+AIM/LOCAL : 12237 assertions, 0 échecs, 1 contrôles non exécutés.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+GEOMETRY PIXELS : C02 800x450, FOV vertical 75, diamètre 12.796 px.
+GEOMETRY PIXELS : C02 1280x720, FOV vertical 75, diamètre 20.474 px.
+GEOMETRY PIXELS : C02 1920x1080, FOV vertical 75, diamètre 30.711 px.
+GEOMETRY PIXELS : C02 1280x1024, FOV vertical 75, diamètre 29.119 px.
+GEOMETRY PIXELS : C02 2560x1080, FOV vertical 75, diamètre 30.711 px.
+GEOMETRY ARENA : C01, profondeur 4.5 m, surface minimale y 0.849 m, seed 57.
+GEOMETRY ARENA : C02, profondeur 3.0 m, surface minimale y 1.325 m, seed 57.
+GEOMETRY ARENA : C03, profondeur 4.0 m, surface minimale y 0.533 m, seed 57.
+GEOMETRY ARENA : C04, profondeur 5.0 m, surface minimale y 0.453 m, seed 23.
+GEOMETRY ARENA : C05, profondeur 7.0 m, surface minimale y 0.480 m, seed 22.
+GEOMETRY ARENA : C07, profondeur 3.0 m, surface minimale y 0.496 m, seed 57.
+GEOMETRY ARENA : D01, profondeur 4.0 m, surface minimale y 0.845 m, seed 57.
+GEOMETRY ARENA : D02, profondeur 3.5 m, surface minimale y 1.344 m, seed 57.
+GEOMETRY ARENA : T01, profondeur 4.0 m, surface minimale y 1.460 m, seed 1.
+GEOMETRY ARENA : T02, profondeur 3.5 m, surface minimale y 0.620 m, seed 14.
+GEOMETRY ARENA : T03, profondeur 4.5 m, surface minimale y 0.763 m, seed 12.
+GEOMETRY ARENA : T04, profondeur 5.0 m, surface minimale y 0.592 m, seed 25.
+GEOMETRY ARENA : T05, profondeur 3.0 m, surface minimale y 1.506 m, seed 1.
+GEOMETRY ARENA : T09, profondeur 8.0 m, surface minimale y 1.537 m, seed 1.
+GEOMETRY ARENA : S01, profondeur 4.5 m, surface minimale y 0.686 m, seed 57.
+GEOMETRY ARENA : S02, profondeur 5.0 m, surface minimale y 0.593 m, seed 5.
+GEOMETRY ARENA : M01, profondeur 4.0 m, surface minimale y 0.642 m, seed 22.
+GEOMETRY ARENA : T10, profondeur 4.0 m, surface minimale y 0.463 m, seed 24.
+GEOMETRY STATIC : C01, transition min 4.024°, séparation min inf°, 4096 remplacements.
+GEOMETRY STATIC : C02, transition min 3.002°, séparation min inf°, 4096 remplacements.
+GEOMETRY STATIC : C03, transition min 5.501°, séparation min 8.161°, 4096 remplacements.
+GEOMETRY STATIC : C04, transition min 20.012°, séparation min inf°, 4096 remplacements.
+GEOMETRY STATIC : C05, transition min 2.514°, séparation min 1.194°, 4096 remplacements.
+GEOMETRY STATIC : C07, transition min 10.012°, séparation min inf°, 4096 remplacements.
+GEOMETRY STATIC : D01, transition min 4.513°, séparation min inf°, 4096 remplacements.
+GEOMETRY STATIC : S01, transition min 6.003°, séparation min 5.781°, 4096 remplacements.
+GEOMETRY STATIC : M01, transition min 2.501°, séparation min inf°, 4096 remplacements.
+GEOMETRY SEPARATION : S02 minimum 6.0000 degrés, diamètre 3.2, seed 40, t 6.20 s.
+GEOMETRY SPEED : D02, maximum 10.128 degrés/s, limite 14.0.
+GEOMETRY SPEED : T01, maximum 12.000 degrés/s, limite 12.0.
+GEOMETRY SPEED : T02, maximum 12.000 degrés/s, limite 12.0.
+GEOMETRY SPEED : T03, maximum 16.000 degrés/s, limite 16.0.
+GEOMETRY SPEED : T04, maximum 17.732 degrés/s, limite 18.0.
+GEOMETRY SPEED : T05, maximum 26.001 degrés/s, limite 26.0.
+GEOMETRY SPEED : T09, maximum 6.000 degrés/s, limite 6.0.
+GEOMETRY SPEED : S02, maximum 15.978 degrés/s, limite 16.0.
+GEOMETRY SPEED : T10, maximum 18.000 degrés/s, limite 18.0.
+GEOMETRY STRAFE : vitesse max 26.001 degrés/s, accélération max 327.223 degrés/s².
+NON EXÉCUTÉ : captures graphiques ; les projections Camera3D sont testées sans rendu.
+GEOMETRY REGRESSION : 2355 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ADAPTIVE CALIBRATION : 906 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+UI SPACING : 385 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PREVIEW CONTAINMENT : 9042 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PATTERN VARIATION : 2711 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+STORAGE ROUNDTRIP : 36867 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PRESENTATION 0.7 : rendu et écoute matériels non exécutés en headless.
+PROGRESSIVE CALIBRATION : 9565 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+EXERCISE 070 : 139747 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+LIFECYCLE : 1816 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+TRACKING RHYTHM : 77388 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PRESENTATION 080 : rendu graphique et écoute matériels non exécutés en headless.
+PRESENTATION 080 : 540 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+TEMPORAL UI : 205 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 FOUNDATION : 73 assertions, 0 échecs
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 MOTION COVERAGE: 54 phases, ["advanced", "novice", "standard"], ["angular_bounce", "angular_ellipse", "depth_sines", "linear_reflect", "reactive_axis", "reactive_lanes", "sinusoid_axis", "static"], reactive={ "preempted_ramps": 344.0, "rearms_inside_ramps": 215.0, "rearm_and_control_end": 1036.0, "outward_threshold_starts": 36.0, "boundary_rounding_before_root": 1166.0 }, wall_landing_ties=44.
+V2 MOTION: 5468829 assertions, 0 failures; 722 motion states, 153 reactive tapes, 233040 samples.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 CATALOGUE : 494 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 RUNTIME : 424 assertions, 0 échecs
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 EVENTS : 24 assertions, 0 échecs
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 CALIBRATION: 37751 assertions, 0 failures; 11 comparison fixtures, 8 rehashed negative plans.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 CAL AUDIT: 192000 complete poses, 6144000 packed bytes, 1918340 final report bytes.
+V2 CAL TASKS: 12196 assertions, 0 failures; 36 original-oracle deck cases, 106 native runs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 STORE : 169 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 UI : 192 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 APP FLOW scope: actual MainV2 scene, native UI signals, isolated V2Store, synthetic clock/callbacks; no measured player data or physical HID/scanout validation.
+V2 APP FLOW display=headless capture_available=false
+V2 APP FLOW REPORT INTEGRITY: completed MainV2 result canonical=true semantic_sha256=544aa03f8a5974d70144c335d6464de645dc9bacd1b34c9a78bb4b015aaa3714 manifest_entries=3
+V2 APP FLOW REPORT INTEGRITY: completed V2Store result canonical=true semantic_sha256=544aa03f8a5974d70144c335d6464de645dc9bacd1b34c9a78bb4b015aaa3714 manifest_entries=3
+V2 APP FLOW REPORT INTEGRITY: settings-aborted MainV2 result canonical=true semantic_sha256=9a8fa7f95e8241e4dc1ebc1b2e104efb29e2a8faba3175f28a2b466629a5503b manifest_entries=3
+V2 APP FLOW REPORT INTEGRITY: settings-aborted V2Store result canonical=true semantic_sha256=9a8fa7f95e8241e4dc1ebc1b2e104efb29e2a8faba3175f28a2b466629a5503b manifest_entries=3
+V2 APP FLOW REPORT INTEGRITY: sensitivity-aborted MainV2 result canonical=true semantic_sha256=ed68d40fcf97c8c10f9e70480cf8576472dda986768031c489070cdc3c466bdc manifest_entries=3
+V2 APP FLOW REPORT INTEGRITY: sensitivity-aborted V2Store result canonical=true semantic_sha256=ed68d40fcf97c8c10f9e70480cf8576472dda986768031c489070cdc3c466bdc manifest_entries=3
+V2 APP FLOW LIMITATION: this display backend cannot retain captured mouse mode; controller screen_relative/fire input routes remain unrun. Countdown, lifecycle, UI/profile/store and render-identity callbacks still execute.
+V2 APP FLOW: 253 assertions, 0 failures, 2 input routes unrun; isolated roots=["/tmp/aimlocal-v2-app-flow-ec59150d57eec61a4f303850", "/tmp/aimlocal-v2-app-flow-df794f623e2ac28f2ee22764", "/tmp/aimlocal-v2-app-flow-04397d792532c25eefcd6994", "/tmp/aimlocal-v2-app-flow-85acecc6fa9a51132e074f33", "/tmp/aimlocal-v2-app-flow-ddfa4323da87509a2cdaf6d6", "/tmp/aimlocal-v2-app-flow-ef724cb138fba00d042f8c11", "/tmp/aimlocal-v2-app-flow-6120bd595de666de70856801", "/tmp/aimlocal-v2-app-flow-c578ad0445fde52f8a002cac"]
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 CAL RUNNER · calendrier et journées complètes
+V2 CAL RUNNER · reprise et checkpoint refusé
+V2 CAL RUNNER · niveaux, archives et liens d'audit
+V2 CAL RUNNER · crash entre commits et types fermés
+V2 CALIBRATION RUNNER : 491 assertions, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 PROGRESS fixtures are isolated synthetic reports and synthetic frametimes, not player data or renderer benchmarks.
+V2 PROGRESS: 635 assertions, 0 failures
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 CAL FLOW : vrai V2AppController/UI/TaskEngine/store, horloges, poses, marqueurs et frametimes 1/144 synthétiques; aucun joueur, HID ou scanout physique mesuré.
+V2 CAL FLOW : application consentie, redémarrage et annulation du candidat natif confirmé
+V2 CAL FLOW : 57 tâches mesurées, 95 familiarisations synthétiques exécutées
+V2 CAL FLOW : 15103 assertions, 0 échecs
+..............................................................................................
+----------------------------------------------------------------------
+Ran 94 tests in 16.524s
+
+OK
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1msavepack[22m | Started Packing (102 steps)[39m[0m
+[   1% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/classic_continuous.wav-2fc19fa9c77ffbd994f871d1c1af6df3.sample[39m[0m
+[   1% ] [90m[1msavepack[22m | Storing File: res://assets/audio/classic_continuous.wav.import[39m[0m
+[   1% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/classic_shot.wav-95d42d6e47fbc0cf63fd2a521ce2a9f1.sample[39m[0m
+[   1% ] [90m[1msavepack[22m | Storing File: res://assets/audio/classic_shot.wav.import[39m[0m
+[   2% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/pulse_continuous.wav-677675e2542676e884c91be820225725.sample[39m[0m
+[   2% ] [90m[1msavepack[22m | Storing File: res://assets/audio/pulse_continuous.wav.import[39m[0m
+[   3% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/pulse_shot.wav-0c7377105f2d8add59e307ca17fec2be.sample[39m[0m
+[   3% ] [90m[1msavepack[22m | Storing File: res://assets/audio/pulse_shot.wav.import[39m[0m
+[   4% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/vector_continuous.wav-4d5293d6cec3b84e75720e8ea4510647.sample[39m[0m
+[   4% ] [90m[1msavepack[22m | Storing File: res://assets/audio/vector_continuous.wav.import[39m[0m
+[   5% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/vector_shot.wav-144ba15a9ec5407b13944600383eb5db.sample[39m[0m
+[   5% ] [90m[1msavepack[22m | Storing File: res://assets/audio/vector_shot.wav.import[39m[0m
+[   6% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/DejaVuSans-Bold.ttf-664c1ee167c6833460f6732dcc77362b.fontdata[39m[0m
+[   6% ] [90m[1msavepack[22m | Storing File: res://assets/fonts/v2/DejaVuSans-Bold.ttf.import[39m[0m
+[   6% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/DejaVuSans.ttf-5d680be6422fdcdca5db3068a3409e8b.fontdata[39m[0m
+[   6% ] [90m[1msavepack[22m | Storing File: res://assets/fonts/v2/DejaVuSans.ttf.import[39m[0m
+[   7% ] [90m[1msavepack[22m | Storing File: res://assets/shaders/training_surface.gdshader[39m[0m
+[   8% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/ambient.svg-edfb6461218bc2f237fbbf2b5323afd0.ctex[39m[0m
+[   8% ] [90m[1msavepack[22m | Storing File: res://assets/ui/ambient.svg.import[39m[0m
+[   9% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/convert.svg-aa1944c1b8e04c2b668799e12c2f77f0.ctex[39m[0m
+[   9% ] [90m[1msavepack[22m | Storing File: res://assets/ui/convert.svg.import[39m[0m
+[  10% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/copy.svg-3bfae1b28c738547f6f104d6063d619c.ctex[39m[0m
+[  10% ] [90m[1msavepack[22m | Storing File: res://assets/ui/copy.svg.import[39m[0m
+[  11% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/home.svg-8c94fbed41ed3a83d0bcd92331872026.ctex[39m[0m
+[  11% ] [90m[1msavepack[22m | Storing File: res://assets/ui/home.svg.import[39m[0m
+[  12% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/logo.svg-264515fbbe87ffca03174d3c1fe74e17.ctex[39m[0m
+[  12% ] [90m[1msavepack[22m | Storing File: res://assets/ui/logo.svg.import[39m[0m
+[  12% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/progress.svg-bb54db3f226bb0f69f79159ac8bbd81a.ctex[39m[0m
+[  12% ] [90m[1msavepack[22m | Storing File: res://assets/ui/progress.svg.import[39m[0m
+[  13% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/refresh.svg-4a07e17392590a0f53704470f858db90.ctex[39m[0m
+[  13% ] [90m[1msavepack[22m | Storing File: res://assets/ui/refresh.svg.import[39m[0m
+[  14% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/sensitivity.svg-0586c164e5f20bce24c697025c0470e9.ctex[39m[0m
+[  14% ] [90m[1msavepack[22m | Storing File: res://assets/ui/sensitivity.svg.import[39m[0m
+[  15% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/settings.svg-aadd20246e53d972a1c7c19b342cb53e.ctex[39m[0m
+[  15% ] [90m[1msavepack[22m | Storing File: res://assets/ui/settings.svg.import[39m[0m
+[  16% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/switch_off.svg-c9acfe9928836908f26cb7173ec04f17.ctex[39m[0m
+[  16% ] [90m[1msavepack[22m | Storing File: res://assets/ui/switch_off.svg.import[39m[0m
+[  17% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/switch_on.svg-ce2360b4e1a23215e3302709e2a0573c.ctex[39m[0m
+[  17% ] [90m[1msavepack[22m | Storing File: res://assets/ui/switch_on.svg.import[39m[0m
+[  17% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/train.svg-15675519634e2aa639ef16700a1530d4.ctex[39m[0m
+[  17% ] [90m[1msavepack[22m | Storing File: res://assets/ui/train.svg.import[39m[0m
+[  18% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/classic.svg-3cf49e0b60370fee407ec4ddfea0c23e.ctex[39m[0m
+[  18% ] [90m[1msavepack[22m | Storing File: res://assets/weapons/classic.svg.import[39m[0m
+[  19% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/pulse.svg-668c5707c18e6b79da189508c09469f4.ctex[39m[0m
+[  19% ] [90m[1msavepack[22m | Storing File: res://assets/weapons/pulse.svg.import[39m[0m
+[  20% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/vector.svg-1f4ca09dd4f1ce9899ca6ab38867852c.ctex[39m[0m
+[  20% ] [90m[1msavepack[22m | Storing File: res://assets/weapons/vector.svg.import[39m[0m
+[  21% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-37d1bc91e11d03192a76272162ea2470-ui_theme.res[39m[0m
+[  22% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-668f9114ea300bdca751a79e724d7b48-C01.res[39m[0m
+[  23% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-1e47052d9ca6c006861e856a9dbcf2ee-C02.res[39m[0m
+[  23% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-756880500af14f98f5c3cb3380959426-C03.res[39m[0m
+[  24% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-ff93393cc9d273df48758224cab5aa04-C04.res[39m[0m
+[  25% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-c28b9e740e35a364af776c65eff1e4fb-C05.res[39m[0m
+[  26% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-3aaff9e7e6d4da02726ae583969ead9c-C07.res[39m[0m
+[  27% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-63757420a3765adba891e57e6a035bfe-D01.res[39m[0m
+[  28% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-8f9cad089ad8db3675f6ac5dfff4f700-D02.res[39m[0m
+[  28% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-60025ecffb1bef61fdc05ae85e5de7c5-M01.res[39m[0m
+[  29% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-3b9eec7731b1b989d36bf52154c7b655-S01.res[39m[0m
+[  30% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-dc51ecb97406d07b4f4aa88ae3b802a0-S02.res[39m[0m
+[  31% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-5c13da4fe5f8fed137e3f814233ccd5f-T01.res[39m[0m
+[  32% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-f07564c6a96117b6a6bb0cab282c0c12-T02.res[39m[0m
+[  33% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-6138c963d203db0434898a792fbe0c03-T03.res[39m[0m
+[  33% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-7dcf73e2abc5b98818035b2adfe2fbd3-T04.res[39m[0m
+[  33% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-56080163c8c8daba8fe8e5d5fe6f9356-T05.res[39m[0m
+[  34% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-1a5cf24415669ef2f9e026726b2309a3-T09.res[39m[0m
+[  35% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-fba8191ed47950913af8fe19d1f31fde-T10.res[39m[0m
+[  36% ] [90m[1msavepack[22m | Storing File: res://content/v2/atlas_source_manifest.json[39m[0m
+[  37% ] [90m[1msavepack[22m | Storing File: res://content/v2/calibration_v2_protocol.json[39m[0m
+[  38% ] [90m[1msavepack[22m | Storing File: res://content/v2/catalogue.v2.json[39m[0m
+[  38% ] [90m[1msavepack[22m | Storing File: res://content/v2/empreintes.fixtures.json[39m[0m
+[  39% ] [90m[1msavepack[22m | Storing File: res://content/v2/interface.theme.json[39m[0m
+[  40% ] [90m[1msavepack[22m | Storing File: res://content/v2/runtime.contract.json[39m[0m
+[  41% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-d90975eafe964d2a5e46a9963bff1699-classic.res[39m[0m
+[  42% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-1605f925bf31f9f2bedfae9330c2c86f-pulse.res[39m[0m
+[  43% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-3c35d11e3f08db5643e418d8f59ecd0d-vector.res[39m[0m
+[  44% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_contact.gdc[39m[0m
+[  44% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_catalog.gdc[39m[0m
+[  45% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_canonical.gdc[39m[0m
+[  46% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_calibration_task.gdc[39m[0m
+[  47% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_calibration_service.gdc[39m[0m
+[  48% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_calibration_runner.gdc[39m[0m
+[  49% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_arena.gdc[39m[0m
+[  50% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_app_controller.gdc[39m[0m
+[  50% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/v2_training_hud.gdc[39m[0m
+[  51% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/v2_shell.gdc[39m[0m
+[  52% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/training_pause.gdc[39m[0m
+[  53% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/training_hud.gdc[39m[0m
+[  54% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/training_browser.gdc[39m[0m
+[  55% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/session_panel.gdc[39m[0m
+[  55% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/sensitivity_import.gdc[39m[0m
+[  56% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/score_chart.gdc[39m[0m
+[  57% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/scenario_preview.gdc[39m[0m
+[  58% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-754e38d453e31f0e4c2eb3aa4fdf7971-Main.scn[39m[0m
+[  59% ] [90m[1msavepack[22m | Storing File: res://scripts/input/aim_camera.gdc[39m[0m
+[  60% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/weapon_viewmodel.gdc[39m[0m
+[  61% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_random.gdc[39m[0m
+[  61% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_geometry.gdc[39m[0m
+[  62% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-7cb0abbfc58e30d1d535fa02cc4a90ee-Arena.scn[39m[0m
+[  63% ] [90m[1msavepack[22m | Storing File: res://scripts/core/main.gdc[39m[0m
+[  64% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_scores.gdc[39m[0m
+[  65% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_preview.gdc[39m[0m
+[  66% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/weapon_definition.gdc[39m[0m
+[  66% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_motion.gdc[39m[0m
+[  66% ] [90m[1msavepack[22m | Storing File: res://scripts/persistence/calibration_revision_archive.gdc[39m[0m
+[  67% ] [90m[1msavepack[22m | Storing File: res://scripts/persistence/local_store.gdc[39m[0m
+[  68% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_progress.gdc[39m[0m
+[  69% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/weapon_feedback.gdc[39m[0m
+[  70% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_session_engine.gdc[39m[0m
+[  71% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_spawner.gdc[39m[0m
+[  71% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-6b2910c59cf705032a7da45960c69455-Home.scn[39m[0m
+[  72% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/crosshair_profile.gdc[39m[0m
+[  73% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-12601e76bcc79b04feb0368629c1e299-MainV2.scn[39m[0m
+[  74% ] [90m[1msavepack[22m | Storing File: res://scripts/input/aim_timeline.gdc[39m[0m
+[  75% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/arena_presentation.gdc[39m[0m
+[  76% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_store.gdc[39m[0m
+[  76% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/weapon_catalog.gdc[39m[0m
+[  77% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/countdown_feedback.gdc[39m[0m
+[  78% ] [90m[1msavepack[22m | Storing File: res://scripts/core/session_clock.gdc[39m[0m
+[  79% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/scenario_copy.gdc[39m[0m
+[  80% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/record_celebration.gdc[39m[0m
+[  81% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/progress_board.gdc[39m[0m
+[  82% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/interaction_feedback.gdc[39m[0m
+[  82% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/exercise_preview_popup.gdc[39m[0m
+[  83% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/dashboard.gdc[39m[0m
+[  84% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/crosshair_settings.gdc[39m[0m
+[  85% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/aim_ui.gdc[39m[0m
+[  86% ] [90m[1msavepack[22m | Storing File: res://scripts/training/training_routine_service.gdc[39m[0m
+[  87% ] [90m[1msavepack[22m | Storing File: res://scripts/training/tracking_rhythm.gdc[39m[0m
+[  87% ] [90m[1msavepack[22m | Storing File: res://scripts/training/target_pool.gdc[39m[0m
+[  88% ] [90m[1msavepack[22m | Storing File: res://scripts/training/scenario_engine.gdc[39m[0m
+[  89% ] [90m[1msavepack[22m | Storing File: res://scripts/training/scenario_definition.gdc[39m[0m
+[  90% ] [90m[1msavepack[22m | Storing File: res://scripts/training/scenario_catalog.gdc[39m[0m
+[  91% ] [90m[1msavepack[22m | Storing File: res://scripts/training/aim_geometry.gdc[39m[0m
+[  92% ] [90m[1msavepack[22m | Storing File: res://scripts/statistics/scoring_service.gdc[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/statistics/progress_service.gdc[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/statistics/performance_insights.gdc[39m[0m
+[  94% ] [90m[1msavepack[22m | Storing File: res://scripts/sensitivity/sensitivity_service.gdc[39m[0m
+[  95% ] [90m[1msavepack[22m | Storing File: res://scripts/sensitivity/progressive_calibration_service.gdc[39m[0m
+[  96% ] [90m[1msavepack[22m | Storing File: res://scripts/sensitivity/game_profile_service.gdc[39m[0m
+[  97% ] [90m[1msavepack[22m | Storing File: res://scripts/sensitivity/calibration_service.gdc[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/sensitivity/adaptive_sensitivity_service.gdc[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://assets/ui_theme.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/C01.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/C02.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/C03.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/C04.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/C05.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/C07.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/D01.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/D02.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/M01.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/S01.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/S02.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/T01.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/T02.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/T03.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/T04.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/T05.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/T09.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/scenarios/T10.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/weapons/classic.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/weapons/pulse.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://content/weapons/vector.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_contact.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_catalog.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_canonical.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_calibration_task.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_calibration_service.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_calibration_runner.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_arena.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_app_controller.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/v2_training_hud.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/v2_shell.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/training_pause.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/training_hud.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/training_browser.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/session_panel.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/sensitivity_import.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/score_chart.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/scenario_preview.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scenes/app/Main.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/input/aim_camera.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/weapon_viewmodel.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_random.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_geometry.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scenes/training/Arena.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/core/main.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_scores.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_preview.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/weapon_definition.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_motion.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/persistence/calibration_revision_archive.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/persistence/local_store.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_progress.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/weapon_feedback.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_session_engine.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_spawner.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scenes/ui/Home.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/crosshair_profile.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scenes/app/MainV2.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/input/aim_timeline.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/arena_presentation.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/v2/v2_store.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/weapon_catalog.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/presentation/countdown_feedback.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/core/session_clock.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/scenario_copy.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/record_celebration.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/progress_board.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/interaction_feedback.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/exercise_preview_popup.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/dashboard.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/crosshair_settings.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/aim_ui.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/training/training_routine_service.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/training/tracking_rhythm.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/training/target_pool.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/training/scenario_engine.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/training/scenario_definition.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/training/scenario_catalog.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/training/aim_geometry.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/statistics/scoring_service.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/statistics/progress_service.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/statistics/performance_insights.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/sensitivity/sensitivity_service.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/sensitivity/progressive_calibration_service.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/sensitivity/game_profile_service.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/sensitivity/calibration_service.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/sensitivity/adaptive_sensitivity_service.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://.godot/global_script_class_cache.cfg[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://.godot/uid_cache.bin[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://project.binary[39m[0m
+[92m[ DONE ][39m [1msavepack[22m
+[0m
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+EXPORT SMOKE : 18 exercices embarqués, 0 échecs.
+EXPORT ASSETS : 3 profils d’arme embarqués, 0 échecs.
+EXPORT PROFILES : 3 imports, protocole 6, 25 essais de 60 s et routine 3 phases embarqués, 0 échecs.
+EXPORT HISTORY : protocoles 4/5 préservés, archives inconnues protégées, 0 échecs.
+EXPORT CROSSHAIRS : 4 styles embarqués, 0 échecs.
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 EXPORT : 94 assertions, 0 échecs; 24 configurations, 54 phases, 4 tâches CAL.
+Windows x86-64, PCK embarqué : /workspace/aimtrainer/dist/AimLocal.exe
+Distribution : /workspace/aimtrainer/dist/AimLocal-1.0.0-windows-x64.zip
+SHA-256 : /workspace/aimtrainer/dist/AimLocal-1.0.0-windows-x64.zip.sha256

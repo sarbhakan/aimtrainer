@@ -2,6 +2,9 @@
 set -euo pipefail
 
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if rg -q '^config/version="1\.0\.0"$' "$project_root/project.godot"; then
+    exec bash "$project_root/tools/v2_visual_smoke.sh"
+fi
 visual_log="$(mktemp /tmp/aimlocal-visual.XXXXXX)"
 server_log="$(mktemp /tmp/aimlocal-display.XXXXXX)"
 server_pid=""

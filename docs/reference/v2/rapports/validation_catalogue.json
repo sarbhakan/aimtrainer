@@ -1,0 +1,1812 @@
+{
+  "report_version": "aimlocal.catalogue.validation.v1",
+  "validator": "valider_catalogue.py",
+  "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+  "schema_validator_scope": "Only the explicitly listed subset used by the delivered frozen schema; not a general JSON Schema implementation.",
+  "supported_schema_keywords": [
+    "$comment",
+    "$defs",
+    "$id",
+    "$ref",
+    "$schema",
+    "additionalProperties",
+    "allOf",
+    "anyOf",
+    "const",
+    "description",
+    "enum",
+    "exclusiveMaximum",
+    "exclusiveMinimum",
+    "items",
+    "maxItems",
+    "maxLength",
+    "maximum",
+    "minItems",
+    "minLength",
+    "minimum",
+    "oneOf",
+    "pattern",
+    "properties",
+    "required",
+    "title",
+    "type",
+    "uniqueItems"
+  ],
+  "catalogue_file_sha256": "b72277ca6ac33b93aa38ac73092c529f2152c2ab88199fa0fcaea3ee93154781",
+  "schema_file_sha256": "211563525acb4c23dada3351386cb84f2b6f59bb6761ea7b0f8bee82186743e6",
+  "validator_file_sha256": "cfa681bba6f9aec2cc163c9cd90cd2fb85ddd268bb43bf47510019865244ef38",
+  "valid": true,
+  "failed_stage": null,
+  "errors": [],
+  "metrics": {
+    "configuration_count": 24,
+    "phase_count": 54,
+    "geometry": [
+      {
+        "phase": "EX01/novice/micro",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0628292692472827,
+        "minimum_floor_clearance_m": 1.2581448357762162,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.78258872453026,
+          "right": 2.78258872453026,
+          "top": 2.0006215611876517,
+          "bottom": 2.0006215611876517,
+          "near": 3.855567890815325,
+          "far": 95.93717073075271
+        },
+        "minimum_wall_clearance_m": 13.937170730752717
+      },
+      {
+        "phase": "EX01/novice/general",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.11168655489427552,
+        "minimum_floor_clearance_m": 0.6566666818346872,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.794581389691377,
+          "right": 1.794581389691377,
+          "top": 1.3038456659332167,
+          "bottom": 1.3038456659332167,
+          "near": 3.4660040962402245,
+          "far": 95.88831344510572
+        },
+        "minimum_wall_clearance_m": 13.888313445105725
+      },
+      {
+        "phase": "EX01/novice/amplitude",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.11168655489427552,
+        "minimum_floor_clearance_m": 0.6566666818346872,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.1655280627294702,
+          "right": 1.1655280627294702,
+          "top": 1.1250742507785965,
+          "bottom": 1.1250742507785965,
+          "near": 3.1563782873548436,
+          "far": 95.88831344510572
+        },
+        "minimum_wall_clearance_m": 13.888313445105725
+      },
+      {
+        "phase": "EX01/standard/micro",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.04188713646498317,
+        "minimum_floor_clearance_m": 1.2790869685585158,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.803530857312559,
+          "right": 2.803530857312559,
+          "top": 2.021563693969951,
+          "bottom": 2.021563693969951,
+          "near": 3.876510023597624,
+          "far": 95.95811286353502
+        },
+        "minimum_wall_clearance_m": 13.958112863535018
+      },
+      {
+        "phase": "EX01/standard/general",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.08376967953342783,
+        "minimum_floor_clearance_m": 0.6845835571955349,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8224982650522248,
+          "right": 1.8224982650522248,
+          "top": 1.3317625412940646,
+          "bottom": 1.3317625412940646,
+          "near": 3.493920971601072,
+          "far": 95.91623032046657
+        },
+        "minimum_wall_clearance_m": 13.916230320466573
+      },
+      {
+        "phase": "EX01/standard/amplitude",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.08376967953342783,
+        "minimum_floor_clearance_m": 0.6845835571955349,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.193444938090318,
+          "right": 1.193444938090318,
+          "top": 1.1529911261394443,
+          "bottom": 1.1529911261394443,
+          "near": 3.1842951627156912,
+          "far": 95.91623032046657
+        },
+        "minimum_wall_clearance_m": 13.916230320466573
+      },
+      {
+        "phase": "EX01/advanced/micro",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.02792504119184621,
+        "minimum_floor_clearance_m": 1.2930490638316527,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.817492952585696,
+          "right": 2.817492952585696,
+          "top": 2.035525789243088,
+          "bottom": 2.035525789243088,
+          "near": 3.890472118870761,
+          "far": 95.97207495880815
+        },
+        "minimum_wall_clearance_m": 13.972074958808154
+      },
+      {
+        "phase": "EX01/advanced/general",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.05584872135658109,
+        "minimum_floor_clearance_m": 0.7125045153723817,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8504192232290715,
+          "right": 1.8504192232290715,
+          "top": 1.3596834994709113,
+          "bottom": 1.3596834994709113,
+          "near": 3.521841929777919,
+          "far": 95.94415127864342
+        },
+        "minimum_wall_clearance_m": 13.94415127864342
+      },
+      {
+        "phase": "EX01/advanced/amplitude",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.05584872135658109,
+        "minimum_floor_clearance_m": 0.7125045153723817,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.2213658962671647,
+          "right": 1.2213658962671647,
+          "top": 1.180912084316291,
+          "bottom": 1.180912084316291,
+          "near": 3.212216120892538,
+          "far": 95.94415127864342
+        },
+        "minimum_wall_clearance_m": 13.94415127864342
+      },
+      {
+        "phase": "EX02/novice/grid",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.1675026149167985,
+        "minimum_floor_clearance_m": 0.9450200114626116,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.4599983002429244,
+          "right": 2.4599983002429244,
+          "top": 1.6919593516172435,
+          "bottom": 1.6919593516172435,
+          "near": 3.69236596651842,
+          "far": 95.8324973850832
+        },
+        "minimum_wall_clearance_m": 13.832497385083201
+      },
+      {
+        "phase": "EX02/novice/precision",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0628292692472827,
+        "minimum_floor_clearance_m": 0.70552396748168,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8434386753383698,
+          "right": 1.8434386753383698,
+          "top": 1.3527029515802096,
+          "bottom": 1.3527029515802096,
+          "near": 3.5148613818872176,
+          "far": 95.93717073075271
+        },
+        "minimum_wall_clearance_m": 13.937170730752717
+      },
+      {
+        "phase": "EX02/standard/grid",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.13959798681000388,
+        "minimum_floor_clearance_m": 0.9729246395694062,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.4879029283497194,
+          "right": 2.4879029283497194,
+          "top": 1.719863979724038,
+          "bottom": 1.719863979724038,
+          "near": 3.720270594625215,
+          "far": 95.86040201319
+        },
+        "minimum_wall_clearance_m": 13.860402013189995
+      },
+      {
+        "phase": "EX02/standard/precision",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.04188713646498317,
+        "minimum_floor_clearance_m": 0.7264661002639795,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8643808081206694,
+          "right": 1.8643808081206694,
+          "top": 1.3736450843625092,
+          "bottom": 1.3736450843625092,
+          "near": 3.535803514669517,
+          "far": 95.95811286353502
+        },
+        "minimum_wall_clearance_m": 13.958112863535018
+      },
+      {
+        "phase": "EX02/advanced/grid",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.11168655489427552,
+        "minimum_floor_clearance_m": 1.0008360714851345,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.5158143602654475,
+          "right": 2.5158143602654475,
+          "top": 1.7477754116397664,
+          "bottom": 1.7477754116397664,
+          "near": 3.748182026540943,
+          "far": 95.88831344510572
+        },
+        "minimum_wall_clearance_m": 13.888313445105725
+      },
+      {
+        "phase": "EX02/advanced/precision",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.02792504119184621,
+        "minimum_floor_clearance_m": 0.7404281955371165,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8783429033938064,
+          "right": 1.8783429033938064,
+          "top": 1.3876071796356462,
+          "bottom": 1.3876071796356462,
+          "near": 3.549765609942654,
+          "far": 95.97207495880815
+        },
+        "minimum_wall_clearance_m": 13.972074958808154
+      },
+      {
+        "phase": "EX03/novice/fixed_window",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.11168655489427552,
+        "minimum_floor_clearance_m": 0.8625755849448011,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.174077453666459,
+          "right": 2.174077453666459,
+          "top": 1.5701297720623493,
+          "bottom": 1.5701297720623493,
+          "near": 3.636021322461669,
+          "far": 95.88831344510572
+        },
+        "minimum_wall_clearance_m": 13.888313445105725
+      },
+      {
+        "phase": "EX03/novice/shrinking_window",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.11168655489427552,
+        "minimum_floor_clearance_m": 0.8625755849448011,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.174077453666459,
+          "right": 2.174077453666459,
+          "top": 1.5701297720623493,
+          "bottom": 1.5701297720623493,
+          "near": 3.636021322461669,
+          "far": 95.88831344510572
+        },
+        "minimum_wall_clearance_m": 13.888313445105725
+      },
+      {
+        "phase": "EX03/standard/fixed_window",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.08376967953342783,
+        "minimum_floor_clearance_m": 0.8904924603056488,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.2019943290273067,
+          "right": 2.2019943290273067,
+          "top": 1.5980466474231971,
+          "bottom": 1.5980466474231971,
+          "near": 3.6639381978225165,
+          "far": 95.91623032046657
+        },
+        "minimum_wall_clearance_m": 13.916230320466573
+      },
+      {
+        "phase": "EX03/standard/shrinking_window",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.08376967953342783,
+        "minimum_floor_clearance_m": 0.8904924603056488,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.2019943290273067,
+          "right": 2.2019943290273067,
+          "top": 1.5980466474231971,
+          "bottom": 1.5980466474231971,
+          "near": 3.6639381978225165,
+          "far": 95.91623032046657
+        },
+        "minimum_wall_clearance_m": 13.916230320466573
+      },
+      {
+        "phase": "EX03/advanced/fixed_window",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0628292692472827,
+        "minimum_floor_clearance_m": 0.9114328705917939,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.222934739313452,
+          "right": 2.222934739313452,
+          "top": 1.6189870577093421,
+          "bottom": 1.6189870577093421,
+          "near": 3.684878608108662,
+          "far": 95.93717073075271
+        },
+        "minimum_wall_clearance_m": 13.937170730752717
+      },
+      {
+        "phase": "EX03/advanced/shrinking_window",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0628292692472827,
+        "minimum_floor_clearance_m": 0.9114328705917939,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.222934739313452,
+          "right": 2.222934739313452,
+          "top": 1.6189870577093421,
+          "bottom": 1.6189870577093421,
+          "near": 3.684878608108662,
+          "far": 95.93717073075271
+        },
+        "minimum_wall_clearance_m": 13.937170730752717
+      },
+      {
+        "phase": "EX04/novice/linear",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.09772871261061261,
+        "minimum_floor_clearance_m": 0.876533427228464,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.9560490218196136,
+          "right": 1.9560490218196136,
+          "top": 1.5348867915193012,
+          "bottom": 1.5348867915193012,
+          "near": 3.5647650685635073,
+          "far": 95.90227128738938
+        },
+        "minimum_wall_clearance_m": 13.902271287389388
+      },
+      {
+        "phase": "EX04/novice/evasive",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.09772871261061261,
+        "minimum_floor_clearance_m": 0.7939323261110542,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8260934918717735,
+          "right": 1.8260934918717735,
+          "top": 1.431432282720994,
+          "bottom": 1.431432282720994,
+          "near": 3.502392397167885,
+          "far": 95.90227128738938
+        },
+        "minimum_wall_clearance_m": 13.902271287389388
+      },
+      {
+        "phase": "EX04/novice/arcs",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.09772871261061261,
+        "minimum_floor_clearance_m": 0.9455788835491259,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8442869597275415,
+          "right": 1.8442869597275415,
+          "top": 2.1367559599603694,
+          "bottom": 1.5682513434864296,
+          "near": 3.5249135475102578,
+          "far": 95.904707979313
+        },
+        "minimum_wall_clearance_m": 13.904707979313004
+      },
+      {
+        "phase": "EX04/standard/linear",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.06980962574913405,
+        "minimum_floor_clearance_m": 0.9044525140899425,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.983968108681092,
+          "right": 1.983968108681092,
+          "top": 1.5628058783807797,
+          "bottom": 1.5628058783807797,
+          "near": 3.592684155424986,
+          "far": 95.93019037425087
+        },
+        "minimum_wall_clearance_m": 13.930190374250866
+      },
+      {
+        "phase": "EX04/standard/evasive",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.06980962574913405,
+        "minimum_floor_clearance_m": 0.8218514129725328,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.854012578733252,
+          "right": 1.854012578733252,
+          "top": 1.4593513695824725,
+          "bottom": 1.4593513695824725,
+          "near": 3.530311484029364,
+          "far": 95.93019037425087
+        },
+        "minimum_wall_clearance_m": 13.930190374250866
+      },
+      {
+        "phase": "EX04/standard/arcs",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.06980962574913405,
+        "minimum_floor_clearance_m": 0.9734979704106044,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8716378146928925,
+          "right": 1.8716378146928925,
+          "top": 1.993698689739746,
+          "bottom": 1.596170430347908,
+          "near": 3.5528326343717365,
+          "far": 95.93019037425087
+        },
+        "minimum_wall_clearance_m": 13.930190374250866
+      },
+      {
+        "phase": "EX04/advanced/linear",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.048868003340988675,
+        "minimum_floor_clearance_m": 0.925394136498088,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.0049097310892376,
+          "right": 2.0049097310892376,
+          "top": 1.583747500788925,
+          "bottom": 1.583747500788925,
+          "near": 3.6136257778331315,
+          "far": 95.95113199665902
+        },
+        "minimum_wall_clearance_m": 13.951131996659011
+      },
+      {
+        "phase": "EX04/advanced/evasive",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.048868003340988675,
+        "minimum_floor_clearance_m": 0.8427930353806783,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8749542011413973,
+          "right": 1.8749542011413973,
+          "top": 1.4802929919906178,
+          "bottom": 1.4802929919906178,
+          "near": 3.5512531064375095,
+          "far": 95.95113199665902
+        },
+        "minimum_wall_clearance_m": 13.951131996659011
+      },
+      {
+        "phase": "EX04/advanced/arcs",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.048868003340988675,
+        "minimum_floor_clearance_m": 0.9944395928187497,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8925794371010378,
+          "right": 1.8925794371010378,
+          "top": 1.8438201823653526,
+          "bottom": 1.6171120527560534,
+          "near": 3.573774256779882,
+          "far": 95.95113199665902
+        },
+        "minimum_wall_clearance_m": 13.951131996659011
+      },
+      {
+        "phase": "EX05/novice/horizontal",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.12564303631251317,
+        "minimum_floor_clearance_m": 1.474356963687487,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.0821049049357194,
+          "right": 2.0821049049357194,
+          "top": 2.0708369008370067,
+          "bottom": 2.0708369008370067,
+          "near": 3.628583028868101,
+          "far": 95.87435696368749
+        },
+        "minimum_wall_clearance_m": 13.874356963687486
+      },
+      {
+        "phase": "EX05/novice/vertical",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.12564303631251317,
+        "minimum_floor_clearance_m": 0.506669381288816,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.9118023634580146,
+          "right": 2.9118023634580146,
+          "top": 1.3251761608526174,
+          "bottom": 1.3251761608526174,
+          "near": 3.705539868791473,
+          "far": 95.87435696368749
+        },
+        "minimum_wall_clearance_m": 13.874356963687486
+      },
+      {
+        "phase": "EX05/novice/ellipse",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.12564303631251317,
+        "minimum_floor_clearance_m": 0.7797642530197656,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.151452808982089,
+          "right": 2.151452808982089,
+          "top": 1.4935598901560756,
+          "bottom": 1.4935598901560756,
+          "near": 3.6109888470223677,
+          "far": 95.87435696368749
+        },
+        "minimum_wall_clearance_m": 13.874356963687486
+      },
+      {
+        "phase": "EX05/standard/horizontal",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.09074933429112543,
+        "minimum_floor_clearance_m": 1.5092506657088747,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.116998606957107,
+          "right": 2.116998606957107,
+          "top": 2.105730602858394,
+          "bottom": 2.105730602858394,
+          "near": 3.6634767308894887,
+          "far": 95.90925066570887
+        },
+        "minimum_wall_clearance_m": 13.909250665708875
+      },
+      {
+        "phase": "EX05/standard/vertical",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.09074933429112543,
+        "minimum_floor_clearance_m": 0.5415630833102038,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.946696065479402,
+          "right": 2.946696065479402,
+          "top": 1.360069862874005,
+          "bottom": 1.360069862874005,
+          "near": 3.7404335708128604,
+          "far": 95.90925066570887
+        },
+        "minimum_wall_clearance_m": 13.909250665708875
+      },
+      {
+        "phase": "EX05/standard/ellipse",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.09074933429112543,
+        "minimum_floor_clearance_m": 0.8146579550411533,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.1863465110034763,
+          "right": 2.1863465110034763,
+          "top": 1.5284535921774633,
+          "bottom": 1.5284535921774633,
+          "near": 3.645882549043755,
+          "far": 95.90925066570887
+        },
+        "minimum_wall_clearance_m": 13.909250665708875
+      },
+      {
+        "phase": "EX05/advanced/horizontal",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0628292692472827,
+        "minimum_floor_clearance_m": 1.5371707307527174,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.14491867200095,
+          "right": 2.14491867200095,
+          "top": 2.1336506679022373,
+          "bottom": 2.1336506679022373,
+          "near": 3.691396795933332,
+          "far": 95.93717073075271
+        },
+        "minimum_wall_clearance_m": 13.937170730752717
+      },
+      {
+        "phase": "EX05/advanced/vertical",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0628292692472827,
+        "minimum_floor_clearance_m": 0.5694831483540465,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.9746161305232452,
+          "right": 2.9746161305232452,
+          "top": 1.3879899279178478,
+          "bottom": 1.3879899279178478,
+          "near": 3.7683536358567036,
+          "far": 95.93717073075271
+        },
+        "minimum_wall_clearance_m": 13.937170730752717
+      },
+      {
+        "phase": "EX05/advanced/ellipse",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0628292692472827,
+        "minimum_floor_clearance_m": 0.842578020084996,
+        "frustum_plane_lower_bounds_m": {
+          "left": 2.2142665760473195,
+          "right": 2.2142665760473195,
+          "top": 1.556373657221306,
+          "bottom": 1.556373657221306,
+          "near": 3.6738026140875983,
+          "far": 95.93717073075271
+        },
+        "minimum_wall_clearance_m": 13.937170730752717
+      },
+      {
+        "phase": "EX06/novice/reactive",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.11866497634044303,
+        "minimum_floor_clearance_m": 1.481335023659557,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.7283294765996926,
+          "right": 1.7283294765996926,
+          "top": 1.991182582669731,
+          "bottom": 1.991182582669731,
+          "near": 3.4855168542299606,
+          "far": 95.88133502365956
+        },
+        "minimum_wall_clearance_m": 13.881335023659558
+      },
+      {
+        "phase": "EX06/standard/reactive",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.09074933429112543,
+        "minimum_floor_clearance_m": 1.5092506657088747,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.7562451186490102,
+          "right": 1.7562451186490102,
+          "top": 2.0190982247190483,
+          "bottom": 2.0190982247190483,
+          "near": 3.513432496279278,
+          "far": 95.90925066570887
+        },
+        "minimum_wall_clearance_m": 13.909250665708875
+      },
+      {
+        "phase": "EX06/advanced/reactive",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0628292692472827,
+        "minimum_floor_clearance_m": 1.5371707307527174,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.784165183692853,
+          "right": 1.784165183692853,
+          "top": 2.0470182897628915,
+          "bottom": 2.0470182897628915,
+          "near": 3.541352561323121,
+          "far": 95.93717073075271
+        },
+        "minimum_wall_clearance_m": 13.937170730752717
+      },
+      {
+        "phase": "EX07/novice/depth",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.1256430363,
+        "minimum_floor_clearance_m": 0.6061160753653485,
+        "frustum_plane_lower_bounds_m": {
+          "left": 0.9825099256973118,
+          "right": 0.9825099256973118,
+          "top": 0.7684069113933427,
+          "bottom": 0.7684069113933427,
+          "near": 2.6006066988949703,
+          "far": 94.8743569637
+        },
+        "minimum_wall_clearance_m": 12.8743569637
+      },
+      {
+        "phase": "EX07/standard/depth",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0907493343,
+        "minimum_floor_clearance_m": 0.6410097773653485,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.0174036276973117,
+          "right": 1.0174036276973117,
+          "top": 0.8033006133933428,
+          "bottom": 0.8033006133933428,
+          "near": 2.6355004008949705,
+          "far": 94.9092506657
+        },
+        "minimum_wall_clearance_m": 12.9092506657
+      },
+      {
+        "phase": "EX07/advanced/depth",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0628292692,
+        "minimum_floor_clearance_m": 0.6689298424653485,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.0453236927973117,
+          "right": 1.0453236927973117,
+          "top": 0.8312206784933428,
+          "bottom": 0.8312206784933428,
+          "near": 2.6634204659949705,
+          "far": 94.9371707308
+        },
+        "minimum_wall_clearance_m": 12.9371707308
+      },
+      {
+        "phase": "EX08/novice/static",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.11866497634044303,
+        "minimum_floor_clearance_m": 0.6496882603885197,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.5418951898416215,
+          "right": 1.5418951898416215,
+          "top": 1.232733327002456,
+          "bottom": 1.232733327002456,
+          "near": 3.3479479834249943,
+          "far": 95.88133502365956
+        },
+        "minimum_wall_clearance_m": 13.881335023659558
+      },
+      {
+        "phase": "EX08/novice/mobile",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.11866497634044303,
+        "minimum_floor_clearance_m": 0.8555971634986336,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8152948377508635,
+          "right": 1.8152948377508635,
+          "top": 1.4854170099553072,
+          "bottom": 1.4854170099553072,
+          "near": 3.4944097546342525,
+          "far": 95.88133502365956
+        },
+        "minimum_wall_clearance_m": 13.881335023659558
+      },
+      {
+        "phase": "EX08/novice/evasive",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.11866497634044303,
+        "minimum_floor_clearance_m": 0.7936186225419188,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.6857452391095644,
+          "right": 1.6857452391095644,
+          "top": 1.3982613737609242,
+          "bottom": 1.3982613737609242,
+          "near": 3.4311036244197854,
+          "far": 95.88133502365956
+        },
+        "minimum_wall_clearance_m": 13.881335023659558
+      },
+      {
+        "phase": "EX08/standard/static",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.09074933429112543,
+        "minimum_floor_clearance_m": 0.6776039024378373,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.5698108318909392,
+          "right": 1.5698108318909392,
+          "top": 1.2606489690517737,
+          "bottom": 1.2606489690517737,
+          "near": 3.3758636254743117,
+          "far": 95.90925066570887
+        },
+        "minimum_wall_clearance_m": 13.909250665708875
+      },
+      {
+        "phase": "EX08/standard/mobile",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.09074933429112543,
+        "minimum_floor_clearance_m": 0.8835128055479512,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8432104798001812,
+          "right": 1.8432104798001812,
+          "top": 1.5133326520046249,
+          "bottom": 1.5133326520046249,
+          "near": 3.52232539668357,
+          "far": 95.90925066570887
+        },
+        "minimum_wall_clearance_m": 13.909250665708875
+      },
+      {
+        "phase": "EX08/standard/evasive",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.09074933429112543,
+        "minimum_floor_clearance_m": 0.8215342645912365,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.713660881158882,
+          "right": 1.713660881158882,
+          "top": 1.4261770158102418,
+          "bottom": 1.4261770158102418,
+          "near": 3.459019266469103,
+          "far": 95.90925066570887
+        },
+        "minimum_wall_clearance_m": 13.909250665708875
+      },
+      {
+        "phase": "EX08/advanced/static",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0628292692472827,
+        "minimum_floor_clearance_m": 0.70552396748168,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.5977308969347819,
+          "right": 1.5977308969347819,
+          "top": 1.2885690340956164,
+          "bottom": 1.2885690340956164,
+          "near": 3.403783690518155,
+          "far": 95.93717073075271
+        },
+        "minimum_wall_clearance_m": 13.937170730752717
+      },
+      {
+        "phase": "EX08/advanced/mobile",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0628292692472827,
+        "minimum_floor_clearance_m": 0.9114328705917939,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.8711305448440239,
+          "right": 1.8711305448440239,
+          "top": 1.5412527170484676,
+          "bottom": 1.5412527170484676,
+          "near": 3.550245461727413,
+          "far": 95.93717073075271
+        },
+        "minimum_wall_clearance_m": 13.937170730752717
+      },
+      {
+        "phase": "EX08/advanced/evasive",
+        "method": "conservative_interval_AABB_of_nominal_spherical_envelope",
+        "maximum_world_radius_m": 0.0628292692472827,
+        "minimum_floor_clearance_m": 0.8494543296350792,
+        "frustum_plane_lower_bounds_m": {
+          "left": 1.7415809462027247,
+          "right": 1.7415809462027247,
+          "top": 1.4540970808540845,
+          "bottom": 1.4540970808540845,
+          "near": 3.486939331512946,
+          "far": 95.93717073075271
+        },
+        "minimum_wall_clearance_m": 13.937170730752717
+      }
+    ],
+    "motion": [
+      {
+        "phase": "EX02/novice/grid",
+        "check": "grid_minimum_angular_separation_deg",
+        "value": 6.999999999999999
+      },
+      {
+        "phase": "EX02/standard/grid",
+        "check": "grid_minimum_angular_separation_deg",
+        "value": 6.999999999999999
+      },
+      {
+        "phase": "EX02/advanced/grid",
+        "check": "grid_minimum_angular_separation_deg",
+        "value": 6.999999999999999
+      },
+      {
+        "phase": "EX04/novice/linear",
+        "check": "lane_minimum_angular_separation_deg",
+        "value": 6
+      },
+      {
+        "phase": "EX04/novice/evasive",
+        "check": "lane_minimum_angular_separation_deg",
+        "value": 3.6
+      },
+      {
+        "phase": "EX04/novice/evasive",
+        "check": "reactive_conservative_braking_distance_deg",
+        "upper_bound": 0.41274640012020175,
+        "available_inset": 3
+      },
+      {
+        "phase": "EX04/standard/linear",
+        "check": "lane_minimum_angular_separation_deg",
+        "value": 6
+      },
+      {
+        "phase": "EX04/standard/evasive",
+        "check": "lane_minimum_angular_separation_deg",
+        "value": 3.6
+      },
+      {
+        "phase": "EX04/standard/evasive",
+        "check": "reactive_conservative_braking_distance_deg",
+        "upper_bound": 0.5503285334936023,
+        "available_inset": 3
+      },
+      {
+        "phase": "EX04/advanced/linear",
+        "check": "lane_minimum_angular_separation_deg",
+        "value": 6
+      },
+      {
+        "phase": "EX04/advanced/evasive",
+        "check": "lane_minimum_angular_separation_deg",
+        "value": 3.6
+      },
+      {
+        "phase": "EX04/advanced/evasive",
+        "check": "reactive_conservative_braking_distance_deg",
+        "upper_bound": 0.6551530160638124,
+        "available_inset": 3
+      },
+      {
+        "phase": "EX05/novice/horizontal",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 20,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX05/novice/vertical",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 20,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX05/novice/ellipse",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 20,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX05/novice/ellipse",
+        "check": "ellipse_acceleration_exact_derivatives_sampled",
+        "sample_count": 8192,
+        "peak_deg_s2": 16.094911438024976,
+        "limit_deg_s2": 70,
+        "continuous_certificate": false
+      },
+      {
+        "phase": "EX05/standard/horizontal",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 20,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX05/standard/vertical",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 20,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX05/standard/ellipse",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 20,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX05/standard/ellipse",
+        "check": "ellipse_acceleration_exact_derivatives_sampled",
+        "sample_count": 8192,
+        "peak_deg_s2": 31.54602641852895,
+        "limit_deg_s2": 70,
+        "continuous_certificate": false
+      },
+      {
+        "phase": "EX05/advanced/horizontal",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 20,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX05/advanced/vertical",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 20,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX05/advanced/ellipse",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 20,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX05/advanced/ellipse",
+        "check": "ellipse_acceleration_exact_derivatives_sampled",
+        "sample_count": 8192,
+        "peak_deg_s2": 52.147513059200904,
+        "limit_deg_s2": 70,
+        "continuous_certificate": false
+      },
+      {
+        "phase": "EX06/novice/reactive",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 60,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX06/novice/reactive",
+        "check": "reactive_conservative_braking_distance_deg",
+        "upper_bound": 1.1318039769197275,
+        "available_inset": 3
+      },
+      {
+        "phase": "EX06/standard/reactive",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 60,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX06/standard/reactive",
+        "check": "reactive_conservative_braking_distance_deg",
+        "upper_bound": 1.3817023738547785,
+        "available_inset": 3
+      },
+      {
+        "phase": "EX06/advanced/reactive",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 60,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX06/advanced/reactive",
+        "check": "reactive_conservative_braking_distance_deg",
+        "upper_bound": 1.3187993448537074,
+        "available_inset": 3
+      },
+      {
+        "phase": "EX07/novice/depth",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 60,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX07/standard/depth",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 60,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX07/advanced/depth",
+        "check": "tracking_fixed_exposure",
+        "exposure_s": 60,
+        "first_rendered_frame_gates": "numerator_only"
+      },
+      {
+        "phase": "EX08/novice/mobile",
+        "check": "lane_minimum_angular_separation_deg",
+        "value": 6
+      },
+      {
+        "phase": "EX08/novice/evasive",
+        "check": "lane_minimum_angular_separation_deg",
+        "value": 4.2
+      },
+      {
+        "phase": "EX08/novice/evasive",
+        "check": "reactive_conservative_braking_distance_deg",
+        "upper_bound": 0.5896377144574311,
+        "available_inset": 3
+      },
+      {
+        "phase": "EX08/standard/mobile",
+        "check": "lane_minimum_angular_separation_deg",
+        "value": 6
+      },
+      {
+        "phase": "EX08/standard/evasive",
+        "check": "lane_minimum_angular_separation_deg",
+        "value": 4.2
+      },
+      {
+        "phase": "EX08/standard/evasive",
+        "check": "reactive_conservative_braking_distance_deg",
+        "upper_bound": 0.7337713779914699,
+        "available_inset": 3
+      },
+      {
+        "phase": "EX08/advanced/mobile",
+        "check": "lane_minimum_angular_separation_deg",
+        "value": 6
+      },
+      {
+        "phase": "EX08/advanced/evasive",
+        "check": "lane_minimum_angular_separation_deg",
+        "value": 4.2
+      },
+      {
+        "phase": "EX08/advanced/evasive",
+        "check": "reactive_conservative_braking_distance_deg",
+        "upper_bound": 0.7861836192765748,
+        "available_inset": 3
+      }
+    ],
+    "scope": {
+      "geometry": "Conservative closed-form interval envelope at the neutral reference camera, including full target spheres; passing lower bounds certify the declared envelopes.",
+      "movement": "Cross-field formulas and conservative reactive stopping bounds; ellipse acceleration uses an explicitly sampled numerical check.",
+      "not_demonstrated": [
+        "All random spawn histories",
+        "Every runtime event-tape trajectory",
+        "Godot rendering and input behavior",
+        "Windows executable packaging",
+        "Human playability or calibration validity"
+      ]
+    },
+    "minimum_certified_floor_clearance_m": 0.506669381288816,
+    "minimum_certified_frustum_clearance_m": 0.7684069113933427,
+    "minimum_certified_wall_clearance_m": 12.8743569637
+  },
+  "semantic_hash_contract": "AIM-CANON-1",
+  "catalogue_semantic_sha256": "d153eab2ec74f90eb61e0e98c3cf23422ce999fcf40e0b445b729e73291b6ebc",
+  "self_tests": {
+    "negative_count": 47,
+    "negative_passed": 47,
+    "positive_count": 4,
+    "positive_passed": 4,
+    "all_passed": true,
+    "negative_fixtures": [
+      {
+        "id": "duplicate_key",
+        "expected_stage": "strict_json",
+        "expected_code": "strict_json",
+        "passed": true,
+        "observed_stage": "strict_json",
+        "evidence": [
+          {
+            "path": "$",
+            "code": "strict_json",
+            "message": "Duplicate object key: 'a'"
+          }
+        ]
+      },
+      {
+        "id": "nan_literal",
+        "expected_stage": "strict_json",
+        "expected_code": "strict_json",
+        "passed": true,
+        "observed_stage": "strict_json",
+        "evidence": [
+          {
+            "path": "$",
+            "code": "strict_json",
+            "message": "Forbidden JSON numeric constant: NaN"
+          }
+        ]
+      },
+      {
+        "id": "infinity_literal",
+        "expected_stage": "strict_json",
+        "expected_code": "strict_json",
+        "passed": true,
+        "observed_stage": "strict_json",
+        "evidence": [
+          {
+            "path": "$",
+            "code": "strict_json",
+            "message": "Forbidden JSON numeric constant: Infinity"
+          }
+        ]
+      },
+      {
+        "id": "overflowing_exponent",
+        "expected_stage": "strict_json",
+        "expected_code": "strict_json",
+        "passed": true,
+        "observed_stage": "strict_json",
+        "evidence": [
+          {
+            "path": "$",
+            "code": "strict_json",
+            "message": "Non-finite or overflowing JSON number: 1e9999"
+          }
+        ]
+      },
+      {
+        "id": "unsafe_integer",
+        "expected_stage": "strict_json",
+        "expected_code": "strict_json",
+        "passed": true,
+        "observed_stage": "strict_json",
+        "evidence": [
+          {
+            "path": "$",
+            "code": "strict_json",
+            "message": "Integer exceeds the exact JSON interchange range, 2^53-1"
+          }
+        ]
+      },
+      {
+        "id": "trailing_comma",
+        "expected_stage": "strict_json",
+        "expected_code": "strict_json",
+        "passed": true,
+        "observed_stage": "strict_json",
+        "evidence": [
+          {
+            "path": "$",
+            "code": "strict_json",
+            "message": "Expecting property name enclosed in double quotes: line 1 column 8 (char 7)"
+          }
+        ]
+      },
+      {
+        "id": "invalid_utf8",
+        "expected_stage": "strict_json",
+        "expected_code": "strict_json",
+        "passed": true,
+        "observed_stage": "strict_json",
+        "evidence": [
+          {
+            "path": "$",
+            "code": "strict_json",
+            "message": "'utf-8' codec can't decode byte 0xff in position 6: invalid start byte"
+          }
+        ]
+      },
+      {
+        "id": "lone_surrogate",
+        "expected_stage": "strict_json",
+        "expected_code": "strict_json",
+        "passed": true,
+        "observed_stage": "strict_json",
+        "evidence": [
+          {
+            "path": "$",
+            "code": "strict_json",
+            "message": "Unpaired Unicode surrogate"
+          }
+        ]
+      },
+      {
+        "id": "utf8_bom",
+        "expected_stage": "strict_json",
+        "expected_code": "strict_json",
+        "passed": true,
+        "observed_stage": "strict_json",
+        "evidence": [
+          {
+            "path": "$",
+            "code": "strict_json",
+            "message": "UTF-8 BOM is not accepted by this contract"
+          }
+        ]
+      },
+      {
+        "id": "unknown_root_field",
+        "expected_stage": "structure",
+        "expected_code": "additionalProperties",
+        "passed": true,
+        "observed_stage": "structure",
+        "evidence": [
+          {
+            "path": "$.unreviewed_runtime_override",
+            "code": "additionalProperties",
+            "message": "Unknown field"
+          }
+        ]
+      },
+      {
+        "id": "missing_required_motion_field",
+        "expected_stage": "structure",
+        "expected_code": "required",
+        "passed": true,
+        "observed_stage": "structure",
+        "evidence": [
+          {
+            "path": "$.programs[10].phases[0].motion.yaw_speed_deg_s",
+            "code": "required",
+            "message": "Required field is missing"
+          }
+        ]
+      },
+      {
+        "id": "extra_field_on_static_discriminant",
+        "expected_stage": "structure",
+        "expected_code": "additionalProperties",
+        "passed": true,
+        "observed_stage": "structure",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[0].motion.yaw_speed_deg_s",
+            "code": "additionalProperties",
+            "message": "Unknown field"
+          }
+        ]
+      },
+      {
+        "id": "boolean_is_not_integer_count",
+        "expected_stage": "structure",
+        "expected_code": "type",
+        "passed": true,
+        "observed_stage": "structure",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[0].target_count",
+            "code": "type",
+            "message": "Expected integer, received bool"
+          }
+        ]
+      },
+      {
+        "id": "unknown_motion_discriminant",
+        "expected_stage": "structure",
+        "expected_code": "oneOf",
+        "passed": true,
+        "observed_stage": "structure",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[0].motion",
+            "code": "oneOf",
+            "message": "0 matching branches among 8"
+          }
+        ]
+      },
+      {
+        "id": "zero_ttl_is_not_inapplicable_null",
+        "expected_stage": "structure",
+        "expected_code": "oneOf",
+        "passed": true,
+        "observed_stage": "structure",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[0].lifecycle",
+            "code": "oneOf",
+            "message": "0 matching branches among 4"
+          }
+        ]
+      },
+      {
+        "id": "render_gate_removed",
+        "expected_stage": "structure",
+        "expected_code": "const",
+        "passed": true,
+        "observed_stage": "structure",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[0].lifecycle.spawn_is_hittable_after",
+            "code": "const",
+            "message": "Expected fixed value 'first_rendered_frame'"
+          }
+        ]
+      },
+      {
+        "id": "runtime_debug_overlay_enabled",
+        "expected_stage": "structure",
+        "expected_code": "const",
+        "passed": true,
+        "observed_stage": "structure",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[0].visual.runtime_debug_overlay",
+            "code": "const",
+            "message": "Expected fixed value False"
+          }
+        ]
+      },
+      {
+        "id": "tracking_denominator_retimed",
+        "expected_stage": "structure",
+        "expected_code": "const",
+        "passed": true,
+        "observed_stage": "structure",
+        "evidence": [
+          {
+            "path": "$.programs[13].phases[0].scoring.exposure_never_retimed",
+            "code": "const",
+            "message": "Expected fixed value True"
+          }
+        ]
+      },
+      {
+        "id": "tracking_old_exposure_contract",
+        "expected_stage": "structure",
+        "expected_code": "const",
+        "passed": true,
+        "observed_stage": "structure",
+        "evidence": [
+          {
+            "path": "$.programs[13].phases[0].scoring.exposure_denominator",
+            "code": "const",
+            "message": "Expected fixed value 'full_scheduled_phase_duration_including_initial_acquisition_and_user_look_away'"
+          }
+        ]
+      },
+      {
+        "id": "duplicate_program_difficulty",
+        "expected_stage": "semantics",
+        "expected_code": "duplicate_configuration",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs",
+            "code": "duplicate_configuration",
+            "message": "Program/difficulty keys must be unique"
+          }
+        ]
+      },
+      {
+        "id": "overlapping_phase_timestamps",
+        "expected_stage": "semantics",
+        "expected_code": "phase_contiguity",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[1].start_s",
+            "code": "phase_contiguity",
+            "message": "Expected 20, received 19"
+          }
+        ]
+      },
+      {
+        "id": "wrong_program_total",
+        "expected_stage": "semantics",
+        "expected_code": "program_phase_total",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases",
+            "code": "program_phase_total",
+            "message": "Expected 60, received 59"
+          }
+        ]
+      },
+      {
+        "id": "reversed_spawn_interval",
+        "expected_stage": "semantics",
+        "expected_code": "range_order",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[0].spawn.yaw_deg",
+            "code": "range_order",
+            "message": "Interval minimum must not exceed its maximum"
+          }
+        ]
+      },
+      {
+        "id": "incoherent_vertical_fov",
+        "expected_stage": "semantics",
+        "expected_code": "fov_relation",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[0].arena.fov_vertical_deg",
+            "code": "fov_relation",
+            "message": "Expected 70.5328004329, received 60"
+          }
+        ]
+      },
+      {
+        "id": "sphere_floor_intersection",
+        "expected_stage": "semantics",
+        "expected_code": "floor_clearance",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[0].envelope",
+            "code": "floor_clearance",
+            "message": "Conservative full-sphere clearance -1.01303758 m is below the minimum"
+          }
+        ]
+      },
+      {
+        "id": "sphere_outside_reference_frustum",
+        "expected_stage": "semantics",
+        "expected_code": "frustum_clearance",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[0].envelope",
+            "code": "frustum_clearance",
+            "message": "Full-sphere envelope cannot be certified inside every reference frustum plane"
+          }
+        ]
+      },
+      {
+        "id": "radius_uses_wrong_projection_formula",
+        "expected_stage": "semantics",
+        "expected_code": "sphere_radius",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[0].size.world_radius_m",
+            "code": "sphere_radius",
+            "message": "Expected 0.041887136465, received 0.09"
+          }
+        ]
+      },
+      {
+        "id": "window_extends_past_next_slot",
+        "expected_stage": "semantics",
+        "expected_code": "window_overflow",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[7].phases[0].spawn.schedule",
+            "code": "window_overflow",
+            "message": "Latest onset plus TTL must fit entirely inside its slot"
+          }
+        ]
+      },
+      {
+        "id": "shrink_end_ratio_wrong",
+        "expected_stage": "semantics",
+        "expected_code": "shrink_ratio",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[7].phases[1].size.diameter_end_deg",
+            "code": "shrink_ratio",
+            "message": "Expected 1.44, received 1.9"
+          }
+        ]
+      },
+      {
+        "id": "grid_duplicate_node",
+        "expected_stage": "semantics",
+        "expected_code": "grid_nodes",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[4].phases[0].spawn.nodes_yaw_pitch_deg",
+            "code": "grid_nodes",
+            "message": "Nine unique grid nodes are required"
+          }
+        ]
+      },
+      {
+        "id": "precision_separation_omits_radii",
+        "expected_stage": "semantics",
+        "expected_code": "centre_separation",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[4].phases[1].spawn.minimum_equal_size_center_separation_deg",
+            "code": "centre_separation",
+            "message": "Centre separation must include both angular radii and the silhouette gap"
+          }
+        ]
+      },
+      {
+        "id": "negative_geodesic_transition",
+        "expected_stage": "semantics",
+        "expected_code": "transition_domain",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[0].spawn.transition_angle_deg",
+            "code": "transition_domain",
+            "message": "Geodesic transition angles must lie between 0 and 180 degrees"
+          }
+        ]
+      },
+      {
+        "id": "negative_floor_requirement_cannot_bypass_clearance",
+        "expected_stage": "semantics",
+        "expected_code": "minimum_floor_requirement",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[1].phases[0].envelope.minimum_floor_clearance_m",
+            "code": "minimum_floor_requirement",
+            "message": "The reference profile requires at least 0.05 m full-sphere floor clearance"
+          }
+        ]
+      },
+      {
+        "id": "candidate_yaw_exceeds_spawn_domain",
+        "expected_stage": "semantics",
+        "expected_code": "candidate_envelope",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[10].phases[0].spawn.candidate_yaw_deg",
+            "code": "candidate_envelope",
+            "message": "Candidate yaw interval must lie inside the spawn domain"
+          }
+        ]
+      },
+      {
+        "id": "moving_lanes_can_overlap",
+        "expected_stage": "semantics",
+        "expected_code": "lane_separation",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[10].phases[1].motion.lanes_pitch_deg",
+            "code": "lane_separation",
+            "message": "Lane motion envelopes permit silhouette overlap"
+          }
+        ]
+      },
+      {
+        "id": "arc_chambers_overlap",
+        "expected_stage": "semantics",
+        "expected_code": "chamber_overlap",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[10].phases[2].motion.chambers",
+            "code": "chamber_overlap",
+            "message": "Chamber yaw intervals overlap"
+          }
+        ]
+      },
+      {
+        "id": "impossible_chamber_respawn_minimum",
+        "expected_stage": "semantics",
+        "expected_code": "chamber_respawn_feasibility",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[10].phases[2].spawn.transition_angle_deg",
+            "code": "chamber_respawn_feasibility",
+            "message": "Even a chamber-centred prior target must leave a valid endpoint respawn"
+          },
+          {
+            "path": "$.programs[10].phases[2].spawn.transition_angle_deg",
+            "code": "chamber_respawn_feasibility",
+            "message": "Even a chamber-centred prior target must leave a valid endpoint respawn"
+          }
+        ]
+      },
+      {
+        "id": "reactive_mixture_not_normalized",
+        "expected_stage": "semantics",
+        "expected_code": "mixture_weights",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[16].phases[0].motion.plateau_duration_mixture",
+            "code": "mixture_weights",
+            "message": "Expected 1, received 0.9"
+          }
+        ]
+      },
+      {
+        "id": "insufficient_reactive_braking_room",
+        "expected_stage": "semantics",
+        "expected_code": "braking_distance",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[16].phases[0].motion.boundary.trigger_inset_deg",
+            "code": "braking_distance",
+            "message": "Conservative outward excursion 1.38170237 degrees exceeds inset"
+          }
+        ]
+      },
+      {
+        "id": "reactive_speed_bound_ignores_vertical",
+        "expected_stage": "semantics",
+        "expected_code": "reactive_speed_bound",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[10].phases[1].motion.nominal_full_angular_speed_upper_bound_deg_s",
+            "code": "reactive_speed_bound",
+            "message": "Expected 12.1471419513, received 12"
+          }
+        ]
+      },
+      {
+        "id": "event_tape_too_short",
+        "expected_stage": "semantics",
+        "expected_code": "event_horizon",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[16].phases[0].motion.event_tape.horizon_s",
+            "code": "event_horizon",
+            "message": "Precompiled event tape must cover the phase"
+          }
+        ]
+      },
+      {
+        "id": "sine_omega_wrong",
+        "expected_stage": "semantics",
+        "expected_code": "sinusoid_speed",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[13].phases[0].motion.peak_angular_speed_deg_s",
+            "code": "sinusoid_speed",
+            "message": "Expected 36, received 16"
+          }
+        ]
+      },
+      {
+        "id": "soft_turn_wrong_inset",
+        "expected_stage": "semantics",
+        "expected_code": "soft_reflect_inset",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[22].phases[1].motion.turn_entry_inset_deg",
+            "code": "soft_reflect_inset",
+            "message": "Expected 0.675, received 0.1"
+          }
+        ]
+      },
+      {
+        "id": "bounce_wrong_gravity",
+        "expected_stage": "semantics",
+        "expected_code": "bounce_gravity",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[10].phases[2].motion.pitch_acceleration_deg_s2",
+            "code": "bounce_gravity",
+            "message": "Expected -88.8888888889, received -9.81"
+          }
+        ]
+      },
+      {
+        "id": "ellipse_acceleration_limit_exceeded",
+        "expected_stage": "semantics",
+        "expected_code": "ellipse_acceleration_sample",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[13].phases[2].motion.acceleration_validation_limit_deg_s2",
+            "code": "ellipse_acceleration_sample",
+            "message": "Sampled exact derivative exceeds the declared acceleration limit"
+          }
+        ]
+      },
+      {
+        "id": "switch_ttk_wrong",
+        "expected_stage": "semantics",
+        "expected_code": "ideal_ttk",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[22].phases[0].lifecycle.ideal_contact_time_to_kill_s",
+            "code": "ideal_ttk",
+            "message": "Expected 0.4, received 0.2"
+          }
+        ]
+      },
+      {
+        "id": "depth_envelope_does_not_cover_motion",
+        "expected_stage": "semantics",
+        "expected_code": "depth_envelope",
+        "passed": true,
+        "observed_stage": "semantics",
+        "evidence": [
+          {
+            "path": "$.programs[19].phases[0].envelope.center_distance_m",
+            "code": "depth_envelope",
+            "message": "Depth envelope must match centre plus/minus amplitude"
+          }
+        ]
+      }
+    ],
+    "positive_fixtures": [
+      {
+        "id": "baseline",
+        "passed": true,
+        "errors": []
+      },
+      {
+        "id": "object_key_order_and_whitespace",
+        "passed": true,
+        "errors": []
+      },
+      {
+        "id": "integral_numbers_may_use_decimal_json_notation",
+        "passed": true,
+        "errors": []
+      },
+      {
+        "id": "unsupported_schema_keyword_fails_closed",
+        "passed": true
+      }
+    ]
+  },
+  "success": true
+}

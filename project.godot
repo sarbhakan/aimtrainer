@@ -3,10 +3,10 @@ config_version=5
 [application]
 
 config/name="AIM/LOCAL"
-config/version="0.9.0"
+config/version="1.0.0"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="AIM_LOCAL"
-run/main_scene="res://scenes/app/Main.tscn"
+run/main_scene="res://scenes/app/MainV2.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [display]

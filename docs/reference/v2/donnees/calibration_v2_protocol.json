@@ -1,0 +1,507 @@
+{
+  "schema_version": "aimlocal.calibration.protocol.v2",
+  "protocol_id": "sustained_blocks_v2",
+  "hash_encoding": "AIM-CANON-1",
+  "protocol_revision": "2026-10-12-v2.0",
+  "design_status": "proposed_protocol_requires_engine_and_human_playtesting",
+  "estimation_target": "performance_at_tested_gain_after_fixed_short_acclimation",
+  "inference": {
+    "method": "predeclared_conservative_descriptive_rules",
+    "confirmation_days": 2,
+    "periods_per_day": 4,
+    "pair_contrasts_per_day": 2,
+    "observation_unit": "day_composite_from_two_paired_contrasts",
+    "confidence_interval": null,
+    "probability_of_optimum": null,
+    "statistical_equivalence_claim_allowed": false,
+    "frames_targets_tasks_are_not_independent_replications": true,
+    "long_term_adaptation_claim_allowed": false
+  },
+  "candidate_grid": {
+    "scale": "multiplicative_cm_per_360",
+    "default_ratio": 1.25,
+    "wide_exploration_ratio": 1.5,
+    "technical_cm_bounds": [
+      5.0,
+      150.0
+    ],
+    "max_challenger_cm_ratio_to_baseline_for_confirmation": 1.5,
+    "max_relative_cm_jump_applies_after_quantization_in_express_grid": true,
+    "candidate_limit_express": 3,
+    "baseline_exact_applied_gain_preserved": true,
+    "representability_resolved_before_measurement": true,
+    "duplicate_effective_gains": "construction_error",
+    "exponents_preference": [
+      -1,
+      1,
+      -2,
+      2,
+      -3,
+      3
+    ],
+    "finite_exponent_bounds": "ceil(log(5/c0)/log(q))..floor(log(150/c0)/log(q))",
+    "cm_formula": "914.4/(declared_DPI*degrees_per_relative_input_unit)",
+    "conversion_precision": "freeze_runtime_actual_gain_as_binary64_bits_and_decimal17",
+    "automatic_parabolic_interpolation": false,
+    "automatic_out_of_grid_recommendation": false
+  },
+  "objectives": {
+    "polyvalent": {
+      "CLICK": 0.25,
+      "SMOOTH": 0.25,
+      "REACTIVE": 0.25,
+      "SWITCH": 0.25
+    },
+    "acquisition": {
+      "CLICK": 0.45,
+      "SMOOTH": 0.15,
+      "REACTIVE": 0.15,
+      "SWITCH": 0.25
+    },
+    "tracking": {
+      "CLICK": 0.15,
+      "SMOOTH": 0.3,
+      "REACTIVE": 0.35,
+      "SWITCH": 0.2
+    }
+  },
+  "duration_s": {
+    "preflight_baseline": 60,
+    "acclimation_per_period": 60,
+    "acclimation_per_task": 15,
+    "countdown": 3,
+    "scored_task": 24,
+    "recovery_after_each_scored_task": 6,
+    "period_constant_gain": 192,
+    "scored_start_offsets_within_period": [
+      63,
+      96,
+      129,
+      162
+    ],
+    "express_interperiod_rest": 30,
+    "confirmation_interperiod_rest": 60,
+    "express_three_gains": 696,
+    "express_two_gains": 474,
+    "confirmation_per_day": 1008,
+    "confirmation_two_days": 2016,
+    "express_three_plus_confirmation": 2712,
+    "confirmation_scored_total": 768,
+    "express_scored_total_three_gains": 288,
+    "duration_means_programmed_minimum_plus_recorded_waits": true
+  },
+  "orders": {
+    "express": "one_seeded_permutation_of_distinct_gains_frozen_before_scores",
+    "confirmation_first_day": "ABBA_or_BAAB_one_seeded_fair_bit_before_scores",
+    "confirmation_second_day": "opposite_sequence",
+    "paired_period_indices_zero_based": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "task_order_day_1": [
+      "CLICK",
+      "SMOOTH",
+      "SWITCH",
+      "REACTIVE"
+    ],
+    "task_order_day_2": [
+      "REACTIVE",
+      "SWITCH",
+      "SMOOTH",
+      "CLICK"
+    ],
+    "task_order_express": [
+      "CLICK",
+      "SMOOTH",
+      "SWITCH",
+      "REACTIVE"
+    ],
+    "gain_constant_during_acclimation_countdowns_scores_recoveries": true,
+    "gain_retained_during_interperiod_rest": true,
+    "adjacent_same_gain_periods_do_not_restore_baseline": true,
+    "restore_baseline": [
+      "session_end",
+      "abort",
+      "exception",
+      "process_restart"
+    ]
+  },
+  "days_and_restarts": {
+    "accepted_days_must_have_distinct_player_local_dates": true,
+    "min_gap_between_accepted_session_starts_h": 12,
+    "max_gap_between_accepted_session_starts_h": 168,
+    "suggested_gap_h": 24,
+    "first_confirmation_not_same_sitting_as_express": true,
+    "min_gap_express_end_to_first_confirmation_start_h": 12,
+    "max_scheduled_attempts_per_day_role": 2,
+    "accepted_epoch": "first_technically_valid_complete_epoch_never_best_score",
+    "retry_unit": "whole_day_role_all_four_periods_with_new_shared_decks",
+    "retry_partial_cells_or_pair_only_allowed": false,
+    "retry_on_low_performance_allowed": false,
+    "retry_day_2_window_from_accepted_day_1_h": 168,
+    "pause_during_scored_task": "invalidate_whole_day_epoch",
+    "focus_or_capture_loss": "invalidate_whole_day_epoch",
+    "long_unplanned_interruption_s": 900,
+    "long_unplanned_interruption_action": "new_whole_day_epoch",
+    "all_actual_waits_and_gains_recorded": true,
+    "reported_budget_includes_retries_and_waits": true
+  },
+  "quality": {
+    "mean_fps_min": 55.0,
+    "frame_dt_p99_max_ms": 25.0,
+    "frame_dt_max_ms": 100.0,
+    "paired_median_fps_relative_difference_max": 0.1,
+    "paired_relative_difference_formula": "(max-min)/((max+min)/2)",
+    "mean_fps_formula": "frame_interval_count/sum(frame_dt_seconds)",
+    "median_fps_formula": "1/median(frame_dt_seconds)",
+    "quantile_definition": "nearest_rank_ceil_q_n_with_1_based_index",
+    "invalidating_events": [
+      "focus_loss",
+      "capture_loss",
+      "pause_during_score",
+      "input_queue_overflow",
+      "clock_discontinuity",
+      "wrong_manifest_hash",
+      "configuration_hash_change",
+      "unresolved_integration_error",
+      "fallback_spawn",
+      "unknown_resource_revision"
+    ],
+    "absence_of_mouse_motion_is_hardware_failure": false,
+    "floor_mean_utility_exclusive": 0.1,
+    "ceiling_mean_utility_exclusive": 0.95,
+    "floor_ceiling_action": "undetermined_with_uninformative_task_reason",
+    "fatigue_question": "optional_0_to_10_at_long_rest",
+    "fatigue_offer_stop_at": 7,
+    "fatigue_score_alone_invalidates_human_result": false
+  },
+  "geometry": {
+    "eye_position_m": [
+      0.0,
+      1.6,
+      0.0
+    ],
+    "player_moves": false,
+    "reference_yaw_pitch_deg": [
+      0.0,
+      0.0
+    ],
+    "target_shape": "sphere",
+    "decorative_back_wall_z_m": -18.0,
+    "distance_m": 4.0,
+    "radius_m_formula": "4*sin(angular_diameter_deg*pi/360)",
+    "camera_recentering_between_opportunities": false,
+    "pre_countdown_voluntary_alignment_max_error_deg": 1.0,
+    "preview_of_scored_targets_during_countdown": false
+  },
+  "tasks": {
+    "CLICK": {
+      "id": "CAL_CLICK_R2",
+      "duration_s": 24.0,
+      "slots": 16,
+      "slot_s": 1.5,
+      "onset_delay_s_inclusive_bounds": [
+        0.1,
+        0.25
+      ],
+      "onset_delay_us_uniform_integer_inclusive": [
+        100000,
+        250000
+      ],
+      "active_window_s": 1.2,
+      "yaw_bounds_deg": [
+        -25.0,
+        25.0
+      ],
+      "pitch_bounds_deg": [
+        -12.0,
+        12.0
+      ],
+      "amplitude_bands_deg": [
+        [
+          4.0,
+          8.0
+        ],
+        [
+          18.0,
+          30.0
+        ]
+      ],
+      "diameters_deg": {
+        "novice": [
+          1.6,
+          2.8
+        ],
+        "standard": [
+          1.0,
+          2.0
+        ],
+        "advanced": [
+          0.7,
+          1.4
+        ]
+      },
+      "balanced_size_amplitude_cells": 4,
+      "opportunities_per_cell": 4,
+      "reference_for_next_planned_position": "previous_planned_target_even_after_miss",
+      "first_press_before_first_visible_frame": "premature_failure_consumes_opportunity",
+      "first_press_after_visibility": "hit_or_miss_consumes_opportunity",
+      "held_button_does_not_generate_new_press": true,
+      "press_after_resolution": "extra_shot_diagnostic_only_until_next_slot",
+      "press_after_deadline": "late_shot_diagnostic_only_until_next_slot",
+      "no_press_before_deadline": "timeout_zero_utility",
+      "utility": "mean((1-tau/1.20) if first_shot_success else 0)",
+      "tau_origin": "logical_manifest_onset",
+      "eligibility_gate": "first_render_of_visible_target",
+      "onset_does_not_move_when_previous_opportunity_resolves": true
+    },
+    "SMOOTH": {
+      "id": "CAL_SMOOTH_R2",
+      "duration_s": 24.0,
+      "pitch_deg": 0.0,
+      "amplitude_deg": 14.0,
+      "diameter_deg": {
+        "novice": 3.4,
+        "standard": 2.4,
+        "advanced": 1.6
+      },
+      "max_speed_deg_s": {
+        "novice": 12.0,
+        "standard": 18.0,
+        "advanced": 24.0
+      },
+      "trajectory": "yaw=14*sin((max_speed/14)*t+phase)",
+      "max_accel_deg_s2": {
+        "novice": 10.285714285714286,
+        "standard": 23.142857142857142,
+        "advanced": 41.142857142857146
+      },
+      "click_required": false,
+      "utility": "contact_time/24",
+      "initial_acquisition_in_denominator": true,
+      "first_render_contact_gate": true
+    },
+    "REACTIVE": {
+      "id": "CAL_REACTIVE_R2",
+      "duration_s": 24.0,
+      "shared_public_program": "EX06",
+      "shared_public_phase": "reactive",
+      "shared_motion_kind": "reactive_axis",
+      "same_generator_required": true,
+      "shared_compiler_version": "motion_reference_v2.0",
+      "shared_motion_sha256_by_difficulty": {
+        "novice": "8323e22dde0687b1173e1b183abb11c0e7cd2a30aa806e25cf1164bb3f376c03",
+        "standard": "7b79f6a4d1e9c418a8debd801e55e781445437655af9a27811cd8701c8224734",
+        "advanced": "1d86f638fb3f41f8bd50566abddc5f3c53b88ec5e9a6f3454addc03fd219dad4"
+      },
+      "diameter_deg": {
+        "novice": 3.4,
+        "standard": 2.6,
+        "advanced": 1.8
+      },
+      "yaw_bounds_deg": [
+        -24.0,
+        24.0
+      ],
+      "pitch_deg": 0.0,
+      "speed_abs_deg_s": {
+        "novice": [
+          12.0,
+          18.0
+        ],
+        "standard": [
+          18.0,
+          28.0
+        ],
+        "advanced": [
+          26.0,
+          38.0
+        ]
+      },
+      "plateau_mixture": {
+        "novice": [
+          {
+            "weight": 1.0,
+            "duration_s": [
+              0.65,
+              1.3
+            ]
+          }
+        ],
+        "standard": [
+          {
+            "weight": 0.7,
+            "duration_s": [
+              0.7,
+              1.2
+            ]
+          },
+          {
+            "weight": 0.3,
+            "duration_s": [
+              0.28,
+              0.45
+            ]
+          }
+        ],
+        "advanced": [
+          {
+            "weight": 0.6,
+            "duration_s": [
+              0.45,
+              0.9
+            ]
+          },
+          {
+            "weight": 0.4,
+            "duration_s": [
+              0.2,
+              0.35
+            ]
+          }
+        ]
+      },
+      "flip_probability": 0.7,
+      "transition_nominal_s": {
+        "novice": 0.18,
+        "standard": 0.14,
+        "advanced": 0.1
+      },
+      "accel_max_deg_s2": {
+        "novice": 350.0,
+        "standard": 700.0,
+        "advanced": 1200.0
+      },
+      "transition_duration_rule": "max(nominal,1.5*abs(v1-v0)/accel_max)",
+      "boundary_trigger_yaw_deg": 21.0,
+      "boundary_action": "preempt_preserving_position_velocity_target_inward_latest_sampled_plateau_speed",
+      "clamp_or_teleport_allowed": false,
+      "utility": "contact_time/24",
+      "first_render_contact_gate": true,
+      "initial_acquisition_in_denominator": true
+    },
+    "SWITCH": {
+      "id": "CAL_SWITCH_R2",
+      "duration_s": 24.0,
+      "slots": 12,
+      "slot_s": 2.0,
+      "onset_delay_s_inclusive_bounds": [
+        0.1,
+        0.25
+      ],
+      "onset_delay_us_uniform_integer_inclusive": [
+        100000,
+        250000
+      ],
+      "active_window_s": 1.7,
+      "target_count": 3,
+      "yaw_bounds_deg": [
+        -23.0,
+        23.0
+      ],
+      "pitch_bounds_deg": [
+        -10.0,
+        10.0
+      ],
+      "min_center_separation_deg": 10.0,
+      "priority_count_per_target": 4,
+      "adjacent_identical_priority_allowed": false,
+      "diameter_deg": {
+        "novice": 3.4,
+        "standard": 2.6,
+        "advanced": 1.8
+      },
+      "hp": {
+        "novice": 15.0,
+        "standard": 20.0,
+        "advanced": 30.0
+      },
+      "damage_hp_s": 100.0,
+      "priority_hp_reset": "logical_onset",
+      "damage_eligibility_gate": "first_render_of_new_priority",
+      "maintain_button_across_slots_allowed": true,
+      "early_button_press_invalidates_opportunity": false,
+      "pre_onset_state": "all_positions_neutral_no_damage_no_future_priority_revealed",
+      "kill_state": "priority_hidden_until_next_slot_other_positions_neutral",
+      "deadline_state": "uncompleted_opportunity_zero_utility_positions_neutral",
+      "utility": "mean(clamp((1.70-tau)/(1.70-hp/100),0,1) if killed else 0)",
+      "tau_origin": "logical_manifest_onset"
+    }
+  },
+  "randomization": {
+    "generator": "xorshift32_v1",
+    "uniform_float": "(next_uint32+0.5)/4294967296",
+    "seed_bytes": "first_4_big_endian_SHA256",
+    "zero_seed_replacement_hex": "6D2B79F5",
+    "canonical_seed_input": "ASCII_JSON_array_no_whitespace",
+    "calibration_tuple_fields": [
+      "protocol_revision",
+      "plan_seed_hex",
+      "phase",
+      "day_role",
+      "pair",
+      "epoch",
+      "task",
+      "domain"
+    ],
+    "candidate_id_in_stimulus_seed": false,
+    "performance_or_input_in_stimulus_seed": false,
+    "scored_vs_warmup_domain_separated": true,
+    "store_full_manifest_and_hash_not_seed_only": true
+  },
+  "selection": {
+    "challenger": "highest_complete_express_composite_nonbaseline",
+    "challenger_score_tie_margin_pp": 0.25,
+    "tie_break_1": "smallest_abs_log_effective_cm_ratio_to_baseline",
+    "tie_break_2": "lexicographically_smallest_stable_candidate_id",
+    "if_baseline_best": "keep_baseline_default_optional_comparison_of_best_alternative",
+    "descriptive_candidate_envelope_max_score_gap_pp": 3.0,
+    "descriptive_candidate_envelope_max_task_loss_pp": 5.0,
+    "envelope_is_continuous_confidence_interval": false,
+    "confirmation_data_include_express": false
+  },
+  "decision": {
+    "primary_margin_pp": 2.0,
+    "per_task_guard_margin_pp": 5.0,
+    "close_observed_pair_abs_max_pp": 3.0,
+    "click_success_rate_loss_max": 0.05,
+    "switch_completion_rate_loss_max_fraction": {
+      "numerator": 1,
+      "denominator": 12
+    },
+    "confirmation_counts_per_gain": {
+      "CLICK": 64,
+      "SWITCH": 48
+    },
+    "allowed_success_count_loss": {
+      "CLICK": 3,
+      "SWITCH": 4
+    },
+    "threshold_comparisons_use_unrounded_values": true,
+    "tolerance_for_numeric_boundary_pp": 1e-09,
+    "diagnostic_order_sensitive_pair_span_gt_pp": 6.0,
+    "priority": [
+      "unstable_conditions",
+      "incomplete",
+      "exploratory_only",
+      "repeated_regression",
+      "repeated_improvement",
+      "mixed_tradeoff",
+      "close_observed",
+      "undetermined"
+    ],
+    "repeated_regression": "both_day_D<=-2 AND every_pair_C<0",
+    "repeated_improvement": "both_day_D>=2 AND every_pair_C>0 AND every_day_task_E>=-5 AND raw_success_loss_guards_pass",
+    "mixed_tradeoff": "global_improvement_pattern_with_failed_guard OR a_task_E>=5_both_days_and_another_task_E<=-5_both_days",
+    "close_observed": "every_abs_day_D<=2 AND every_abs_pair_C<=3 AND every_abs_day_task_E<=5 AND bidirectional_raw_success_guards_pass",
+    "uninformative_task_overrides_all_performance_rules": true,
+    "default_action_except_repeated_improvement": "keep_original_setting",
+    "application_is_explicit_and_undoable": true
+  }
+}

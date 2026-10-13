@@ -1,0 +1,157 @@
+PCK header found at the end of executable, loading from offset 0x6834e00
+WorkerThreadPool: 5 threads, 1 max low-priority.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+TextServer: Added interface "Dummy"
+TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"
+SDL: Init OK!
+Using "default" pen tablet driver...
+
+TextServer: Primary interface set to: "ICU / HarfBuzz / Graphite (Built-in)".
+CORE API HASH: 2004498165
+EDITOR API HASH: 1696660745
+Loading resource: /workspace/aimtrainer/tests/export_smoke.gd remapped: /workspace/aimtrainer/tests/export_smoke.gd
+Loading resource: res://.godot/exported/133200997/export-1605f925bf31f9f2bedfae9330c2c86f-pulse.res remapped: res://.godot/exported/133200997/export-1605f925bf31f9f2bedfae9330c2c86f-pulse.res
+Loading resource: res://scripts/presentation/weapon_definition.gdc remapped: res://scripts/presentation/weapon_definition.gdc
+Completed load for: 'res://scripts/presentation/weapon_definition.gd' remapped 'res://scripts/presentation/weapon_definition.gdc' at thread -1
+Loading resource: res://assets/weapons/pulse.svg remapped: res://assets/weapons/pulse.svg
+Loading resource: res://.godot/imported/pulse.svg-668c5707c18e6b79da189508c09469f4.ctex remapped: res://.godot/imported/pulse.svg-668c5707c18e6b79da189508c09469f4.ctex
+Completed load for: 'res://assets/weapons/pulse.svg' remapped 'res://assets/weapons/pulse.svg' at thread -1
+Loading resource: res://assets/audio/pulse_shot.wav remapped: res://assets/audio/pulse_shot.wav
+Loading resource: res://.godot/imported/pulse_shot.wav-0c7377105f2d8add59e307ca17fec2be.sample remapped: res://.godot/imported/pulse_shot.wav-0c7377105f2d8add59e307ca17fec2be.sample
+Completed load for: 'res://assets/audio/pulse_shot.wav' remapped 'res://assets/audio/pulse_shot.wav' at thread -1
+Loading resource: res://assets/audio/pulse_continuous.wav remapped: res://assets/audio/pulse_continuous.wav
+Loading resource: res://.godot/imported/pulse_continuous.wav-677675e2542676e884c91be820225725.sample remapped: res://.godot/imported/pulse_continuous.wav-677675e2542676e884c91be820225725.sample
+Completed load for: 'res://assets/audio/pulse_continuous.wav' remapped 'res://assets/audio/pulse_continuous.wav' at thread -1
+Completed load for: 'res://content/weapons/pulse.tres' remapped 'res://.godot/exported/133200997/export-1605f925bf31f9f2bedfae9330c2c86f-pulse.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-3c35d11e3f08db5643e418d8f59ecd0d-vector.res remapped: res://.godot/exported/133200997/export-3c35d11e3f08db5643e418d8f59ecd0d-vector.res
+Loading resource: res://assets/weapons/vector.svg remapped: res://assets/weapons/vector.svg
+Loading resource: res://.godot/imported/vector.svg-1f4ca09dd4f1ce9899ca6ab38867852c.ctex remapped: res://.godot/imported/vector.svg-1f4ca09dd4f1ce9899ca6ab38867852c.ctex
+Completed load for: 'res://assets/weapons/vector.svg' remapped 'res://assets/weapons/vector.svg' at thread -1
+Loading resource: res://assets/audio/vector_shot.wav remapped: res://assets/audio/vector_shot.wav
+Loading resource: res://.godot/imported/vector_shot.wav-144ba15a9ec5407b13944600383eb5db.sample remapped: res://.godot/imported/vector_shot.wav-144ba15a9ec5407b13944600383eb5db.sample
+Completed load for: 'res://assets/audio/vector_shot.wav' remapped 'res://assets/audio/vector_shot.wav' at thread -1
+Loading resource: res://assets/audio/vector_continuous.wav remapped: res://assets/audio/vector_continuous.wav
+Loading resource: res://.godot/imported/vector_continuous.wav-4d5293d6cec3b84e75720e8ea4510647.sample remapped: res://.godot/imported/vector_continuous.wav-4d5293d6cec3b84e75720e8ea4510647.sample
+Completed load for: 'res://assets/audio/vector_continuous.wav' remapped 'res://assets/audio/vector_continuous.wav' at thread -1
+Completed load for: 'res://content/weapons/vector.tres' remapped 'res://.godot/exported/133200997/export-3c35d11e3f08db5643e418d8f59ecd0d-vector.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-d90975eafe964d2a5e46a9963bff1699-classic.res remapped: res://.godot/exported/133200997/export-d90975eafe964d2a5e46a9963bff1699-classic.res
+Loading resource: res://assets/weapons/classic.svg remapped: res://assets/weapons/classic.svg
+Loading resource: res://.godot/imported/classic.svg-3cf49e0b60370fee407ec4ddfea0c23e.ctex remapped: res://.godot/imported/classic.svg-3cf49e0b60370fee407ec4ddfea0c23e.ctex
+Completed load for: 'res://assets/weapons/classic.svg' remapped 'res://assets/weapons/classic.svg' at thread -1
+Loading resource: res://assets/audio/classic_shot.wav remapped: res://assets/audio/classic_shot.wav
+Loading resource: res://.godot/imported/classic_shot.wav-95d42d6e47fbc0cf63fd2a521ce2a9f1.sample remapped: res://.godot/imported/classic_shot.wav-95d42d6e47fbc0cf63fd2a521ce2a9f1.sample
+Completed load for: 'res://assets/audio/classic_shot.wav' remapped 'res://assets/audio/classic_shot.wav' at thread -1
+Loading resource: res://assets/audio/classic_continuous.wav remapped: res://assets/audio/classic_continuous.wav
+Loading resource: res://.godot/imported/classic_continuous.wav-2fc19fa9c77ffbd994f871d1c1af6df3.sample remapped: res://.godot/imported/classic_continuous.wav-2fc19fa9c77ffbd994f871d1c1af6df3.sample
+Completed load for: 'res://assets/audio/classic_continuous.wav' remapped 'res://assets/audio/classic_continuous.wav' at thread -1
+Completed load for: 'res://content/weapons/classic.tres' remapped 'res://.godot/exported/133200997/export-d90975eafe964d2a5e46a9963bff1699-classic.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-668f9114ea300bdca751a79e724d7b48-C01.res remapped: res://.godot/exported/133200997/export-668f9114ea300bdca751a79e724d7b48-C01.res
+Loading resource: res://scripts/training/scenario_definition.gdc remapped: res://scripts/training/scenario_definition.gdc
+Completed load for: 'res://scripts/training/scenario_definition.gd' remapped 'res://scripts/training/scenario_definition.gdc' at thread -1
+Completed load for: 'res://content/scenarios/C01.tres' remapped 'res://.godot/exported/133200997/export-668f9114ea300bdca751a79e724d7b48-C01.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-1e47052d9ca6c006861e856a9dbcf2ee-C02.res remapped: res://.godot/exported/133200997/export-1e47052d9ca6c006861e856a9dbcf2ee-C02.res
+Completed load for: 'res://content/scenarios/C02.tres' remapped 'res://.godot/exported/133200997/export-1e47052d9ca6c006861e856a9dbcf2ee-C02.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-756880500af14f98f5c3cb3380959426-C03.res remapped: res://.godot/exported/133200997/export-756880500af14f98f5c3cb3380959426-C03.res
+Completed load for: 'res://content/scenarios/C03.tres' remapped 'res://.godot/exported/133200997/export-756880500af14f98f5c3cb3380959426-C03.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-ff93393cc9d273df48758224cab5aa04-C04.res remapped: res://.godot/exported/133200997/export-ff93393cc9d273df48758224cab5aa04-C04.res
+Completed load for: 'res://content/scenarios/C04.tres' remapped 'res://.godot/exported/133200997/export-ff93393cc9d273df48758224cab5aa04-C04.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-c28b9e740e35a364af776c65eff1e4fb-C05.res remapped: res://.godot/exported/133200997/export-c28b9e740e35a364af776c65eff1e4fb-C05.res
+Completed load for: 'res://content/scenarios/C05.tres' remapped 'res://.godot/exported/133200997/export-c28b9e740e35a364af776c65eff1e4fb-C05.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-3aaff9e7e6d4da02726ae583969ead9c-C07.res remapped: res://.godot/exported/133200997/export-3aaff9e7e6d4da02726ae583969ead9c-C07.res
+Completed load for: 'res://content/scenarios/C07.tres' remapped 'res://.godot/exported/133200997/export-3aaff9e7e6d4da02726ae583969ead9c-C07.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-63757420a3765adba891e57e6a035bfe-D01.res remapped: res://.godot/exported/133200997/export-63757420a3765adba891e57e6a035bfe-D01.res
+Completed load for: 'res://content/scenarios/D01.tres' remapped 'res://.godot/exported/133200997/export-63757420a3765adba891e57e6a035bfe-D01.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-8f9cad089ad8db3675f6ac5dfff4f700-D02.res remapped: res://.godot/exported/133200997/export-8f9cad089ad8db3675f6ac5dfff4f700-D02.res
+Completed load for: 'res://content/scenarios/D02.tres' remapped 'res://.godot/exported/133200997/export-8f9cad089ad8db3675f6ac5dfff4f700-D02.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-5c13da4fe5f8fed137e3f814233ccd5f-T01.res remapped: res://.godot/exported/133200997/export-5c13da4fe5f8fed137e3f814233ccd5f-T01.res
+Completed load for: 'res://content/scenarios/T01.tres' remapped 'res://.godot/exported/133200997/export-5c13da4fe5f8fed137e3f814233ccd5f-T01.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-f07564c6a96117b6a6bb0cab282c0c12-T02.res remapped: res://.godot/exported/133200997/export-f07564c6a96117b6a6bb0cab282c0c12-T02.res
+Completed load for: 'res://content/scenarios/T02.tres' remapped 'res://.godot/exported/133200997/export-f07564c6a96117b6a6bb0cab282c0c12-T02.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-6138c963d203db0434898a792fbe0c03-T03.res remapped: res://.godot/exported/133200997/export-6138c963d203db0434898a792fbe0c03-T03.res
+Completed load for: 'res://content/scenarios/T03.tres' remapped 'res://.godot/exported/133200997/export-6138c963d203db0434898a792fbe0c03-T03.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-7dcf73e2abc5b98818035b2adfe2fbd3-T04.res remapped: res://.godot/exported/133200997/export-7dcf73e2abc5b98818035b2adfe2fbd3-T04.res
+Completed load for: 'res://content/scenarios/T04.tres' remapped 'res://.godot/exported/133200997/export-7dcf73e2abc5b98818035b2adfe2fbd3-T04.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-56080163c8c8daba8fe8e5d5fe6f9356-T05.res remapped: res://.godot/exported/133200997/export-56080163c8c8daba8fe8e5d5fe6f9356-T05.res
+Completed load for: 'res://content/scenarios/T05.tres' remapped 'res://.godot/exported/133200997/export-56080163c8c8daba8fe8e5d5fe6f9356-T05.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-1a5cf24415669ef2f9e026726b2309a3-T09.res remapped: res://.godot/exported/133200997/export-1a5cf24415669ef2f9e026726b2309a3-T09.res
+Completed load for: 'res://content/scenarios/T09.tres' remapped 'res://.godot/exported/133200997/export-1a5cf24415669ef2f9e026726b2309a3-T09.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-3b9eec7731b1b989d36bf52154c7b655-S01.res remapped: res://.godot/exported/133200997/export-3b9eec7731b1b989d36bf52154c7b655-S01.res
+Completed load for: 'res://content/scenarios/S01.tres' remapped 'res://.godot/exported/133200997/export-3b9eec7731b1b989d36bf52154c7b655-S01.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-dc51ecb97406d07b4f4aa88ae3b802a0-S02.res remapped: res://.godot/exported/133200997/export-dc51ecb97406d07b4f4aa88ae3b802a0-S02.res
+Completed load for: 'res://content/scenarios/S02.tres' remapped 'res://.godot/exported/133200997/export-dc51ecb97406d07b4f4aa88ae3b802a0-S02.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-60025ecffb1bef61fdc05ae85e5de7c5-M01.res remapped: res://.godot/exported/133200997/export-60025ecffb1bef61fdc05ae85e5de7c5-M01.res
+Completed load for: 'res://content/scenarios/M01.tres' remapped 'res://.godot/exported/133200997/export-60025ecffb1bef61fdc05ae85e5de7c5-M01.res' at thread -1
+Loading resource: res://.godot/exported/133200997/export-fba8191ed47950913af8fe19d1f31fde-T10.res remapped: res://.godot/exported/133200997/export-fba8191ed47950913af8fe19d1f31fde-T10.res
+Completed load for: 'res://content/scenarios/T10.tres' remapped 'res://.godot/exported/133200997/export-fba8191ed47950913af8fe19d1f31fde-T10.res' at thread -1
+Completed load for: '/workspace/aimtrainer/tests/export_smoke.gd' remapped '/workspace/aimtrainer/tests/export_smoke.gd' at thread -1
+SceneTreeFTI: traversal method DEFAULT
+Loaded system CA certificates
+Loading resource: res://.godot/exported/133200997/export-754e38d453e31f0e4c2eb3aa4fdf7971-Main.scn remapped: res://.godot/exported/133200997/export-754e38d453e31f0e4c2eb3aa4fdf7971-Main.scn
+Loading resource: res://scripts/core/main.gdc remapped: res://scripts/core/main.gdc
+Loading resource: res://assets/ui/home.svg remapped: res://assets/ui/home.svg
+Loading resource: res://.godot/imported/home.svg-8c94fbed41ed3a83d0bcd92331872026.ctex remapped: res://.godot/imported/home.svg-8c94fbed41ed3a83d0bcd92331872026.ctex
+Completed load for: 'res://assets/ui/home.svg' remapped 'res://assets/ui/home.svg' at thread -1
+Loading resource: res://assets/ui/train.svg remapped: res://assets/ui/train.svg
+Loading resource: res://.godot/imported/train.svg-15675519634e2aa639ef16700a1530d4.ctex remapped: res://.godot/imported/train.svg-15675519634e2aa639ef16700a1530d4.ctex
+Completed load for: 'res://assets/ui/train.svg' remapped 'res://assets/ui/train.svg' at thread -1
+Loading resource: res://assets/ui/sensitivity.svg remapped: res://assets/ui/sensitivity.svg
+Loading resource: res://.godot/imported/sensitivity.svg-0586c164e5f20bce24c697025c0470e9.ctex remapped: res://.godot/imported/sensitivity.svg-0586c164e5f20bce24c697025c0470e9.ctex
+Completed load for: 'res://assets/ui/sensitivity.svg' remapped 'res://assets/ui/sensitivity.svg' at thread -1
+Loading resource: res://assets/ui/convert.svg remapped: res://assets/ui/convert.svg
+Loading resource: res://.godot/imported/convert.svg-aa1944c1b8e04c2b668799e12c2f77f0.ctex remapped: res://.godot/imported/convert.svg-aa1944c1b8e04c2b668799e12c2f77f0.ctex
+Completed load for: 'res://assets/ui/convert.svg' remapped 'res://assets/ui/convert.svg' at thread -1
+Loading resource: res://assets/ui/progress.svg remapped: res://assets/ui/progress.svg
+Loading resource: res://.godot/imported/progress.svg-bb54db3f226bb0f69f79159ac8bbd81a.ctex remapped: res://.godot/imported/progress.svg-bb54db3f226bb0f69f79159ac8bbd81a.ctex
+Completed load for: 'res://assets/ui/progress.svg' remapped 'res://assets/ui/progress.svg' at thread -1
+Loading resource: res://assets/ui/settings.svg remapped: res://assets/ui/settings.svg
+Loading resource: res://.godot/imported/settings.svg-aadd20246e53d972a1c7c19b342cb53e.ctex remapped: res://.godot/imported/settings.svg-aadd20246e53d972a1c7c19b342cb53e.ctex
+Completed load for: 'res://assets/ui/settings.svg' remapped 'res://assets/ui/settings.svg' at thread -1
+Loading resource: res://assets/ui/copy.svg remapped: res://assets/ui/copy.svg
+Loading resource: res://.godot/imported/copy.svg-3bfae1b28c738547f6f104d6063d619c.ctex remapped: res://.godot/imported/copy.svg-3bfae1b28c738547f6f104d6063d619c.ctex
+Completed load for: 'res://assets/ui/copy.svg' remapped 'res://assets/ui/copy.svg' at thread -1
+Loading resource: res://assets/ui/refresh.svg remapped: res://assets/ui/refresh.svg
+Loading resource: res://.godot/imported/refresh.svg-4a07e17392590a0f53704470f858db90.ctex remapped: res://.godot/imported/refresh.svg-4a07e17392590a0f53704470f858db90.ctex
+Completed load for: 'res://assets/ui/refresh.svg' remapped 'res://assets/ui/refresh.svg' at thread -1
+Loading resource: res://assets/ui/logo.svg remapped: res://assets/ui/logo.svg
+Loading resource: res://.godot/imported/logo.svg-264515fbbe87ffca03174d3c1fe74e17.ctex remapped: res://.godot/imported/logo.svg-264515fbbe87ffca03174d3c1fe74e17.ctex
+Completed load for: 'res://assets/ui/logo.svg' remapped 'res://assets/ui/logo.svg' at thread -1
+Loading resource: res://assets/ui/ambient.svg remapped: res://assets/ui/ambient.svg
+Loading resource: res://.godot/imported/ambient.svg-edfb6461218bc2f237fbbf2b5323afd0.ctex remapped: res://.godot/imported/ambient.svg-edfb6461218bc2f237fbbf2b5323afd0.ctex
+Completed load for: 'res://assets/ui/ambient.svg' remapped 'res://assets/ui/ambient.svg' at thread -1
+Completed load for: 'res://scripts/core/main.gd' remapped 'res://scripts/core/main.gdc' at thread -1
+Loading resource: res://.godot/exported/133200997/export-7cb0abbfc58e30d1d535fa02cc4a90ee-Arena.scn remapped: res://.godot/exported/133200997/export-7cb0abbfc58e30d1d535fa02cc4a90ee-Arena.scn
+Loading resource: res://scripts/presentation/arena_presentation.gdc remapped: res://scripts/presentation/arena_presentation.gdc
+Completed load for: 'res://scripts/presentation/arena_presentation.gd' remapped 'res://scripts/presentation/arena_presentation.gdc' at thread -1
+Completed load for: 'res://scenes/training/Arena.tscn' remapped 'res://.godot/exported/133200997/export-7cb0abbfc58e30d1d535fa02cc4a90ee-Arena.scn' at thread -1
+Loading resource: res://.godot/exported/133200997/export-6b2910c59cf705032a7da45960c69455-Home.scn remapped: res://.godot/exported/133200997/export-6b2910c59cf705032a7da45960c69455-Home.scn
+Completed load for: 'res://scenes/ui/Home.tscn' remapped 'res://.godot/exported/133200997/export-6b2910c59cf705032a7da45960c69455-Home.scn' at thread -1
+Loading resource: res://.godot/exported/133200997/export-37d1bc91e11d03192a76272162ea2470-ui_theme.res remapped: res://.godot/exported/133200997/export-37d1bc91e11d03192a76272162ea2470-ui_theme.res
+Loading resource: res://assets/ui/switch_on.svg remapped: res://assets/ui/switch_on.svg
+Loading resource: res://.godot/imported/switch_on.svg-ce2360b4e1a23215e3302709e2a0573c.ctex remapped: res://.godot/imported/switch_on.svg-ce2360b4e1a23215e3302709e2a0573c.ctex
+Completed load for: 'res://assets/ui/switch_on.svg' remapped 'res://assets/ui/switch_on.svg' at thread -1
+Loading resource: res://assets/ui/switch_off.svg remapped: res://assets/ui/switch_off.svg
+Loading resource: res://.godot/imported/switch_off.svg-c9acfe9928836908f26cb7173ec04f17.ctex remapped: res://.godot/imported/switch_off.svg-c9acfe9928836908f26cb7173ec04f17.ctex
+Completed load for: 'res://assets/ui/switch_off.svg' remapped 'res://assets/ui/switch_off.svg' at thread -1
+Completed load for: 'res://assets/ui_theme.tres' remapped 'res://.godot/exported/133200997/export-37d1bc91e11d03192a76272162ea2470-ui_theme.res' at thread -1
+Completed load for: 'res://scenes/app/Main.tscn' remapped 'res://.godot/exported/133200997/export-754e38d453e31f0e4c2eb3aa4fdf7971-Main.scn' at thread -1
+Loading resource: res://scripts/ui/crosshair_settings.gdc remapped: res://scripts/ui/crosshair_settings.gdc
+Completed load for: 'res://scripts/ui/crosshair_settings.gd' remapped 'res://scripts/ui/crosshair_settings.gdc' at thread -1
+EXPORT SMOKE : 18 exercices embarqués, 0 échecs.
+EXPORT ASSETS : 3 profils d’arme embarqués, 0 échecs.
+EXPORT PROFILES : 3 imports, protocole 6, 25 essais de 60 s et routine 3 phases embarqués, 0 échecs.
+EXPORT HISTORY : protocoles 4/5 préservés, archives inconnues protégées, 0 échecs.
+EXPORT CROSSHAIRS : 4 styles embarqués, 0 échecs.
+WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+XR: Clearing primary interface
+XR: Removed interface "Native mobile"
+XR: Removed interface "OpenXR"
+Leaked instance: AudioStreamWAV:9223372170401419629 - Reference count: 2
+Leaked instance: AudioStreamWAV:9223372170451751280 - Reference count: 2
+Leaked instance: AudioStreamPlaybackWAV:9223372214793934191 - Reference count: 1
+Leaked instance: AudioStreamPlaybackWAV:9223372215666349444 - Reference count: 1
+Leaked instance: AudioStreamPlaybackWAV:9223372214827488645 - Reference count: 1
+Leaked instance: AudioStreamPlaybackWAV:9223372215716681111 - Reference count: 1
+Hint: Leaked instances typically happen when nodes are removed from the scene tree (with `remove_child()`) but not freed (with `free()` or `queue_free()`).
+Orphan StringName: Master (static: 0, total: 4)
+StringName: 1 unclaimed string names at exit.

@@ -1,0 +1,37 @@
+{
+  "schema_version": "aimlocal.runtime_contract.v2.0",
+  "status": "design_constants_for_Godot_port_not_runtime_validation",
+  "authoritative_scalar_type": "IEEE754_binary64",
+  "input_pose_contract": "received_pose_hold_v1",
+  "camera_pitch_limit_deg": [-89.0, 89.0],
+  "numeric": {
+    "binary64_machine_epsilon": 2.220446049250313e-16,
+    "epsilon_angle_deg": 1e-9,
+    "discriminant_epsilon_factor": 64.0,
+    "discriminant_scale_floor_m2": 1.0,
+    "discriminant_epsilon_formula": "factor * binary64_machine_epsilon * max(scale_floor_m2, b*b, abs(c_term), radius_m*radius_m)",
+    "intersection_tie_distance_m": 1e-9,
+    "intersection_tie_break": "lexicographic_stable_target_identity",
+    "maximum_silhouette_error_px": 0.5,
+    "maximum_point_projection_error_px": 0.5,
+    "pixel_tolerances_apply_to": "actual_rendered_arena_viewport"
+  },
+  "contact_integrator": {
+    "maximum_initial_slab_s": 0.004166666666666667,
+    "contact_bound_width_fraction_of_planned_duration_max": 0.0005,
+    "calibration_24s_contact_bound_width_max_s": 0.012,
+    "estimate": "midpoint_of_lower_and_upper_contact_bounds",
+    "kill_time_tolerance_s": 0.0001,
+    "max_g_evaluations_per_initial_slab": 8192,
+    "max_g_evaluations_per_phase": 4000000,
+    "budget_includes": ["classification", "subdivision", "kill_time_search"],
+    "on_budget_exhausted": "unresolved_integration_error",
+    "allow_comparable_partial_fallback_score": false
+  },
+  "render_gate": {
+    "required_before_new_generation_hit": true,
+    "retime_logical_onset_or_deadline": false,
+    "retime_contact_denominator": false,
+    "physical_scanout_measured": false
+  }
+}

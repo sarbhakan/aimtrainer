@@ -1,5 +1,7 @@
 # AIM/LOCAL — Cahier des charges et plan de réalisation d’un aim trainer FPS sur Windows
 
+> **Catalogue et calibration actuels : V2.** Consulter le [guide d’implémentation V2](EXERCICES_ET_CALIBRATION_V2.markdown), le [plan de réception V2](TEST_PLAN_V2.md) et le [cahier V2 original](reference/v2/AIM_LOCAL_SPECIFICATIONS_V2.md). Le cahier V1 ci-dessous reste conservé pour l’historique ; le kit V2 original reste inchangé.
+
 **Version du document :** 1.0 — 11 octobre 2026  
 **Statut :** spécification de référence, destinée à être utilisée avec ChatGPT et Codex  
 **Nom de travail :** AIM/LOCAL (nom à confirmer avant publication)  

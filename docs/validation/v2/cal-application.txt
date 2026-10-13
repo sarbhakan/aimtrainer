@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 CAL FLOW : vrai V2AppController/UI/TaskEngine/store, horloges, poses, marqueurs et frametimes 1/144 synthétiques; aucun joueur, HID ou scanout physique mesuré.
+V2 CAL FLOW : application consentie, redémarrage et annulation du candidat natif confirmé
+V2 CAL FLOW : 57 tâches mesurées, 95 familiarisations synthétiques exécutées
+V2 CAL FLOW : 15104 assertions, 0 échecs

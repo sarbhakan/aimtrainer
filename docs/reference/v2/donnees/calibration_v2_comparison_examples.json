@@ -1,0 +1,2604 @@
+{
+  "fixtures": {
+    "repeated_improvement": {
+      "fixture_name": "repeated_improvement",
+      "data_origin": "synthetic_illustration_not_measured_player_data",
+      "protocol_id": "sustained_blocks_v2",
+      "phase": "confirmation",
+      "objective": "polyvalent",
+      "protocol_sha256": "70a6875973728295520f8d55e711055013330f84d468adbf0d399f33271fc562",
+      "qa_only": false,
+      "gains": [
+        {
+          "candidate_id": "A",
+          "requested_cm_per_360": 35.0,
+          "effective_cm_per_360": 35.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        },
+        {
+          "candidate_id": "B",
+          "requested_cm_per_360": 28.0,
+          "effective_cm_per_360": 28.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.040821428571428571",
+            "ieee754_binary64_big_endian_hex": "3fa4e68bd9616d21"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        }
+      ],
+      "accepted_conditions_verified": true,
+      "eligibility_note": "synthetic_QA_explicitly_assumes_eligible_conditions",
+      "terminal_condition_failures": [],
+      "days": [
+        {
+          "day_role": 1,
+          "order": "ABBA",
+          "periods": [
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.595,
+                "SMOOTH": 0.74,
+                "REACTIVE": 0.65,
+                "SWITCH": 0.61
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.593,
+                "SMOOTH": 0.734,
+                "REACTIVE": 0.642,
+                "SWITCH": 0.612
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        },
+        {
+          "day_role": 2,
+          "order": "BAAB",
+          "periods": [
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.597,
+                "SMOOTH": 0.742,
+                "REACTIVE": 0.652,
+                "SWITCH": 0.614
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.591,
+                "SMOOTH": 0.736,
+                "REACTIVE": 0.646,
+                "SWITCH": 0.608
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        }
+      ]
+    },
+    "close_observed": {
+      "fixture_name": "close_observed",
+      "data_origin": "synthetic_illustration_not_measured_player_data",
+      "protocol_id": "sustained_blocks_v2",
+      "phase": "confirmation",
+      "objective": "polyvalent",
+      "protocol_sha256": "70a6875973728295520f8d55e711055013330f84d468adbf0d399f33271fc562",
+      "qa_only": false,
+      "gains": [
+        {
+          "candidate_id": "A",
+          "requested_cm_per_360": 35.0,
+          "effective_cm_per_360": 35.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        },
+        {
+          "candidate_id": "B",
+          "requested_cm_per_360": 28.0,
+          "effective_cm_per_360": 28.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.040821428571428571",
+            "ieee754_binary64_big_endian_hex": "3fa4e68bd9616d21"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        }
+      ],
+      "accepted_conditions_verified": true,
+      "eligibility_note": "synthetic_QA_explicitly_assumes_eligible_conditions",
+      "terminal_condition_failures": [],
+      "days": [
+        {
+          "day_role": 1,
+          "order": "ABBA",
+          "periods": [
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        },
+        {
+          "day_role": 2,
+          "order": "BAAB",
+          "periods": [
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        }
+      ]
+    },
+    "same_gain_null_qa": {
+      "fixture_name": "same_gain_null_qa",
+      "data_origin": "synthetic_illustration_not_measured_player_data",
+      "protocol_id": "sustained_blocks_v2",
+      "phase": "confirmation",
+      "objective": "polyvalent",
+      "protocol_sha256": "70a6875973728295520f8d55e711055013330f84d468adbf0d399f33271fc562",
+      "qa_only": true,
+      "gains": [
+        {
+          "candidate_id": "A",
+          "requested_cm_per_360": 35.0,
+          "effective_cm_per_360": 35.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        },
+        {
+          "candidate_id": "B",
+          "requested_cm_per_360": 35.0,
+          "effective_cm_per_360": 35.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        }
+      ],
+      "accepted_conditions_verified": true,
+      "eligibility_note": "synthetic_QA_explicitly_assumes_eligible_conditions",
+      "terminal_condition_failures": [],
+      "days": [
+        {
+          "day_role": 1,
+          "order": "ABBA",
+          "periods": [
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        },
+        {
+          "day_role": 2,
+          "order": "BAAB",
+          "periods": [
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        }
+      ]
+    },
+    "repeated_regression": {
+      "fixture_name": "repeated_regression",
+      "data_origin": "synthetic_illustration_not_measured_player_data",
+      "protocol_id": "sustained_blocks_v2",
+      "phase": "confirmation",
+      "objective": "polyvalent",
+      "protocol_sha256": "70a6875973728295520f8d55e711055013330f84d468adbf0d399f33271fc562",
+      "qa_only": false,
+      "gains": [
+        {
+          "candidate_id": "A",
+          "requested_cm_per_360": 35.0,
+          "effective_cm_per_360": 35.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        },
+        {
+          "candidate_id": "B",
+          "requested_cm_per_360": 28.0,
+          "effective_cm_per_360": 28.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.040821428571428571",
+            "ieee754_binary64_big_endian_hex": "3fa4e68bd9616d21"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        }
+      ],
+      "accepted_conditions_verified": true,
+      "eligibility_note": "synthetic_QA_explicitly_assumes_eligible_conditions",
+      "terminal_condition_failures": [],
+      "days": [
+        {
+          "day_role": 1,
+          "order": "ABBA",
+          "periods": [
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.5349999999999999,
+                "SMOOTH": 0.6799999999999999,
+                "REACTIVE": 0.5499999999999999,
+                "SWITCH": 0.57
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.5369999999999999,
+                "SMOOTH": 0.6859999999999999,
+                "REACTIVE": 0.5579999999999999,
+                "SWITCH": 0.568
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        },
+        {
+          "day_role": 2,
+          "order": "BAAB",
+          "periods": [
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.5329999999999999,
+                "SMOOTH": 0.6779999999999999,
+                "REACTIVE": 0.5479999999999999,
+                "SWITCH": 0.566
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.5389999999999999,
+                "SMOOTH": 0.6839999999999999,
+                "REACTIVE": 0.5539999999999999,
+                "SWITCH": 0.572
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        }
+      ]
+    },
+    "mixed_tradeoff": {
+      "fixture_name": "mixed_tradeoff",
+      "data_origin": "synthetic_illustration_not_measured_player_data",
+      "protocol_id": "sustained_blocks_v2",
+      "phase": "confirmation",
+      "objective": "polyvalent",
+      "protocol_sha256": "70a6875973728295520f8d55e711055013330f84d468adbf0d399f33271fc562",
+      "qa_only": false,
+      "gains": [
+        {
+          "candidate_id": "A",
+          "requested_cm_per_360": 35.0,
+          "effective_cm_per_360": 35.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        },
+        {
+          "candidate_id": "B",
+          "requested_cm_per_360": 28.0,
+          "effective_cm_per_360": 28.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.040821428571428571",
+            "ieee754_binary64_big_endian_hex": "3fa4e68bd9616d21"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        }
+      ],
+      "accepted_conditions_verified": true,
+      "eligibility_note": "synthetic_QA_explicitly_assumes_eligible_conditions",
+      "terminal_condition_failures": [],
+      "days": [
+        {
+          "day_role": 1,
+          "order": "ABBA",
+          "periods": [
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.625,
+                "SMOOTH": 0.74,
+                "REACTIVE": 0.63,
+                "SWITCH": 0.62
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 13,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.625,
+                "SMOOTH": 0.74,
+                "REACTIVE": 0.63,
+                "SWITCH": 0.62
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 13,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        },
+        {
+          "day_role": 2,
+          "order": "BAAB",
+          "periods": [
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.625,
+                "SMOOTH": 0.74,
+                "REACTIVE": 0.63,
+                "SWITCH": 0.62
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 13,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.625,
+                "SMOOTH": 0.74,
+                "REACTIVE": 0.63,
+                "SWITCH": 0.62
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 13,
+              "switch_completions": 11
+            }
+          ]
+        }
+      ]
+    },
+    "opposite_days": {
+      "fixture_name": "opposite_days",
+      "data_origin": "synthetic_illustration_not_measured_player_data",
+      "protocol_id": "sustained_blocks_v2",
+      "phase": "confirmation",
+      "objective": "polyvalent",
+      "protocol_sha256": "70a6875973728295520f8d55e711055013330f84d468adbf0d399f33271fc562",
+      "qa_only": false,
+      "gains": [
+        {
+          "candidate_id": "A",
+          "requested_cm_per_360": 35.0,
+          "effective_cm_per_360": 35.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        },
+        {
+          "candidate_id": "B",
+          "requested_cm_per_360": 28.0,
+          "effective_cm_per_360": 28.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.040821428571428571",
+            "ieee754_binary64_big_endian_hex": "3fa4e68bd9616d21"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        }
+      ],
+      "accepted_conditions_verified": true,
+      "eligibility_note": "synthetic_QA_explicitly_assumes_eligible_conditions",
+      "terminal_condition_failures": [],
+      "days": [
+        {
+          "day_role": 1,
+          "order": "ABBA",
+          "periods": [
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.605,
+                "SMOOTH": 0.75,
+                "REACTIVE": 0.64,
+                "SWITCH": 0.63
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.605,
+                "SMOOTH": 0.75,
+                "REACTIVE": 0.64,
+                "SWITCH": 0.63
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        },
+        {
+          "day_role": 2,
+          "order": "BAAB",
+          "periods": [
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.5249999999999999,
+                "SMOOTH": 0.6699999999999999,
+                "REACTIVE": 0.5599999999999999,
+                "SWITCH": 0.5499999999999999
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.5249999999999999,
+                "SMOOTH": 0.6699999999999999,
+                "REACTIVE": 0.5599999999999999,
+                "SWITCH": 0.5499999999999999
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        }
+      ]
+    },
+    "linear_drift_null": {
+      "fixture_name": "linear_drift_null",
+      "data_origin": "synthetic_illustration_not_measured_player_data",
+      "protocol_id": "sustained_blocks_v2",
+      "phase": "confirmation",
+      "objective": "polyvalent",
+      "protocol_sha256": "70a6875973728295520f8d55e711055013330f84d468adbf0d399f33271fc562",
+      "qa_only": false,
+      "gains": [
+        {
+          "candidate_id": "A",
+          "requested_cm_per_360": 35.0,
+          "effective_cm_per_360": 35.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        },
+        {
+          "candidate_id": "B",
+          "requested_cm_per_360": 28.0,
+          "effective_cm_per_360": 28.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.040821428571428571",
+            "ieee754_binary64_big_endian_hex": "3fa4e68bd9616d21"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        }
+      ],
+      "accepted_conditions_verified": true,
+      "eligibility_note": "synthetic_QA_explicitly_assumes_eligible_conditions",
+      "terminal_condition_failures": [],
+      "days": [
+        {
+          "day_role": 1,
+          "order": "ABBA",
+          "periods": [
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.5349999999999999,
+                "SMOOTH": 0.6799999999999999,
+                "REACTIVE": 0.57,
+                "SWITCH": 0.5599999999999999
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.5049999999999999,
+                "SMOOTH": 0.6499999999999999,
+                "REACTIVE": 0.54,
+                "SWITCH": 0.53
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.475,
+                "SMOOTH": 0.62,
+                "REACTIVE": 0.51,
+                "SWITCH": 0.5
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        },
+        {
+          "day_role": 2,
+          "order": "BAAB",
+          "periods": [
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.5349999999999999,
+                "SMOOTH": 0.6799999999999999,
+                "REACTIVE": 0.57,
+                "SWITCH": 0.5599999999999999
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.5049999999999999,
+                "SMOOTH": 0.6499999999999999,
+                "REACTIVE": 0.54,
+                "SWITCH": 0.53
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.475,
+                "SMOOTH": 0.62,
+                "REACTIVE": 0.51,
+                "SWITCH": 0.5
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        }
+      ],
+      "injected_linear_period_drift_pp": -3.0
+    },
+    "missing_second_day": {
+      "fixture_name": "missing_second_day",
+      "data_origin": "synthetic_illustration_not_measured_player_data",
+      "protocol_id": "sustained_blocks_v2",
+      "phase": "confirmation",
+      "objective": "polyvalent",
+      "protocol_sha256": "70a6875973728295520f8d55e711055013330f84d468adbf0d399f33271fc562",
+      "qa_only": false,
+      "gains": [
+        {
+          "candidate_id": "A",
+          "requested_cm_per_360": 35.0,
+          "effective_cm_per_360": 35.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        },
+        {
+          "candidate_id": "B",
+          "requested_cm_per_360": 28.0,
+          "effective_cm_per_360": 28.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.040821428571428571",
+            "ieee754_binary64_big_endian_hex": "3fa4e68bd9616d21"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        }
+      ],
+      "accepted_conditions_verified": true,
+      "eligibility_note": "synthetic_QA_explicitly_assumes_eligible_conditions",
+      "terminal_condition_failures": [],
+      "days": [
+        {
+          "day_role": 1,
+          "order": "ABBA",
+          "periods": [
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.595,
+                "SMOOTH": 0.74,
+                "REACTIVE": 0.65,
+                "SWITCH": 0.61
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.593,
+                "SMOOTH": 0.734,
+                "REACTIVE": 0.642,
+                "SWITCH": 0.612
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        }
+      ]
+    },
+    "technical_blocker": {
+      "fixture_name": "technical_blocker",
+      "data_origin": "synthetic_illustration_not_measured_player_data",
+      "protocol_id": "sustained_blocks_v2",
+      "phase": "confirmation",
+      "objective": "polyvalent",
+      "protocol_sha256": "70a6875973728295520f8d55e711055013330f84d468adbf0d399f33271fc562",
+      "qa_only": false,
+      "gains": [
+        {
+          "candidate_id": "A",
+          "requested_cm_per_360": 35.0,
+          "effective_cm_per_360": 35.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        },
+        {
+          "candidate_id": "B",
+          "requested_cm_per_360": 28.0,
+          "effective_cm_per_360": 28.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.040821428571428571",
+            "ieee754_binary64_big_endian_hex": "3fa4e68bd9616d21"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        }
+      ],
+      "accepted_conditions_verified": true,
+      "eligibility_note": "synthetic_QA_explicitly_assumes_eligible_conditions",
+      "terminal_condition_failures": [
+        "retry_exhausted_after_capture_loss"
+      ],
+      "days": [
+        {
+          "day_role": 1,
+          "order": "ABBA",
+          "periods": [
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.595,
+                "SMOOTH": 0.74,
+                "REACTIVE": 0.65,
+                "SWITCH": 0.61
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.593,
+                "SMOOTH": 0.734,
+                "REACTIVE": 0.642,
+                "SWITCH": 0.612
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        },
+        {
+          "day_role": 2,
+          "order": "BAAB",
+          "periods": [
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.597,
+                "SMOOTH": 0.742,
+                "REACTIVE": 0.652,
+                "SWITCH": 0.614
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.71,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.591,
+                "SMOOTH": 0.736,
+                "REACTIVE": 0.646,
+                "SWITCH": 0.608
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        }
+      ]
+    },
+    "exploratory_only": {
+      "fixture_name": "exploratory_only",
+      "data_origin": "synthetic_illustration_not_measured_player_data",
+      "protocol_id": "sustained_blocks_v2",
+      "protocol_sha256": "70a6875973728295520f8d55e711055013330f84d468adbf0d399f33271fc562",
+      "phase": "express",
+      "objective": "polyvalent",
+      "accepted_conditions_verified": true,
+      "terminal_condition_failures": [],
+      "gains": [
+        {
+          "candidate_id": "A",
+          "requested_cm_per_360": 35.0,
+          "effective_cm_per_360": 35.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        },
+        {
+          "candidate_id": "F",
+          "requested_cm_per_360": 28.0,
+          "effective_cm_per_360": 28.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.040821428571428571",
+            "ieee754_binary64_big_endian_hex": "3fa4e68bd9616d21"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        },
+        {
+          "candidate_id": "S",
+          "requested_cm_per_360": 43.75,
+          "effective_cm_per_360": 43.75,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.026125714285714283",
+            "ieee754_binary64_big_endian_hex": "3f9ac0b301c462b9"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        }
+      ],
+      "candidate_results": {
+        "A": {
+          "utilities": {
+            "CLICK": 0.565,
+            "SMOOTH": 0.71,
+            "REACTIVE": 0.6,
+            "SWITCH": 0.59
+          },
+          "click_successes": 15,
+          "switch_completions": 11
+        },
+        "F": {
+          "utilities": {
+            "CLICK": 0.58,
+            "SMOOTH": 0.735,
+            "REACTIVE": 0.652,
+            "SWITCH": 0.612
+          },
+          "click_successes": 15,
+          "switch_completions": 11
+        },
+        "S": {
+          "utilities": {
+            "CLICK": 0.58,
+            "SMOOTH": 0.69,
+            "REACTIVE": 0.565,
+            "SWITCH": 0.565
+          },
+          "click_successes": 15,
+          "switch_completions": 11
+        }
+      }
+    },
+    "floor_uninformative": {
+      "fixture_name": "floor_uninformative",
+      "data_origin": "synthetic_illustration_not_measured_player_data",
+      "protocol_id": "sustained_blocks_v2",
+      "phase": "confirmation",
+      "objective": "polyvalent",
+      "protocol_sha256": "70a6875973728295520f8d55e711055013330f84d468adbf0d399f33271fc562",
+      "qa_only": false,
+      "gains": [
+        {
+          "candidate_id": "A",
+          "requested_cm_per_360": 35.0,
+          "effective_cm_per_360": 35.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        },
+        {
+          "candidate_id": "B",
+          "requested_cm_per_360": 28.0,
+          "effective_cm_per_360": 28.0,
+          "declared_dpi": 800,
+          "degrees_per_relative_input_unit": {
+            "decimal_roundtrip": "0.040821428571428571",
+            "ieee754_binary64_big_endian_hex": "3fa4e68bd9616d21"
+          },
+          "runtime_gain_precision": "IEEE754_binary64",
+          "cm_label_is_nominal_because_dpi_is_declared": true
+        }
+      ],
+      "accepted_conditions_verified": true,
+      "eligibility_note": "synthetic_QA_explicitly_assumes_eligible_conditions",
+      "terminal_condition_failures": [],
+      "days": [
+        {
+          "day_role": 1,
+          "order": "ABBA",
+          "periods": [
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.02,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.02,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.02,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.02,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        },
+        {
+          "day_role": 2,
+          "order": "BAAB",
+          "periods": [
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.02,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.02,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "A",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.02,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            },
+            {
+              "alias": "B",
+              "utilities": {
+                "CLICK": 0.565,
+                "SMOOTH": 0.02,
+                "REACTIVE": 0.6,
+                "SWITCH": 0.59
+              },
+              "click_opportunities": 16,
+              "switch_opportunities": 12,
+              "click_successes": 15,
+              "switch_completions": 11
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "results": {
+    "repeated_improvement": {
+      "protocol_id": "sustained_blocks_v2",
+      "objective": "polyvalent",
+      "evidence_method": "descriptive_two_day_rules",
+      "confidence_interval": null,
+      "equivalence_proven": false,
+      "qa_only": false,
+      "recommended_action": "offer_saved_challenger_for_explicit_application",
+      "pair_effects": [
+        {
+          "day_role": 1,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": 3.0000000000000027,
+            "SMOOTH": 3.0000000000000027,
+            "REACTIVE": 5.000000000000004,
+            "SWITCH": 2.0000000000000018
+          },
+          "composite_pp": 3.2500000000000027
+        },
+        {
+          "day_role": 1,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": 2.8000000000000025,
+            "SMOOTH": 2.400000000000002,
+            "REACTIVE": 4.200000000000004,
+            "SWITCH": 2.200000000000002
+          },
+          "composite_pp": 2.9000000000000026
+        },
+        {
+          "day_role": 2,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": 3.200000000000003,
+            "SMOOTH": 3.200000000000003,
+            "REACTIVE": 5.200000000000005,
+            "SWITCH": 2.400000000000002
+          },
+          "composite_pp": 3.500000000000003
+        },
+        {
+          "day_role": 2,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": 2.6000000000000023,
+            "SMOOTH": 2.6000000000000023,
+            "REACTIVE": 4.600000000000004,
+            "SWITCH": 1.8000000000000016
+          },
+          "composite_pp": 2.9000000000000026
+        }
+      ],
+      "day_effects": [
+        {
+          "day_role": 1,
+          "effects_pp": {
+            "CLICK": 2.9000000000000026,
+            "SMOOTH": 2.7000000000000024,
+            "REACTIVE": 4.600000000000004,
+            "SWITCH": 2.100000000000002
+          },
+          "composite_pp": 3.075000000000003,
+          "pair_span_pp": 0.3500000000000001
+        },
+        {
+          "day_role": 2,
+          "effects_pp": {
+            "CLICK": 2.9000000000000026,
+            "SMOOTH": 2.9000000000000026,
+            "REACTIVE": 4.900000000000004,
+            "SWITCH": 2.100000000000002
+          },
+          "composite_pp": 3.200000000000003,
+          "pair_span_pp": 0.6000000000000005
+        }
+      ],
+      "observed_mean_effect_pp": 3.137500000000003,
+      "observed_day_range_pp": [
+        3.075000000000003,
+        3.200000000000003
+      ],
+      "observed_pair_range_pp": [
+        2.9000000000000026,
+        3.500000000000003
+      ],
+      "effective_day_count": 2,
+      "paired_contrast_count": 4,
+      "success_counts": {
+        "A": {
+          "CLICK": 60,
+          "SWITCH": 44
+        },
+        "B": {
+          "CLICK": 60,
+          "SWITCH": 44
+        }
+      },
+      "success_count_difference_B_minus_A": {
+        "CLICK": 0,
+        "SWITCH": 0
+      },
+      "success_rate_difference_B_minus_A": {
+        "CLICK": 0.0,
+        "SWITCH": 0.0
+      },
+      "per_task_guard_pass": true,
+      "raw_success_guards": {
+        "CLICK": true,
+        "SWITCH": true
+      },
+      "diagnostic_flags": [],
+      "uninformative_tasks": [],
+      "status": "repeated_improvement",
+      "reasons": [
+        "global_gain_repeated_with_guards"
+      ]
+    },
+    "close_observed": {
+      "protocol_id": "sustained_blocks_v2",
+      "objective": "polyvalent",
+      "evidence_method": "descriptive_two_day_rules",
+      "confidence_interval": null,
+      "equivalence_proven": false,
+      "qa_only": false,
+      "recommended_action": "keep_original_setting",
+      "pair_effects": [
+        {
+          "day_role": 1,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0
+        },
+        {
+          "day_role": 1,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0
+        },
+        {
+          "day_role": 2,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0
+        },
+        {
+          "day_role": 2,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0
+        }
+      ],
+      "day_effects": [
+        {
+          "day_role": 1,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0,
+          "pair_span_pp": 0.0
+        },
+        {
+          "day_role": 2,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0,
+          "pair_span_pp": 0.0
+        }
+      ],
+      "observed_mean_effect_pp": 0.0,
+      "observed_day_range_pp": [
+        0.0,
+        0.0
+      ],
+      "observed_pair_range_pp": [
+        0.0,
+        0.0
+      ],
+      "effective_day_count": 2,
+      "paired_contrast_count": 4,
+      "success_counts": {
+        "A": {
+          "CLICK": 60,
+          "SWITCH": 44
+        },
+        "B": {
+          "CLICK": 60,
+          "SWITCH": 44
+        }
+      },
+      "success_count_difference_B_minus_A": {
+        "CLICK": 0,
+        "SWITCH": 0
+      },
+      "success_rate_difference_B_minus_A": {
+        "CLICK": 0.0,
+        "SWITCH": 0.0
+      },
+      "per_task_guard_pass": true,
+      "raw_success_guards": {
+        "CLICK": true,
+        "SWITCH": true
+      },
+      "diagnostic_flags": [],
+      "uninformative_tasks": [],
+      "status": "close_observed",
+      "reasons": [
+        "small_observed_differences_not_proven_equivalence"
+      ]
+    },
+    "same_gain_null_qa": {
+      "protocol_id": "sustained_blocks_v2",
+      "objective": "polyvalent",
+      "evidence_method": "descriptive_two_day_rules",
+      "confidence_interval": null,
+      "equivalence_proven": false,
+      "qa_only": true,
+      "recommended_action": "keep_original_setting",
+      "pair_effects": [
+        {
+          "day_role": 1,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0
+        },
+        {
+          "day_role": 1,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0
+        },
+        {
+          "day_role": 2,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0
+        },
+        {
+          "day_role": 2,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0
+        }
+      ],
+      "day_effects": [
+        {
+          "day_role": 1,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0,
+          "pair_span_pp": 0.0
+        },
+        {
+          "day_role": 2,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0,
+          "pair_span_pp": 0.0
+        }
+      ],
+      "observed_mean_effect_pp": 0.0,
+      "observed_day_range_pp": [
+        0.0,
+        0.0
+      ],
+      "observed_pair_range_pp": [
+        0.0,
+        0.0
+      ],
+      "effective_day_count": 2,
+      "paired_contrast_count": 4,
+      "success_counts": {
+        "A": {
+          "CLICK": 60,
+          "SWITCH": 44
+        },
+        "B": {
+          "CLICK": 60,
+          "SWITCH": 44
+        }
+      },
+      "success_count_difference_B_minus_A": {
+        "CLICK": 0,
+        "SWITCH": 0
+      },
+      "success_rate_difference_B_minus_A": {
+        "CLICK": 0.0,
+        "SWITCH": 0.0
+      },
+      "per_task_guard_pass": true,
+      "raw_success_guards": {
+        "CLICK": true,
+        "SWITCH": true
+      },
+      "diagnostic_flags": [],
+      "uninformative_tasks": [],
+      "status": "close_observed",
+      "reasons": [
+        "small_observed_differences_not_proven_equivalence"
+      ]
+    },
+    "repeated_regression": {
+      "protocol_id": "sustained_blocks_v2",
+      "objective": "polyvalent",
+      "evidence_method": "descriptive_two_day_rules",
+      "confidence_interval": null,
+      "equivalence_proven": false,
+      "qa_only": false,
+      "recommended_action": "keep_original_setting",
+      "pair_effects": [
+        {
+          "day_role": 1,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": -3.0000000000000027,
+            "SMOOTH": -3.0000000000000027,
+            "REACTIVE": -5.000000000000004,
+            "SWITCH": -2.0000000000000018
+          },
+          "composite_pp": -3.2500000000000027
+        },
+        {
+          "day_role": 1,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": -2.8000000000000025,
+            "SMOOTH": -2.400000000000002,
+            "REACTIVE": -4.200000000000004,
+            "SWITCH": -2.200000000000002
+          },
+          "composite_pp": -2.9000000000000026
+        },
+        {
+          "day_role": 2,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": -3.200000000000003,
+            "SMOOTH": -3.200000000000003,
+            "REACTIVE": -5.200000000000005,
+            "SWITCH": -2.400000000000002
+          },
+          "composite_pp": -3.500000000000003
+        },
+        {
+          "day_role": 2,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": -2.6000000000000023,
+            "SMOOTH": -2.6000000000000023,
+            "REACTIVE": -4.600000000000004,
+            "SWITCH": -1.8000000000000016
+          },
+          "composite_pp": -2.9000000000000026
+        }
+      ],
+      "day_effects": [
+        {
+          "day_role": 1,
+          "effects_pp": {
+            "CLICK": -2.9000000000000026,
+            "SMOOTH": -2.7000000000000024,
+            "REACTIVE": -4.600000000000004,
+            "SWITCH": -2.100000000000002
+          },
+          "composite_pp": -3.075000000000003,
+          "pair_span_pp": 0.3500000000000001
+        },
+        {
+          "day_role": 2,
+          "effects_pp": {
+            "CLICK": -2.9000000000000026,
+            "SMOOTH": -2.9000000000000026,
+            "REACTIVE": -4.900000000000004,
+            "SWITCH": -2.100000000000002
+          },
+          "composite_pp": -3.200000000000003,
+          "pair_span_pp": 0.6000000000000005
+        }
+      ],
+      "observed_mean_effect_pp": -3.137500000000003,
+      "observed_day_range_pp": [
+        -3.200000000000003,
+        -3.075000000000003
+      ],
+      "observed_pair_range_pp": [
+        -3.500000000000003,
+        -2.9000000000000026
+      ],
+      "effective_day_count": 2,
+      "paired_contrast_count": 4,
+      "success_counts": {
+        "A": {
+          "CLICK": 60,
+          "SWITCH": 44
+        },
+        "B": {
+          "CLICK": 60,
+          "SWITCH": 44
+        }
+      },
+      "success_count_difference_B_minus_A": {
+        "CLICK": 0,
+        "SWITCH": 0
+      },
+      "success_rate_difference_B_minus_A": {
+        "CLICK": 0.0,
+        "SWITCH": 0.0
+      },
+      "per_task_guard_pass": true,
+      "raw_success_guards": {
+        "CLICK": true,
+        "SWITCH": true
+      },
+      "diagnostic_flags": [],
+      "uninformative_tasks": [],
+      "status": "repeated_regression",
+      "reasons": [
+        "global_loss_repeated_on_both_days"
+      ]
+    },
+    "mixed_tradeoff": {
+      "protocol_id": "sustained_blocks_v2",
+      "objective": "polyvalent",
+      "evidence_method": "descriptive_two_day_rules",
+      "confidence_interval": null,
+      "equivalence_proven": false,
+      "qa_only": false,
+      "recommended_action": "keep_original_setting",
+      "pair_effects": [
+        {
+          "day_role": 1,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": 6.000000000000005,
+            "SMOOTH": 3.0000000000000027,
+            "REACTIVE": 3.0000000000000027,
+            "SWITCH": 3.0000000000000027
+          },
+          "composite_pp": 3.7500000000000036
+        },
+        {
+          "day_role": 1,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": 6.000000000000005,
+            "SMOOTH": 3.0000000000000027,
+            "REACTIVE": 3.0000000000000027,
+            "SWITCH": 3.0000000000000027
+          },
+          "composite_pp": 3.7500000000000036
+        },
+        {
+          "day_role": 2,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": 6.000000000000005,
+            "SMOOTH": 3.0000000000000027,
+            "REACTIVE": 3.0000000000000027,
+            "SWITCH": 3.0000000000000027
+          },
+          "composite_pp": 3.7500000000000036
+        },
+        {
+          "day_role": 2,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": 6.000000000000005,
+            "SMOOTH": 3.0000000000000027,
+            "REACTIVE": 3.0000000000000027,
+            "SWITCH": 3.0000000000000027
+          },
+          "composite_pp": 3.7500000000000036
+        }
+      ],
+      "day_effects": [
+        {
+          "day_role": 1,
+          "effects_pp": {
+            "CLICK": 6.000000000000005,
+            "SMOOTH": 3.0000000000000027,
+            "REACTIVE": 3.0000000000000027,
+            "SWITCH": 3.0000000000000027
+          },
+          "composite_pp": 3.7500000000000036,
+          "pair_span_pp": 0.0
+        },
+        {
+          "day_role": 2,
+          "effects_pp": {
+            "CLICK": 6.000000000000005,
+            "SMOOTH": 3.0000000000000027,
+            "REACTIVE": 3.0000000000000027,
+            "SWITCH": 3.0000000000000027
+          },
+          "composite_pp": 3.7500000000000036,
+          "pair_span_pp": 0.0
+        }
+      ],
+      "observed_mean_effect_pp": 3.7500000000000036,
+      "observed_day_range_pp": [
+        3.7500000000000036,
+        3.7500000000000036
+      ],
+      "observed_pair_range_pp": [
+        3.7500000000000036,
+        3.7500000000000036
+      ],
+      "effective_day_count": 2,
+      "paired_contrast_count": 4,
+      "success_counts": {
+        "A": {
+          "CLICK": 60,
+          "SWITCH": 44
+        },
+        "B": {
+          "CLICK": 52,
+          "SWITCH": 44
+        }
+      },
+      "success_count_difference_B_minus_A": {
+        "CLICK": -8,
+        "SWITCH": 0
+      },
+      "success_rate_difference_B_minus_A": {
+        "CLICK": -0.125,
+        "SWITCH": 0.0
+      },
+      "per_task_guard_pass": true,
+      "raw_success_guards": {
+        "CLICK": false,
+        "SWITCH": true
+      },
+      "diagnostic_flags": [],
+      "uninformative_tasks": [],
+      "status": "mixed_tradeoff",
+      "reasons": [
+        "gain_with_skill_or_success_tradeoff"
+      ]
+    },
+    "opposite_days": {
+      "protocol_id": "sustained_blocks_v2",
+      "objective": "polyvalent",
+      "evidence_method": "descriptive_two_day_rules",
+      "confidence_interval": null,
+      "equivalence_proven": false,
+      "qa_only": false,
+      "recommended_action": "keep_original_setting",
+      "pair_effects": [
+        {
+          "day_role": 1,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": 4.0000000000000036,
+            "SMOOTH": 4.0000000000000036,
+            "REACTIVE": 4.0000000000000036,
+            "SWITCH": 4.0000000000000036
+          },
+          "composite_pp": 4.0000000000000036
+        },
+        {
+          "day_role": 1,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": 4.0000000000000036,
+            "SMOOTH": 4.0000000000000036,
+            "REACTIVE": 4.0000000000000036,
+            "SWITCH": 4.0000000000000036
+          },
+          "composite_pp": 4.0000000000000036
+        },
+        {
+          "day_role": 2,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": -4.0000000000000036,
+            "SMOOTH": -4.0000000000000036,
+            "REACTIVE": -4.0000000000000036,
+            "SWITCH": -4.0000000000000036
+          },
+          "composite_pp": -4.0000000000000036
+        },
+        {
+          "day_role": 2,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": -4.0000000000000036,
+            "SMOOTH": -4.0000000000000036,
+            "REACTIVE": -4.0000000000000036,
+            "SWITCH": -4.0000000000000036
+          },
+          "composite_pp": -4.0000000000000036
+        }
+      ],
+      "day_effects": [
+        {
+          "day_role": 1,
+          "effects_pp": {
+            "CLICK": 4.0000000000000036,
+            "SMOOTH": 4.0000000000000036,
+            "REACTIVE": 4.0000000000000036,
+            "SWITCH": 4.0000000000000036
+          },
+          "composite_pp": 4.0000000000000036,
+          "pair_span_pp": 0.0
+        },
+        {
+          "day_role": 2,
+          "effects_pp": {
+            "CLICK": -4.0000000000000036,
+            "SMOOTH": -4.0000000000000036,
+            "REACTIVE": -4.0000000000000036,
+            "SWITCH": -4.0000000000000036
+          },
+          "composite_pp": -4.0000000000000036,
+          "pair_span_pp": 0.0
+        }
+      ],
+      "observed_mean_effect_pp": 0.0,
+      "observed_day_range_pp": [
+        -4.0000000000000036,
+        4.0000000000000036
+      ],
+      "observed_pair_range_pp": [
+        -4.0000000000000036,
+        4.0000000000000036
+      ],
+      "effective_day_count": 2,
+      "paired_contrast_count": 4,
+      "success_counts": {
+        "A": {
+          "CLICK": 60,
+          "SWITCH": 44
+        },
+        "B": {
+          "CLICK": 60,
+          "SWITCH": 44
+        }
+      },
+      "success_count_difference_B_minus_A": {
+        "CLICK": 0,
+        "SWITCH": 0
+      },
+      "success_rate_difference_B_minus_A": {
+        "CLICK": 0.0,
+        "SWITCH": 0.0
+      },
+      "per_task_guard_pass": true,
+      "raw_success_guards": {
+        "CLICK": true,
+        "SWITCH": true
+      },
+      "diagnostic_flags": [
+        "opposite_day_effect_signs"
+      ],
+      "uninformative_tasks": [],
+      "status": "undetermined",
+      "reasons": [
+        "predeclared_repeatability_rules_not_met"
+      ]
+    },
+    "linear_drift_null": {
+      "protocol_id": "sustained_blocks_v2",
+      "objective": "polyvalent",
+      "evidence_method": "descriptive_two_day_rules",
+      "confidence_interval": null,
+      "equivalence_proven": false,
+      "qa_only": false,
+      "recommended_action": "keep_original_setting",
+      "pair_effects": [
+        {
+          "day_role": 1,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": -3.0000000000000027,
+            "SMOOTH": -3.0000000000000027,
+            "REACTIVE": -3.0000000000000027,
+            "SWITCH": -3.0000000000000027
+          },
+          "composite_pp": -3.0000000000000027
+        },
+        {
+          "day_role": 1,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": 2.9999999999999916,
+            "SMOOTH": 2.9999999999999916,
+            "REACTIVE": 3.0000000000000027,
+            "SWITCH": 3.0000000000000027
+          },
+          "composite_pp": 2.9999999999999973
+        },
+        {
+          "day_role": 2,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": 3.0000000000000027,
+            "SMOOTH": 3.0000000000000027,
+            "REACTIVE": 3.0000000000000027,
+            "SWITCH": 3.0000000000000027
+          },
+          "composite_pp": 3.0000000000000027
+        },
+        {
+          "day_role": 2,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": -2.9999999999999916,
+            "SMOOTH": -2.9999999999999916,
+            "REACTIVE": -3.0000000000000027,
+            "SWITCH": -3.0000000000000027
+          },
+          "composite_pp": -2.9999999999999973
+        }
+      ],
+      "day_effects": [
+        {
+          "day_role": 1,
+          "effects_pp": {
+            "CLICK": -5.551115123125783e-15,
+            "SMOOTH": -5.551115123125783e-15,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": -2.6645352591003757e-15,
+          "pair_span_pp": 6.0
+        },
+        {
+          "day_role": 2,
+          "effects_pp": {
+            "CLICK": 5.551115123125783e-15,
+            "SMOOTH": 5.551115123125783e-15,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 2.6645352591003757e-15,
+          "pair_span_pp": 6.0
+        }
+      ],
+      "observed_mean_effect_pp": 0.0,
+      "observed_day_range_pp": [
+        -2.6645352591003757e-15,
+        2.6645352591003757e-15
+      ],
+      "observed_pair_range_pp": [
+        -3.0000000000000027,
+        3.0000000000000027
+      ],
+      "effective_day_count": 2,
+      "paired_contrast_count": 4,
+      "success_counts": {
+        "A": {
+          "CLICK": 60,
+          "SWITCH": 44
+        },
+        "B": {
+          "CLICK": 60,
+          "SWITCH": 44
+        }
+      },
+      "success_count_difference_B_minus_A": {
+        "CLICK": 0,
+        "SWITCH": 0
+      },
+      "success_rate_difference_B_minus_A": {
+        "CLICK": 0.0,
+        "SWITCH": 0.0
+      },
+      "per_task_guard_pass": true,
+      "raw_success_guards": {
+        "CLICK": true,
+        "SWITCH": true
+      },
+      "diagnostic_flags": [
+        "opposite_day_effect_signs"
+      ],
+      "uninformative_tasks": [],
+      "status": "close_observed",
+      "reasons": [
+        "small_observed_differences_not_proven_equivalence"
+      ]
+    },
+    "missing_second_day": {
+      "protocol_id": "sustained_blocks_v2",
+      "objective": "polyvalent",
+      "evidence_method": "descriptive_two_day_rules",
+      "confidence_interval": null,
+      "equivalence_proven": false,
+      "qa_only": false,
+      "recommended_action": "keep_original_setting",
+      "status": "incomplete",
+      "reasons": [
+        "two_complete_days_required"
+      ]
+    },
+    "technical_blocker": {
+      "protocol_id": "sustained_blocks_v2",
+      "objective": "polyvalent",
+      "evidence_method": "descriptive_two_day_rules",
+      "confidence_interval": null,
+      "equivalence_proven": false,
+      "qa_only": false,
+      "recommended_action": "keep_original_setting",
+      "status": "unstable_conditions",
+      "reasons": [
+        "retry_exhausted_after_capture_loss"
+      ]
+    },
+    "exploratory_only": {
+      "protocol_id": "sustained_blocks_v2",
+      "objective": "polyvalent",
+      "evidence_method": "exploratory_single_period_per_gain",
+      "confidence_interval": null,
+      "equivalence_proven": false,
+      "recommended_action": "keep_original_setting",
+      "status": "exploratory_only",
+      "scores_pp": {
+        "A": 61.625,
+        "F": 64.475,
+        "S": 60.0
+      },
+      "challenger_candidate_id": "F",
+      "baseline_is_observed_best": false,
+      "descriptive_envelope_tested_candidate_ids": [
+        "F",
+        "A"
+      ],
+      "envelope_is_continuous_interval": false,
+      "uninformative_tasks": [],
+      "diagnostic_flags": [],
+      "unexplored_sides": [
+        "faster_gain_side_not_explored"
+      ],
+      "reasons": [
+        "fresh_independent_confirmation_required_for_challenger"
+      ]
+    },
+    "floor_uninformative": {
+      "protocol_id": "sustained_blocks_v2",
+      "objective": "polyvalent",
+      "evidence_method": "descriptive_two_day_rules",
+      "confidence_interval": null,
+      "equivalence_proven": false,
+      "qa_only": false,
+      "recommended_action": "keep_original_setting",
+      "pair_effects": [
+        {
+          "day_role": 1,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0
+        },
+        {
+          "day_role": 1,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0
+        },
+        {
+          "day_role": 2,
+          "pair_index": 0,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0
+        },
+        {
+          "day_role": 2,
+          "pair_index": 1,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0
+        }
+      ],
+      "day_effects": [
+        {
+          "day_role": 1,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0,
+          "pair_span_pp": 0.0
+        },
+        {
+          "day_role": 2,
+          "effects_pp": {
+            "CLICK": 0.0,
+            "SMOOTH": 0.0,
+            "REACTIVE": 0.0,
+            "SWITCH": 0.0
+          },
+          "composite_pp": 0.0,
+          "pair_span_pp": 0.0
+        }
+      ],
+      "observed_mean_effect_pp": 0.0,
+      "observed_day_range_pp": [
+        0.0,
+        0.0
+      ],
+      "observed_pair_range_pp": [
+        0.0,
+        0.0
+      ],
+      "effective_day_count": 2,
+      "paired_contrast_count": 4,
+      "success_counts": {
+        "A": {
+          "CLICK": 60,
+          "SWITCH": 44
+        },
+        "B": {
+          "CLICK": 60,
+          "SWITCH": 44
+        }
+      },
+      "success_count_difference_B_minus_A": {
+        "CLICK": 0,
+        "SWITCH": 0
+      },
+      "success_rate_difference_B_minus_A": {
+        "CLICK": 0.0,
+        "SWITCH": 0.0
+      },
+      "per_task_guard_pass": true,
+      "raw_success_guards": {
+        "CLICK": true,
+        "SWITCH": true
+      },
+      "diagnostic_flags": [],
+      "uninformative_tasks": [
+        "SMOOTH"
+      ],
+      "status": "undetermined",
+      "reasons": [
+        "task_floor_or_ceiling_requires_new_frozen_difficulty"
+      ]
+    }
+  }
+}

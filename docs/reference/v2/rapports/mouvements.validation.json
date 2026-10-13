@@ -1,0 +1,395 @@
+{
+  "report_version": "aimlocal.motion_validation.v2.0",
+  "generated_at_utc": "2026-10-12T21:17:39.242563+00:00",
+  "status": "pass",
+  "scope": "Python design reference and serialized illustrative atlas states only",
+  "python_version": "3.12.14",
+  "compiler_version": "motion_reference_v2.0",
+  "catalogue_revision": "2026-10-12-v2.0",
+  "seeds_per_reactive_condition": 32,
+  "checks": 2025701,
+  "failure_count": 0,
+  "failure_code_counts": {},
+  "failures": [],
+  "input_sha256": {
+    "donnees/catalogue.v2.json": "b72277ca6ac33b93aa38ac73092c529f2152c2ab88199fa0fcaea3ee93154781",
+    "donnees/atlas.etats.json": "95991a031770c570b6472f97cdeef082e80a845d6accfac35dd9f185dceaecd9",
+    "outils/mouvements_reference.py": "2f817c17a15f4c10768f54d9b274e108281205525db4b82463604457a2ff7200",
+    "outils/construire_visuels.py": "700b7c71d3fbbc58212aa814d4b29804cd338e1f02619a62a828f79a47aba152",
+    "outils/geometrie_reference.py": "6a5e4f070303fd5e75ccdbe89d7499eaa0001a069245f92afa43e3d8d79fa697"
+  },
+  "audited_inputs_unchanged_during_run": true,
+  "groups": [
+    {
+      "id": "provenance_and_atlas_freshness",
+      "status": "pass",
+      "checks": 60,
+      "failures": 0,
+      "elapsed_s": 0.031,
+      "metrics": {
+        "configuration_count": 24,
+        "phase_count": 54,
+        "serialized_motion_instances": 75,
+        "compiler_version": "motion_reference_v2.0"
+      }
+    },
+    {
+      "id": "reactive_analytic_extrema_continuity_and_rearming",
+      "status": "pass",
+      "checks": 1415694,
+      "failures": 0,
+      "elapsed_s": 5.256,
+      "metrics": {
+        "tapes": 288,
+        "stress_horizon_s": 60,
+        "pieces": 46713,
+        "boundary_events": 4588,
+        "rearm_events": 2609,
+        "ramps_preempted_by_boundary": 669,
+        "rearms_inside_ramp": 428,
+        "maximum_position_join_error_deg": 3.552713678800501e-15,
+        "maximum_velocity_join_error_deg_s": 1.7763568394002505e-14,
+        "exact_threshold_initialization_cases": 72,
+        "conditions": [
+          {
+            "condition": "EX04/novice/evasive",
+            "min_yaw_deg": -19.39343944947,
+            "max_yaw_deg": 19.393005286748632,
+            "max_abs_speed_deg_s": 6.999095255782596,
+            "max_abs_acceleration_deg_s2": 116.57426489759624
+          },
+          {
+            "condition": "EX04/standard/evasive",
+            "min_yaw_deg": -19.52474910714648,
+            "max_yaw_deg": 19.52720986865514,
+            "max_abs_speed_deg_s": 11.99906759436708,
+            "max_abs_acceleration_deg_s2": 257.1179648706623
+          },
+          {
+            "condition": "EX04/advanced/evasive",
+            "min_yaw_deg": -19.62951084816232,
+            "max_yaw_deg": 19.6434226329984,
+            "max_abs_speed_deg_s": 19.9984459906118,
+            "max_abs_acceleration_deg_s2": 599.7789660177659
+          },
+          {
+            "condition": "EX06/novice/reactive",
+            "min_yaw_deg": -22.073070930706507,
+            "max_yaw_deg": 22.03102166083596,
+            "max_abs_speed_deg_s": 17.996891981223598,
+            "max_abs_acceleration_deg_s2": 299.6017010533251
+          },
+          {
+            "condition": "EX06/standard/reactive",
+            "min_yaw_deg": -22.224022192588766,
+            "max_yaw_deg": 22.30229939632679,
+            "max_abs_speed_deg_s": 27.993546447949484,
+            "max_abs_acceleration_deg_s2": 599.8150464463313
+          },
+          {
+            "condition": "EX06/advanced/reactive",
+            "min_yaw_deg": -22.21146720353551,
+            "max_yaw_deg": 22.25058530417801,
+            "max_abs_speed_deg_s": 37.99394547333941,
+            "max_abs_acceleration_deg_s2": 1139.8183642001823
+          },
+          {
+            "condition": "EX08/novice/evasive",
+            "min_yaw_deg": -21.56244183124166,
+            "max_yaw_deg": 21.571818468996497,
+            "max_abs_speed_deg_s": 9.999031967192423,
+            "max_abs_acceleration_deg_s2": 166.6505327865404
+          },
+          {
+            "condition": "EX08/standard/evasive",
+            "min_yaw_deg": -21.69932585385318,
+            "max_yaw_deg": 21.699747398090516,
+            "max_abs_speed_deg_s": 15.998451147507875,
+            "max_abs_acceleration_deg_s2": 342.73083772443766
+          },
+          {
+            "condition": "EX08/advanced/evasive",
+            "min_yaw_deg": -21.749266441162327,
+            "max_yaw_deg": 21.7560065694884,
+            "max_abs_speed_deg_s": 23.99813518873416,
+            "max_abs_acceleration_deg_s2": 719.7347592213191
+          }
+        ]
+      }
+    },
+    {
+      "id": "ellipse_spherical_metric_inverse_speed_and_curvature",
+      "status": "pass",
+      "checks": 12315,
+      "failures": 0,
+      "elapsed_s": 0.118,
+      "metrics": {
+        "samples_per_difficulty": 1025,
+        "centered_difference_step_s": 0.001,
+        "independent_length_cells": 32768,
+        "maximum_metric_absolute_error": 5.551115123125783e-17,
+        "maximum_length_relative_error": 5.109708342802468e-15,
+        "conditions": [
+          {
+            "difficulty": "novice",
+            "length_rad": 1.43402939481811,
+            "relative_length_error": 5.109708342802468e-15,
+            "maximum_relative_speed_error": 4.317432968914403e-07,
+            "maximum_vector_acceleration_deg_s2": 16.094884624039725,
+            "maximum_inverse_residual_rad": 1.1102230246251565e-15
+          },
+          {
+            "difficulty": "standard",
+            "length_rad": 1.43402939481811,
+            "relative_length_error": 5.109708342802468e-15,
+            "maximum_relative_speed_error": 8.462105371975781e-07,
+            "maximum_vector_acceleration_deg_s2": 31.54591380252969,
+            "maximum_inverse_residual_rad": 1.1102230246251565e-15
+          },
+          {
+            "difficulty": "advanced",
+            "length_rad": 1.43402939481811,
+            "relative_length_error": 5.109708342802468e-15,
+            "maximum_relative_speed_error": 1.3988178615420566e-06,
+            "maximum_vector_acceleration_deg_s2": 52.14690970668423,
+            "maximum_inverse_residual_rad": 1.1102230246251565e-15
+          }
+        ]
+      }
+    },
+    {
+      "id": "smooth_axes_soft_cycles_depth_and_angular_bounces",
+      "status": "pass",
+      "checks": 27027,
+      "failures": 0,
+      "elapsed_s": 0.07,
+      "metrics": {
+        "conditions": [
+          {
+            "condition": "EX04/novice/linear",
+            "speed_measure": "active_axis_coordinate",
+            "maximum_measured_speed_deg_s": 6.000000000057071,
+            "maximum_measured_scalar_acceleration_deg_s2": 0.0,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX04/novice/arcs",
+            "speed_measure": "true_spherical",
+            "maximum_measured_speed_deg_s": 22.273131501549393,
+            "maximum_measured_scalar_acceleration_deg_s2": 39.669421614263456,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX04/standard/linear",
+            "speed_measure": "active_axis_coordinate",
+            "maximum_measured_speed_deg_s": 10.000000000047748,
+            "maximum_measured_scalar_acceleration_deg_s2": 0.0,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX04/standard/arcs",
+            "speed_measure": "true_spherical",
+            "maximum_measured_speed_deg_s": 40.65899077478352,
+            "maximum_measured_scalar_acceleration_deg_s2": 88.88888922697902,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX04/advanced/linear",
+            "speed_measure": "active_axis_coordinate",
+            "maximum_measured_speed_deg_s": 14.000000000180535,
+            "maximum_measured_scalar_acceleration_deg_s2": 0.0,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX04/advanced/arcs",
+            "speed_measure": "true_spherical",
+            "maximum_measured_speed_deg_s": 64.7865691291915,
+            "maximum_measured_scalar_acceleration_deg_s2": 170.66666710974232,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX05/novice/horizontal",
+            "speed_measure": "active_axis_coordinate",
+            "maximum_measured_speed_deg_s": 11.999999985792476,
+            "maximum_measured_scalar_acceleration_deg_s2": 7.999955897730615,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX05/novice/vertical",
+            "speed_measure": "active_axis_coordinate",
+            "maximum_measured_speed_deg_s": 9.999999775109229,
+            "maximum_measured_scalar_acceleration_deg_s2": 7.1428571501996885,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX05/standard/horizontal",
+            "speed_measure": "active_axis_coordinate",
+            "maximum_measured_speed_deg_s": 15.999996774698705,
+            "maximum_measured_scalar_acceleration_deg_s2": 14.222204569591668,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX05/standard/vertical",
+            "speed_measure": "active_axis_coordinate",
+            "maximum_measured_speed_deg_s": 13.999999832201643,
+            "maximum_measured_scalar_acceleration_deg_s2": 13.99996989448482,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX05/advanced/horizontal",
+            "speed_measure": "active_axis_coordinate",
+            "maximum_measured_speed_deg_s": 19.99987565890461,
+            "maximum_measured_scalar_acceleration_deg_s2": 22.222203810429164,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX05/advanced/vertical",
+            "speed_measure": "active_axis_coordinate",
+            "maximum_measured_speed_deg_s": 17.999926557901205,
+            "maximum_measured_scalar_acceleration_deg_s2": 23.142857052960153,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX07/novice/depth",
+            "speed_measure": "true_spherical",
+            "maximum_measured_speed_deg_s": 11.028241209403648,
+            "maximum_measured_scalar_acceleration_deg_s2": 0.0,
+            "maximum_measured_radial_speed_m_s": 0.37499999961498887,
+            "maximum_measured_radial_acceleration_m_s2": 0.14062502273759492
+          },
+          {
+            "condition": "EX07/standard/depth",
+            "speed_measure": "true_spherical",
+            "maximum_measured_speed_deg_s": 14.702017512922051,
+            "maximum_measured_scalar_acceleration_deg_s2": 0.0,
+            "maximum_measured_radial_speed_m_s": 0.49999946216239266,
+            "maximum_measured_radial_acceleration_m_s2": 0.2499998430494088
+          },
+          {
+            "condition": "EX07/advanced/depth",
+            "speed_measure": "true_spherical",
+            "maximum_measured_speed_deg_s": 20.58475839167927,
+            "maximum_measured_scalar_acceleration_deg_s2": 0.0,
+            "maximum_measured_radial_speed_m_s": 0.6999993659118076,
+            "maximum_measured_radial_acceleration_m_s2": 0.48999990731601883
+          },
+          {
+            "condition": "EX08/novice/mobile",
+            "speed_measure": "active_axis_coordinate",
+            "maximum_measured_speed_deg_s": 6.000000000021544,
+            "maximum_measured_scalar_acceleration_deg_s2": 74.99724503645666,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX08/standard/mobile",
+            "speed_measure": "active_axis_coordinate",
+            "maximum_measured_speed_deg_s": 9.000000000050079,
+            "maximum_measured_scalar_acceleration_deg_s2": 112.49961850978707,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          },
+          {
+            "condition": "EX08/advanced/mobile",
+            "speed_measure": "active_axis_coordinate",
+            "maximum_measured_speed_deg_s": 14.000000000038426,
+            "maximum_measured_scalar_acceleration_deg_s2": 174.8574845805706,
+            "maximum_measured_radial_speed_m_s": 0.0,
+            "maximum_measured_radial_acceleration_m_s2": 0.0
+          }
+        ],
+        "soft_cycle_seams": 15,
+        "flight_rest_boundaries": 117,
+        "exact_wall_landing_ties": 8,
+        "impulsive_reflections_have_no_finite_acceleration_assertion": true
+      }
+    },
+    {
+      "id": "atlas_initial_states_envelopes_lanes_chambers_and_sizes",
+      "status": "pass",
+      "checks": 554262,
+      "failures": 0,
+      "elapsed_s": 1.147,
+      "metrics": {
+        "serialized_instances": 75,
+        "pose_samples": 104523,
+        "simultaneous_pairs": 108162,
+        "sample_rate_hz": 60,
+        "minimum_observed_silhouette_gap_deg": 0.8459655252978553,
+        "reactive_lane_vertical_gap_checked_analytically": true
+      }
+    },
+    {
+      "id": "ex03_calendar_deadlines_shrink_and_switching_label",
+      "status": "pass",
+      "checks": 795,
+      "failures": 0,
+      "elapsed_s": 0.001,
+      "metrics": {
+        "opportunities": 60,
+        "maximum_ttl_difference_s": 2.886579864025407e-15,
+        "minimum_deadline_to_slot_end_s": 0.46259999999999835,
+        "onset_inclusive_deadline_exclusive_checked": true,
+        "render_proxy_and_human_input_not_simulated": true
+      }
+    },
+    {
+      "id": "stateless_random_access_no_rng_and_frame_rate_independence",
+      "status": "pass",
+      "checks": 15540,
+      "failures": 0,
+      "elapsed_s": 0.106,
+      "metrics": {
+        "motion_instances": 75,
+        "random_order_queries": 4950,
+        "shared_timestamp_rate_triplets": 10515,
+        "reference_rates_hz": [
+          60,
+          144,
+          240
+        ],
+        "rng_calls_during_sample_forbidden": true
+      }
+    },
+    {
+      "id": "negative_controls_for_independent_detectors",
+      "status": "pass",
+      "checks": 3,
+      "failures": 0,
+      "elapsed_s": 0.012,
+      "metrics": {
+        "deliberately_corrupted_objects_detected": 3,
+        "wrong_euclidean_metric_relative_speed_error": 0.015192016756167992,
+        "production_sources_never_modified_by_canaries": true
+      }
+    }
+  ],
+  "elapsed_s": 6.955,
+  "coverage_limits": [
+    "Not an audit of the existing Godot application; no Godot project was supplied or executed.",
+    "No mouse-event ordering, rendering latency, photon timing, hit detection, contact integration, scoring or human performance is simulated.",
+    "Reactive extrema and ramp caps are analytic within the compiled finite tapes; finite seed coverage is not a proof for every possible seed or arbitrary future parameters.",
+    "Ellipse speed and vector acceleration are independently sampled with centered differences; length and metric checks are independent of the production lookup inversion.",
+    "Finite acceleration assertions exclude explicitly impulsive wall reflections, launches and landings.",
+    "Atlas checks cover initial generation and no-input trajectories, not arbitrary hit-driven replacement histories or every fallback candidate.",
+    "Javascript/Python equivalence, SVG pixel rendering, UI text clipping and browser interaction are checked separately by the parent workflow."
+  ],
+  "regressions_found_and_protected": [
+    "An outward start exactly on a soft threshold must create a boundary event at t=0 without a zero-duration piece.",
+    "A boundary rounded below its exact root must not rearm while velocity still points outward.",
+    "A rearm splitting an existing ramp must preserve the original polynomial coefficients and origin.",
+    "The static switching label must describe depletion of HP rather than one-shot replacement."
+  ]
+}

@@ -7,6 +7,12 @@ import re
 import struct
 from zipfile import ZIP_DEFLATED, ZipFile
 import zlib
+import runpy
+
+
+if 'config/version="1.0.0"' in (Path(__file__).resolve().parents[1] / "project.godot").read_text(encoding="utf-8"):
+    runpy.run_path(str(Path(__file__).with_name("package_v2_visuals.py")), run_name="__main__")
+    raise SystemExit(0)
 
 
 LAYOUTS = {800: 450, 1280: 720, 1920: 1080}

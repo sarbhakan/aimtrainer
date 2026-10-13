@@ -11,7 +11,7 @@ run_godot_checked() {
     bash tools/godot.sh "$@" 2>&1 | tee "$log_file"
     while IFS= read -r log_line; do
         case "$log_line" in
-            ERROR:*|"SCRIPT ERROR:"*) printf 'Erreur Godot : %s\nJournal : %s\n' "$log_line" "$log_file" >&2; exit 1 ;;
+            ERROR:*|"SCRIPT ERROR:"*|WARNING:*leaked*) printf 'Erreur Godot : %s\nJournal : %s\n' "$log_line" "$log_file" >&2; exit 1 ;;
         esac
     done < "$log_file"
 }
@@ -25,7 +25,7 @@ GODOT_PROJECT_PATH="$export_validation_dir" bash tools/godot.sh \
     --log-file "$export_validation_dir/runtime.log"
 while IFS= read -r log_line; do
     case "$log_line" in
-        ERROR:*|"SCRIPT ERROR:"*) printf 'Erreur dans le pack exporté : %s\n' "$log_line" >&2; exit 1 ;;
+        ERROR:*|"SCRIPT ERROR:"*|WARNING:*leaked*) printf 'Erreur dans le pack exporté : %s\n' "$log_line" >&2; exit 1 ;;
     esac
 done < "$export_validation_dir/runtime.log"
 GODOT_PROJECT_PATH="$export_validation_dir" bash tools/godot.sh \
@@ -38,7 +38,7 @@ history_completed=false
 crosshairs_completed=false
 while IFS= read -r log_line; do
     case "$log_line" in
-        ERROR:*|"SCRIPT ERROR:"*) printf 'Erreur dans les exercices exportés : %s\n' "$log_line" >&2; exit 1 ;;
+        ERROR:*|"SCRIPT ERROR:"*|WARNING:*leaked*) printf 'Erreur dans les exercices exportés : %s\n' "$log_line" >&2; exit 1 ;;
         "EXPORT SMOKE : 18 exercices embarqués, 0 échecs.") smoke_completed=true ;;
         "EXPORT ASSETS : 3 profils d’arme embarqués, 0 échecs.") assets_completed=true ;;
         "EXPORT PROFILES : 3 imports, protocole 6, 25 essais de 60 s et routine 3 phases embarqués, 0 échecs.") profiles_completed=true ;;
@@ -48,6 +48,13 @@ while IFS= read -r log_line; do
 done < "$export_validation_dir/exercises.log"
 if [ "$smoke_completed" != true ] || [ "$assets_completed" != true ] || [ "$profiles_completed" != true ] || [ "$history_completed" != true ] || [ "$crosshairs_completed" != true ]; then
     printf 'Les exercices exportés n’ont pas terminé leur contrôle.\n' >&2
+    exit 1
+fi
+GODOT_PROJECT_PATH="$export_validation_dir" bash tools/godot.sh \
+    --headless --main-pack "$project_root/dist/AimLocal.exe" \
+    --script "$project_root/tests/v2_export_smoke.gd" --log-file "$export_validation_dir/v2.log"
+if rg -q '^(SCRIPT ERROR:|ERROR:)|WARNING:.*leaked' "$export_validation_dir/v2.log" || ! rg -q '^V2 EXPORT : [1-9][0-9]* assertions, 0 échecs; 24 configurations, 54 phases, 4 tâches CAL\.$' "$export_validation_dir/v2.log"; then
+    printf 'Le moteur V2 exporté n’a pas terminé sa validation.\n' >&2
     exit 1
 fi
 python3 tools/package_windows.py

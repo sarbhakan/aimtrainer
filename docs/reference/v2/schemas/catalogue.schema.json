@@ -1,0 +1,4479 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aimlocal:catalogue:v2",
+  "title": "AIM/LOCAL V2 catalogue — closed resolved structural contract",
+  "$comment": "Structural JSON Schema 2020-12; geometry and cross-field semantics are checked by outils/valider_catalogue.py. The bundled evaluator implements only the explicitly listed keywords of this schema, not general JSON Schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "catalogue_revision",
+    "design_status",
+    "configuration_count",
+    "public_program_count",
+    "laboratory_extensions_enabled",
+    "sensitivity_calibration_uses_separate_tasks",
+    "randomization",
+    "programs"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "aimlocal.catalogue.v2"
+    },
+    "catalogue_revision": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}-v2\\.[0-9]+$"
+    },
+    "design_status": {
+      "type": "string",
+      "const": "original_proposed_parameters_require_local_playtesting"
+    },
+    "configuration_count": {
+      "type": "integer",
+      "const": 24
+    },
+    "public_program_count": {
+      "type": "integer",
+      "const": 8
+    },
+    "laboratory_extensions_enabled": {
+      "type": "boolean",
+      "const": false
+    },
+    "sensitivity_calibration_uses_separate_tasks": {
+      "type": "boolean",
+      "const": true
+    },
+    "randomization": {
+      "$ref": "#/$defs/Randomization"
+    },
+    "programs": {
+      "type": "array",
+      "minItems": 24,
+      "maxItems": 24,
+      "items": {
+        "$ref": "#/$defs/Program"
+      }
+    }
+  },
+  "$defs": {
+    "Randomization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generator",
+        "integer_storage",
+        "steps",
+        "zero_seed_replacement_hex",
+        "uniform_float_formula",
+        "uniform_integer_method",
+        "substream_seed",
+        "tuple_fields",
+        "canonical_json",
+        "session_seed_hex_characters",
+        "stream_name_grammar",
+        "domains",
+        "decimal_indices",
+        "continuous_distributions",
+        "cosmetics_cannot_consume_motion_layout_or_timing_streams",
+        "per_frame_random_draws_allowed",
+        "illustrative_atlas_session_seed_hex",
+        "determinism_scope",
+        "different_inputs_may_change_hit_driven_spawns"
+      ],
+      "properties": {
+        "generator": {
+          "type": "string",
+          "const": "xorshift32_v1"
+        },
+        "integer_storage": {
+          "type": "string",
+          "const": "nonnegative_int64_masked_to_32_bits"
+        },
+        "steps": {
+          "type": "array",
+          "const": [
+            "x = (x ^ (x << 13)) & 0xffffffff",
+            "x = (x ^ (x >> 17)) & 0xffffffff",
+            "x = (x ^ (x << 5)) & 0xffffffff"
+          ]
+        },
+        "zero_seed_replacement_hex": {
+          "type": "string",
+          "const": "6D2B79F5"
+        },
+        "uniform_float_formula": {
+          "type": "string",
+          "const": "(next_uint32 + 0.5) / 4294967296"
+        },
+        "uniform_integer_method": {
+          "type": "string",
+          "const": "reject_uint32_ge_floor_4294967296_div_n_times_n_then_mod_n"
+        },
+        "substream_seed": {
+          "type": "string",
+          "const": "first_4_bytes_big_endian_sha256_utf8_canonical_json_tuple"
+        },
+        "tuple_fields": {
+          "type": "array",
+          "const": [
+            "catalogue_revision",
+            "session_seed_hex",
+            "program_id",
+            "difficulty",
+            "phase_id",
+            "stream_name"
+          ]
+        },
+        "canonical_json": {
+          "type": "string",
+          "const": "JSON_array_of_ASCII_strings_no_spaces_no_BOM_no_trailing_newline"
+        },
+        "session_seed_hex_characters": {
+          "type": "integer",
+          "const": 32
+        },
+        "stream_name_grammar": {
+          "type": "string",
+          "const": "domain/slot_decimal/generation_decimal/purpose"
+        },
+        "domains": {
+          "type": "array",
+          "const": [
+            "layout",
+            "timing",
+            "motion",
+            "diagnostic",
+            "cosmetic"
+          ]
+        },
+        "decimal_indices": {
+          "type": "string",
+          "const": "nonnegative_base10_no_leading_zero_except_0"
+        },
+        "continuous_distributions": {
+          "type": "string",
+          "const": "open_interval_uniform"
+        },
+        "cosmetics_cannot_consume_motion_layout_or_timing_streams": {
+          "type": "boolean",
+          "const": true
+        },
+        "per_frame_random_draws_allowed": {
+          "type": "boolean",
+          "const": false
+        },
+        "illustrative_atlas_session_seed_hex": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{32}$"
+        },
+        "determinism_scope": {
+          "type": "string",
+          "const": "same_revision_seed_configuration_and_timestamped_inputs"
+        },
+        "different_inputs_may_change_hit_driven_spawns": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "Arena": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eye_position_m",
+        "player_movement_enabled",
+        "reference_look_yaw_pitch_deg",
+        "forward_axis",
+        "right_axis",
+        "up_axis",
+        "roll_deg",
+        "fov_horizontal_deg_at_16_9",
+        "reference_aspect_ratio",
+        "fov_vertical_deg",
+        "near_m",
+        "far_m",
+        "floor_y_m",
+        "target_shape",
+        "collider_matches_visual_sphere",
+        "wall_reference_distance_m",
+        "world_art_geometry_noncolliding"
+      ],
+      "properties": {
+        "eye_position_m": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "number",
+            "minimum": -1000,
+            "maximum": 1000
+          }
+        },
+        "player_movement_enabled": {
+          "type": "boolean",
+          "const": false
+        },
+        "reference_look_yaw_pitch_deg": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          }
+        },
+        "forward_axis": {
+          "type": "string",
+          "const": "negative_z"
+        },
+        "right_axis": {
+          "type": "string",
+          "const": "positive_x"
+        },
+        "up_axis": {
+          "type": "string",
+          "const": "positive_y"
+        },
+        "roll_deg": {
+          "type": "number",
+          "const": 0
+        },
+        "fov_horizontal_deg_at_16_9": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "reference_aspect_ratio": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": -1000000000000.0,
+            "maximum": 1000000000000.0
+          }
+        },
+        "fov_vertical_deg": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "near_m": {
+          "type": "number",
+          "maximum": 1000,
+          "exclusiveMinimum": 0
+        },
+        "far_m": {
+          "type": "number",
+          "maximum": 1000,
+          "exclusiveMinimum": 0
+        },
+        "floor_y_m": {
+          "type": "number",
+          "minimum": -1000,
+          "maximum": 1000
+        },
+        "target_shape": {
+          "type": "string",
+          "const": "sphere"
+        },
+        "collider_matches_visual_sphere": {
+          "type": "boolean",
+          "const": true
+        },
+        "wall_reference_distance_m": {
+          "type": "number",
+          "minimum": -1000,
+          "maximum": 1000
+        },
+        "world_art_geometry_noncolliding": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "PhaseTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "extra_time_s",
+        "fade_s",
+        "freeze_s",
+        "preview_notice_s_before_boundary",
+        "cursor_orientation",
+        "boundary_contact_end_inclusive",
+        "events_order",
+        "kill_at_boundary_spawns_old_phase_replacement",
+        "incomplete_phase_policy"
+      ],
+      "properties": {
+        "extra_time_s": {
+          "type": "number",
+          "const": 0
+        },
+        "fade_s": {
+          "type": "number",
+          "const": 0
+        },
+        "freeze_s": {
+          "type": "number",
+          "const": 0
+        },
+        "preview_notice_s_before_boundary": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3600
+        },
+        "cursor_orientation": {
+          "type": "string",
+          "const": "preserve"
+        },
+        "boundary_contact_end_inclusive": {
+          "type": "boolean",
+          "const": true
+        },
+        "events_order": {
+          "type": "array",
+          "const": [
+            "integrate_old_phase_contact_to_boundary",
+            "apply_old_phase_kill_if_hp_reaches_zero_at_boundary",
+            "close_old_phase_contact_metrics",
+            "credit_old_phase_living_switch_partials",
+            "censor_old_phase_unresolved_targets",
+            "close_old_phase",
+            "spawn_new_phase",
+            "route_press_at_exact_boundary_to_new_phase"
+          ]
+        },
+        "kill_at_boundary_spawns_old_phase_replacement": {
+          "type": "boolean",
+          "const": false
+        },
+        "incomplete_phase_policy": {
+          "type": "string",
+          "const": "keep_descriptive_diagnostics_no_ranked_score"
+        }
+      }
+    },
+    "Aggregate": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "ranked_program_score",
+            "phase_scores_required",
+            "fields",
+            "do_not_average_phase_scores"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "descriptive_only"
+            },
+            "ranked_program_score": {
+              "type": "boolean",
+              "const": false
+            },
+            "phase_scores_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "fields": {
+              "type": "array",
+              "minItems": 5,
+              "maxItems": 7,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "accuracy",
+                  "censored",
+                  "completed_s",
+                  "expired",
+                  "hits",
+                  "misses",
+                  "opportunities",
+                  "shots"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "do_not_average_phase_scores": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "ranked_program_score",
+            "formula",
+            "denominator_s",
+            "phase_scores_required",
+            "scale",
+            "rank_key_suffix",
+            "comparison_context_required",
+            "invalid_if_any_phase_invalid",
+            "partial_credit_at_every_phase_boundary"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "sum_credited_switch_work_per_program_time"
+            },
+            "ranked_program_score": {
+              "type": "boolean",
+              "const": true
+            },
+            "formula": {
+              "type": "string",
+              "const": "1000 * sum(phase.kills + phase.final_living_damage_fractions) / 60"
+            },
+            "denominator_s": {
+              "type": "number",
+              "const": 60
+            },
+            "phase_scores_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "scale": {
+              "type": "integer",
+              "const": 1000
+            },
+            "rank_key_suffix": {
+              "type": "array",
+              "const": [
+                "catalogue_revision",
+                "program_id",
+                "difficulty"
+              ]
+            },
+            "comparison_context_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "invalid_if_any_phase_invalid": {
+              "type": "boolean",
+              "const": true
+            },
+            "partial_credit_at_every_phase_boundary": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "ranked_program_score",
+            "formula",
+            "nominal_denominator_s",
+            "phase_scores_required",
+            "scale",
+            "rank_key_suffix",
+            "comparison_context_required",
+            "invalid_if_any_phase_invalid"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "time_weighted_contact"
+            },
+            "ranked_program_score": {
+              "type": "boolean",
+              "const": true
+            },
+            "formula": {
+              "type": "string",
+              "const": "1000 * sum(phase.contact_s) / sum(phase.exposure_s)"
+            },
+            "nominal_denominator_s": {
+              "type": "number",
+              "const": 60
+            },
+            "phase_scores_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "scale": {
+              "type": "integer",
+              "const": 1000
+            },
+            "rank_key_suffix": {
+              "type": "array",
+              "const": [
+                "catalogue_revision",
+                "program_id",
+                "difficulty"
+              ]
+            },
+            "comparison_context_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "invalid_if_any_phase_invalid": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        }
+      ]
+    },
+    "Size": {
+      "oneOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "reference_distance_m",
+                "world_radius_m",
+                "shrink",
+                "diameter_start_deg",
+                "diameter_end_deg",
+                "progress_curve",
+                "progress_duration_s"
+              ],
+              "properties": {
+                "mode": {
+                  "type": "string",
+                  "const": "angular_diameter_constant"
+                },
+                "reference_distance_m": {
+                  "type": "number",
+                  "maximum": 1000,
+                  "exclusiveMinimum": 0
+                },
+                "world_radius_m": {
+                  "type": "number",
+                  "maximum": 1000,
+                  "exclusiveMinimum": 0
+                },
+                "shrink": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "diameter_start_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "diameter_end_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "progress_curve": {
+                  "type": "string",
+                  "const": "constant"
+                },
+                "progress_duration_s": {
+                  "type": "number",
+                  "maximum": 3600,
+                  "exclusiveMinimum": 0
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mode",
+                "reference_distance_m",
+                "world_radius_m",
+                "shrink"
+              ],
+              "properties": {
+                "mode": {
+                  "type": "string",
+                  "const": "angular_diameter_constant"
+                },
+                "reference_distance_m": {
+                  "type": "number",
+                  "maximum": 1000,
+                  "exclusiveMinimum": 0
+                },
+                "world_radius_m": {
+                  "type": "number",
+                  "maximum": 1000,
+                  "exclusiveMinimum": 0
+                },
+                "shrink": {
+                  "type": "boolean",
+                  "const": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "reference_distance_m",
+            "world_radius_m",
+            "shrink",
+            "diameter_start_deg",
+            "diameter_end_deg",
+            "progress_curve",
+            "progress_duration_s",
+            "world_radius_end_m"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "const": "angular_diameter_linear_over_window"
+            },
+            "reference_distance_m": {
+              "type": "number",
+              "maximum": 1000,
+              "exclusiveMinimum": 0
+            },
+            "world_radius_m": {
+              "type": "number",
+              "maximum": 1000,
+              "exclusiveMinimum": 0
+            },
+            "shrink": {
+              "type": "boolean",
+              "const": true
+            },
+            "diameter_start_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "diameter_end_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "progress_curve": {
+              "type": "string",
+              "const": "linear_in_angular_diameter"
+            },
+            "progress_duration_s": {
+              "type": "number",
+              "maximum": 3600,
+              "exclusiveMinimum": 0
+            },
+            "world_radius_end_m": {
+              "type": "number",
+              "maximum": 1000,
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "reference_distance_m",
+            "world_radius_m",
+            "shrink",
+            "reference_angular_diameter_deg",
+            "minimum_apparent_diameter_deg",
+            "maximum_apparent_diameter_deg"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "const": "world_radius_constant"
+            },
+            "reference_distance_m": {
+              "type": "number",
+              "maximum": 1000,
+              "exclusiveMinimum": 0
+            },
+            "world_radius_m": {
+              "type": "number",
+              "maximum": 1000,
+              "exclusiveMinimum": 0
+            },
+            "shrink": {
+              "type": "boolean",
+              "const": false
+            },
+            "reference_angular_diameter_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "minimum_apparent_diameter_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "maximum_apparent_diameter_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            }
+          }
+        }
+      ]
+    },
+    "Envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "center_yaw_deg",
+        "center_pitch_deg",
+        "center_distance_m",
+        "minimum_floor_clearance_m"
+      ],
+      "properties": {
+        "center_yaw_deg": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          }
+        },
+        "center_pitch_deg": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          }
+        },
+        "center_distance_m": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": -1000,
+            "maximum": 1000
+          }
+        },
+        "minimum_floor_clearance_m": {
+          "type": "number",
+          "minimum": -1000,
+          "maximum": 1000
+        }
+      }
+    },
+    "Spawn": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "coordinate_distribution",
+            "yaw_deg",
+            "pitch_deg",
+            "target_slots",
+            "minimum_silhouette_gap_deg",
+            "initial_reference_yaw_pitch_deg",
+            "transition_anchor",
+            "transition_angle_deg",
+            "exclude_live_reticle_on_initial_spawn",
+            "exclude_live_reticle_on_hit_respawn",
+            "random_candidate_limit",
+            "fallback",
+            "nodes_yaw_pitch_deg",
+            "initial_selection",
+            "respawn_excludes_occupied_nodes",
+            "respawn_excludes_just_hit_node"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "grid_without_overlap"
+            },
+            "coordinate_distribution": {
+              "type": "string",
+              "const": "uniform_eligible_grid_node"
+            },
+            "yaw_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "pitch_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "target_slots": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "minimum_silhouette_gap_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "initial_reference_yaw_pitch_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "transition_anchor": {
+              "type": "string",
+              "const": "previous_center_of_same_target_slot"
+            },
+            "transition_angle_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "exclude_live_reticle_on_initial_spawn": {
+              "type": "boolean",
+              "const": false
+            },
+            "exclude_live_reticle_on_hit_respawn": {
+              "type": "boolean",
+              "const": false
+            },
+            "random_candidate_limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "fallback": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "no_candidate_policy",
+                "relax_constraints"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "not_needed_finite_eligible_nodes"
+                },
+                "no_candidate_policy": {
+                  "type": "string",
+                  "const": "invalidate_run_spawn_constraint_failure"
+                },
+                "relax_constraints": {
+                  "type": "boolean",
+                  "const": false
+                }
+              }
+            },
+            "nodes_yaw_pitch_deg": {
+              "type": "array",
+              "minItems": 9,
+              "maxItems": 9,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                }
+              }
+            },
+            "initial_selection": {
+              "type": "string",
+              "const": "first_three_nodes_of_fisher_yates_permutation"
+            },
+            "respawn_excludes_occupied_nodes": {
+              "type": "boolean",
+              "const": true
+            },
+            "respawn_excludes_just_hit_node": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "coordinate_distribution",
+            "yaw_deg",
+            "pitch_deg",
+            "target_slots",
+            "minimum_silhouette_gap_deg",
+            "initial_reference_yaw_pitch_deg",
+            "transition_anchor",
+            "transition_angle_deg",
+            "exclude_live_reticle_on_initial_spawn",
+            "exclude_live_reticle_on_hit_respawn",
+            "random_candidate_limit",
+            "fallback",
+            "chambers",
+            "motion_state_sampled_once_before_position_search"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "one_target_per_chamber"
+            },
+            "coordinate_distribution": {
+              "type": "string",
+              "const": "sample_initial_flight_age_and_direction_once_then_uniform_chamber_yaw"
+            },
+            "yaw_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "pitch_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "target_slots": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "minimum_silhouette_gap_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "initial_reference_yaw_pitch_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "transition_anchor": {
+              "type": "string",
+              "const": "previous_center_of_same_target_slot"
+            },
+            "transition_angle_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "exclude_live_reticle_on_initial_spawn": {
+              "type": "boolean",
+              "const": false
+            },
+            "exclude_live_reticle_on_hit_respawn": {
+              "type": "boolean",
+              "const": false
+            },
+            "random_candidate_limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "fallback": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "yaw_step_deg",
+                "no_candidate_policy",
+                "relax_constraints"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "valid_yaw_lattice_minimum_hash"
+                },
+                "yaw_step_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "no_candidate_policy": {
+                  "type": "string",
+                  "const": "invalidate_run_spawn_constraint_failure"
+                },
+                "relax_constraints": {
+                  "type": "boolean",
+                  "const": false
+                }
+              }
+            },
+            "chambers": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "slot",
+                  "yaw_deg",
+                  "baseline_pitch_deg"
+                ],
+                "properties": {
+                  "slot": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 15
+                  },
+                  "yaw_deg": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "number",
+                      "minimum": -180,
+                      "maximum": 180
+                    }
+                  },
+                  "baseline_pitch_deg": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                }
+              }
+            },
+            "motion_state_sampled_once_before_position_search": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "coordinate_distribution",
+            "yaw_deg",
+            "pitch_deg",
+            "target_slots",
+            "minimum_silhouette_gap_deg",
+            "initial_reference_yaw_pitch_deg",
+            "transition_anchor",
+            "transition_angle_deg",
+            "exclude_live_reticle_on_initial_spawn",
+            "exclude_live_reticle_on_hit_respawn",
+            "random_candidate_limit",
+            "fallback",
+            "lane_pitch_deg",
+            "motion_state_sampled_once_before_position_search",
+            "candidate_yaw_deg"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "one_target_per_lane"
+            },
+            "coordinate_distribution": {
+              "type": "string",
+              "enum": [
+                "sample_cycle_fraction_conditioned_on_spawn_constraints",
+                "sample_motion_state_then_condition_initial_yaw_on_spawn_constraints"
+              ]
+            },
+            "yaw_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "pitch_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "target_slots": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "minimum_silhouette_gap_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "initial_reference_yaw_pitch_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "transition_anchor": {
+              "type": "string",
+              "const": "previous_center_of_same_target_slot"
+            },
+            "transition_angle_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "exclude_live_reticle_on_initial_spawn": {
+              "type": "boolean",
+              "const": false
+            },
+            "exclude_live_reticle_on_hit_respawn": {
+              "type": "boolean",
+              "const": false
+            },
+            "random_candidate_limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "fallback": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "kind",
+                    "fraction_bins",
+                    "no_candidate_policy",
+                    "relax_constraints"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "valid_cycle_fraction_lattice_minimum_hash"
+                    },
+                    "fraction_bins": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 1000000
+                    },
+                    "no_candidate_policy": {
+                      "type": "string",
+                      "const": "invalidate_run_spawn_constraint_failure"
+                    },
+                    "relax_constraints": {
+                      "type": "boolean",
+                      "const": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "kind",
+                    "yaw_step_deg",
+                    "no_candidate_policy",
+                    "relax_constraints"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "valid_yaw_lattice_minimum_hash"
+                    },
+                    "yaw_step_deg": {
+                      "type": "number",
+                      "minimum": -180,
+                      "maximum": 180
+                    },
+                    "no_candidate_policy": {
+                      "type": "string",
+                      "const": "invalidate_run_spawn_constraint_failure"
+                    },
+                    "relax_constraints": {
+                      "type": "boolean",
+                      "const": false
+                    }
+                  }
+                }
+              ]
+            },
+            "lane_pitch_deg": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "motion_state_sampled_once_before_position_search": {
+              "type": "boolean",
+              "const": true
+            },
+            "candidate_yaw_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "coordinate_distribution",
+                "yaw_deg",
+                "pitch_deg",
+                "target_slots",
+                "minimum_silhouette_gap_deg",
+                "initial_reference_yaw_pitch_deg",
+                "transition_anchor",
+                "transition_angle_deg",
+                "exclude_live_reticle_on_initial_spawn",
+                "exclude_live_reticle_on_hit_respawn",
+                "random_candidate_limit",
+                "fallback",
+                "transition_band_bag",
+                "annulus_azimuth_rad_uniform",
+                "annulus_radial_distribution"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "replace_on_hit"
+                },
+                "coordinate_distribution": {
+                  "type": "string",
+                  "const": "uniform_solid_angle_spherical_annulus_then_envelope_rejection"
+                },
+                "yaw_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "pitch_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "target_slots": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 16
+                },
+                "minimum_silhouette_gap_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "initial_reference_yaw_pitch_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "transition_anchor": {
+                  "type": "string",
+                  "const": "previous_center_of_same_target_slot"
+                },
+                "transition_angle_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "exclude_live_reticle_on_initial_spawn": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "exclude_live_reticle_on_hit_respawn": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "random_candidate_limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                },
+                "fallback": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "kind",
+                    "yaw_step_deg",
+                    "pitch_step_deg",
+                    "enumeration",
+                    "no_candidate_policy",
+                    "relax_constraints"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "valid_lattice_minimum_hash"
+                    },
+                    "yaw_step_deg": {
+                      "type": "number",
+                      "minimum": -180,
+                      "maximum": 180
+                    },
+                    "pitch_step_deg": {
+                      "type": "number",
+                      "minimum": -180,
+                      "maximum": 180
+                    },
+                    "enumeration": {
+                      "type": "string",
+                      "const": "ascending_yaw_then_ascending_pitch"
+                    },
+                    "no_candidate_policy": {
+                      "type": "string",
+                      "const": "invalidate_run_spawn_constraint_failure"
+                    },
+                    "relax_constraints": {
+                      "type": "boolean",
+                      "const": false
+                    }
+                  }
+                },
+                "transition_band_bag": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "draw_count",
+                    "bands",
+                    "interval_rule",
+                    "shuffle",
+                    "refill"
+                  ],
+                  "properties": {
+                    "draw_count": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 1000000
+                    },
+                    "bands": {
+                      "type": "array",
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "angle_deg",
+                          "copies"
+                        ],
+                        "properties": {
+                          "angle_deg": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": {
+                              "type": "number",
+                              "minimum": -180,
+                              "maximum": 180
+                            }
+                          },
+                          "copies": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 1000000
+                          }
+                        }
+                      }
+                    },
+                    "interval_rule": {
+                      "type": "string",
+                      "const": "lower_inclusive_upper_exclusive_except_final_upper_inclusive"
+                    },
+                    "shuffle": {
+                      "type": "string",
+                      "const": "fisher_yates_unbiased"
+                    },
+                    "refill": {
+                      "type": "string",
+                      "const": "only_when_empty"
+                    }
+                  }
+                },
+                "annulus_azimuth_rad_uniform": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 6.2831853073
+                  }
+                },
+                "annulus_radial_distribution": {
+                  "type": "string",
+                  "const": "uniform_cosine_of_angular_distance"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "coordinate_distribution",
+                "yaw_deg",
+                "pitch_deg",
+                "target_slots",
+                "minimum_silhouette_gap_deg",
+                "initial_reference_yaw_pitch_deg",
+                "transition_anchor",
+                "transition_angle_deg",
+                "exclude_live_reticle_on_initial_spawn",
+                "exclude_live_reticle_on_hit_respawn",
+                "random_candidate_limit",
+                "fallback",
+                "annulus_azimuth_rad_uniform",
+                "annulus_radial_distribution"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "replace_on_hit"
+                },
+                "coordinate_distribution": {
+                  "type": "string",
+                  "const": "uniform_solid_angle_spherical_annulus_then_envelope_rejection"
+                },
+                "yaw_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "pitch_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "target_slots": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 16
+                },
+                "minimum_silhouette_gap_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "initial_reference_yaw_pitch_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "transition_anchor": {
+                  "type": "string",
+                  "const": "previous_center_of_same_target_slot"
+                },
+                "transition_angle_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "exclude_live_reticle_on_initial_spawn": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "exclude_live_reticle_on_hit_respawn": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "random_candidate_limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                },
+                "fallback": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "kind",
+                    "yaw_step_deg",
+                    "pitch_step_deg",
+                    "enumeration",
+                    "no_candidate_policy",
+                    "relax_constraints"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "valid_lattice_minimum_hash"
+                    },
+                    "yaw_step_deg": {
+                      "type": "number",
+                      "minimum": -180,
+                      "maximum": 180
+                    },
+                    "pitch_step_deg": {
+                      "type": "number",
+                      "minimum": -180,
+                      "maximum": 180
+                    },
+                    "enumeration": {
+                      "type": "string",
+                      "const": "ascending_yaw_then_ascending_pitch"
+                    },
+                    "no_candidate_policy": {
+                      "type": "string",
+                      "const": "invalidate_run_spawn_constraint_failure"
+                    },
+                    "relax_constraints": {
+                      "type": "boolean",
+                      "const": false
+                    }
+                  }
+                },
+                "annulus_azimuth_rad_uniform": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 6.2831853073
+                  }
+                },
+                "annulus_radial_distribution": {
+                  "type": "string",
+                  "const": "uniform_cosine_of_angular_distance"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "coordinate_distribution",
+                "yaw_deg",
+                "pitch_deg",
+                "target_slots",
+                "minimum_silhouette_gap_deg",
+                "initial_reference_yaw_pitch_deg",
+                "transition_anchor",
+                "transition_angle_deg",
+                "exclude_live_reticle_on_initial_spawn",
+                "exclude_live_reticle_on_hit_respawn",
+                "random_candidate_limit",
+                "fallback",
+                "minimum_equal_size_center_separation_deg"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "replace_on_hit"
+                },
+                "coordinate_distribution": {
+                  "type": "string",
+                  "const": "uniform_solid_angle_within_yaw_pitch_rectangle"
+                },
+                "yaw_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "pitch_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "target_slots": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 16
+                },
+                "minimum_silhouette_gap_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "initial_reference_yaw_pitch_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "transition_anchor": {
+                  "type": "string",
+                  "const": "previous_center_of_same_target_slot"
+                },
+                "transition_angle_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "exclude_live_reticle_on_initial_spawn": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "exclude_live_reticle_on_hit_respawn": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "random_candidate_limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                },
+                "fallback": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "kind",
+                    "yaw_step_deg",
+                    "pitch_step_deg",
+                    "enumeration",
+                    "no_candidate_policy",
+                    "relax_constraints"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "valid_lattice_minimum_hash"
+                    },
+                    "yaw_step_deg": {
+                      "type": "number",
+                      "minimum": -180,
+                      "maximum": 180
+                    },
+                    "pitch_step_deg": {
+                      "type": "number",
+                      "minimum": -180,
+                      "maximum": 180
+                    },
+                    "enumeration": {
+                      "type": "string",
+                      "const": "ascending_yaw_then_ascending_pitch"
+                    },
+                    "no_candidate_policy": {
+                      "type": "string",
+                      "const": "invalidate_run_spawn_constraint_failure"
+                    },
+                    "relax_constraints": {
+                      "type": "boolean",
+                      "const": false
+                    }
+                  }
+                },
+                "minimum_equal_size_center_separation_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "coordinate_distribution",
+            "yaw_deg",
+            "pitch_deg",
+            "target_slots",
+            "minimum_silhouette_gap_deg",
+            "initial_reference_yaw_pitch_deg",
+            "transition_anchor",
+            "transition_angle_deg",
+            "exclude_live_reticle_on_initial_spawn",
+            "exclude_live_reticle_on_hit_respawn",
+            "random_candidate_limit",
+            "fallback"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "replace_on_kill"
+            },
+            "coordinate_distribution": {
+              "type": "string",
+              "const": "uniform_solid_angle_within_yaw_pitch_rectangle"
+            },
+            "yaw_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "pitch_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "target_slots": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "minimum_silhouette_gap_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "initial_reference_yaw_pitch_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "transition_anchor": {
+              "type": "string",
+              "const": "previous_center_of_same_target_slot"
+            },
+            "transition_angle_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "exclude_live_reticle_on_initial_spawn": {
+              "type": "boolean",
+              "const": false
+            },
+            "exclude_live_reticle_on_hit_respawn": {
+              "type": "boolean",
+              "const": false
+            },
+            "random_candidate_limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "fallback": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "yaw_step_deg",
+                "pitch_step_deg",
+                "enumeration",
+                "no_candidate_policy",
+                "relax_constraints"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "valid_lattice_minimum_hash"
+                },
+                "yaw_step_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "pitch_step_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "enumeration": {
+                  "type": "string",
+                  "const": "ascending_yaw_then_ascending_pitch"
+                },
+                "no_candidate_policy": {
+                  "type": "string",
+                  "const": "invalidate_run_spawn_constraint_failure"
+                },
+                "relax_constraints": {
+                  "type": "boolean",
+                  "const": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "coordinate_distribution",
+            "yaw_deg",
+            "pitch_deg",
+            "target_slots",
+            "minimum_silhouette_gap_deg",
+            "initial_reference_yaw_pitch_deg",
+            "transition_anchor",
+            "transition_angle_deg",
+            "exclude_live_reticle_on_initial_spawn",
+            "exclude_live_reticle_on_hit_respawn",
+            "random_candidate_limit",
+            "fallback",
+            "schedule",
+            "annulus_azimuth_rad_uniform",
+            "annulus_radial_distribution"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "scheduled_single"
+            },
+            "coordinate_distribution": {
+              "type": "string",
+              "const": "uniform_solid_angle_spherical_annulus_then_envelope_rejection"
+            },
+            "yaw_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "pitch_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "target_slots": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "minimum_silhouette_gap_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "initial_reference_yaw_pitch_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "transition_anchor": {
+              "type": "string",
+              "const": "previous_scheduled_opportunity_center_or_neutral_reference"
+            },
+            "transition_angle_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "exclude_live_reticle_on_initial_spawn": {
+              "type": "boolean",
+              "const": false
+            },
+            "exclude_live_reticle_on_hit_respawn": {
+              "type": "boolean",
+              "const": false
+            },
+            "random_candidate_limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "fallback": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "yaw_step_deg",
+                "pitch_step_deg",
+                "enumeration",
+                "no_candidate_policy",
+                "relax_constraints"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "valid_lattice_minimum_hash"
+                },
+                "yaw_step_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "pitch_step_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "enumeration": {
+                  "type": "string",
+                  "const": "ascending_yaw_then_ascending_pitch"
+                },
+                "no_candidate_policy": {
+                  "type": "string",
+                  "const": "invalidate_run_spawn_constraint_failure"
+                },
+                "relax_constraints": {
+                  "type": "boolean",
+                  "const": false
+                }
+              }
+            },
+            "schedule": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "slots",
+                "slot_duration_s",
+                "first_slot_start_s",
+                "onset_delay_uniform_s",
+                "schedule_depends_on_hits",
+                "generation_rule",
+                "precompile_all_positions_and_onsets"
+              ],
+              "properties": {
+                "slots": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                },
+                "slot_duration_s": {
+                  "type": "number",
+                  "maximum": 3600,
+                  "exclusiveMinimum": 0
+                },
+                "first_slot_start_s": {
+                  "type": "number",
+                  "const": 0
+                },
+                "onset_delay_uniform_s": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 3600
+                  }
+                },
+                "schedule_depends_on_hits": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "generation_rule": {
+                  "type": "string",
+                  "const": "opportunity_index_equals_slot_index"
+                },
+                "precompile_all_positions_and_onsets": {
+                  "type": "boolean",
+                  "const": true
+                }
+              }
+            },
+            "annulus_azimuth_rad_uniform": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 6.2831853073
+              }
+            },
+            "annulus_radial_distribution": {
+              "type": "string",
+              "const": "uniform_cosine_of_angular_distance"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "coordinate_distribution",
+            "yaw_deg",
+            "pitch_deg",
+            "target_slots",
+            "minimum_silhouette_gap_deg",
+            "initial_reference_yaw_pitch_deg",
+            "transition_anchor",
+            "transition_angle_deg",
+            "exclude_live_reticle_on_initial_spawn",
+            "exclude_live_reticle_on_hit_respawn",
+            "random_candidate_limit",
+            "fallback"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "trajectory_initial_state"
+            },
+            "coordinate_distribution": {
+              "type": "string",
+              "const": "sample_initial_state_of_motion_model"
+            },
+            "yaw_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "pitch_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "target_slots": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "minimum_silhouette_gap_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "initial_reference_yaw_pitch_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "transition_anchor": {
+              "type": "string",
+              "const": "previous_center_of_same_target_slot"
+            },
+            "transition_angle_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "exclude_live_reticle_on_initial_spawn": {
+              "type": "boolean",
+              "const": false
+            },
+            "exclude_live_reticle_on_hit_respawn": {
+              "type": "boolean",
+              "const": false
+            },
+            "random_candidate_limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "fallback": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "no_candidate_policy",
+                "relax_constraints"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "not_needed_unconstrained_trajectory_initial_state"
+                },
+                "no_candidate_policy": {
+                  "type": "string",
+                  "const": "invalidate_run_spawn_constraint_failure"
+                },
+                "relax_constraints": {
+                  "type": "boolean",
+                  "const": false
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Lifecycle": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "ttl_s",
+            "respawn_delay_s",
+            "phase_end_outcome",
+            "generation_index_starts_at",
+            "spawn_is_hittable_after",
+            "on_hit"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "persistent"
+            },
+            "ttl_s": {
+              "type": "null"
+            },
+            "respawn_delay_s": {
+              "type": "number",
+              "const": 0
+            },
+            "phase_end_outcome": {
+              "type": "string",
+              "const": "censored_phase"
+            },
+            "generation_index_starts_at": {
+              "type": "integer",
+              "const": 0
+            },
+            "spawn_is_hittable_after": {
+              "type": "string",
+              "const": "first_rendered_frame"
+            },
+            "on_hit": {
+              "type": "string",
+              "const": "continue"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "ttl_s",
+            "respawn_delay_s",
+            "phase_end_outcome",
+            "generation_index_starts_at",
+            "spawn_is_hittable_after",
+            "on_hit",
+            "ttl_origin",
+            "on_expiry",
+            "exclusive_final_outcomes",
+            "shot_at_exact_expiry",
+            "unsuccessful_window_counts_once",
+            "first_rendered_frame_at_or_after_deadline",
+            "human_miss_on_nonpresented_opportunity"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "scheduled_window"
+            },
+            "ttl_s": {
+              "type": "number",
+              "maximum": 3600,
+              "exclusiveMinimum": 0
+            },
+            "respawn_delay_s": {
+              "type": "number",
+              "const": 0
+            },
+            "phase_end_outcome": {
+              "type": "string",
+              "const": "censored_phase"
+            },
+            "generation_index_starts_at": {
+              "type": "integer",
+              "const": 0
+            },
+            "spawn_is_hittable_after": {
+              "type": "string",
+              "const": "first_rendered_frame"
+            },
+            "on_hit": {
+              "type": "string",
+              "const": "remove_until_next_scheduled_slot"
+            },
+            "ttl_origin": {
+              "type": "string",
+              "const": "scheduled_spawn_time"
+            },
+            "on_expiry": {
+              "type": "string",
+              "const": "remove_until_next_scheduled_slot"
+            },
+            "exclusive_final_outcomes": {
+              "type": "array",
+              "const": [
+                "hit",
+                "expired",
+                "censored_phase",
+                "censored_technical"
+              ]
+            },
+            "shot_at_exact_expiry": {
+              "type": "string",
+              "const": "not_eligible"
+            },
+            "unsuccessful_window_counts_once": {
+              "type": "boolean",
+              "const": true
+            },
+            "first_rendered_frame_at_or_after_deadline": {
+              "type": "string",
+              "const": "render_failure_nonrendered_opportunity_invalid_for_comparison"
+            },
+            "human_miss_on_nonpresented_opportunity": {
+              "type": "boolean",
+              "const": false
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "ttl_s",
+            "respawn_delay_s",
+            "phase_end_outcome",
+            "generation_index_starts_at",
+            "spawn_is_hittable_after",
+            "on_hit",
+            "hp_max",
+            "hp_regeneration_per_s",
+            "partial_hp_persists_until",
+            "ideal_contact_time_to_kill_s"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "until_contact_kill"
+            },
+            "ttl_s": {
+              "type": "null"
+            },
+            "respawn_delay_s": {
+              "type": "number",
+              "const": 0
+            },
+            "phase_end_outcome": {
+              "type": "string",
+              "const": "censored_phase"
+            },
+            "generation_index_starts_at": {
+              "type": "integer",
+              "const": 0
+            },
+            "spawn_is_hittable_after": {
+              "type": "string",
+              "const": "first_rendered_frame"
+            },
+            "on_hit": {
+              "type": "string",
+              "const": "remove_and_replace_same_slot"
+            },
+            "hp_max": {
+              "type": "number",
+              "minimum": -1000000000000.0,
+              "maximum": 1000000000000.0
+            },
+            "hp_regeneration_per_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            },
+            "partial_hp_persists_until": {
+              "type": "string",
+              "const": "kill_or_phase_close"
+            },
+            "ideal_contact_time_to_kill_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "ttl_s",
+            "respawn_delay_s",
+            "phase_end_outcome",
+            "generation_index_starts_at",
+            "spawn_is_hittable_after",
+            "on_hit"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "until_hit"
+            },
+            "ttl_s": {
+              "type": "null"
+            },
+            "respawn_delay_s": {
+              "type": "number",
+              "const": 0
+            },
+            "phase_end_outcome": {
+              "type": "string",
+              "const": "censored_phase"
+            },
+            "generation_index_starts_at": {
+              "type": "integer",
+              "const": 0
+            },
+            "spawn_is_hittable_after": {
+              "type": "string",
+              "const": "first_rendered_frame"
+            },
+            "on_hit": {
+              "type": "string",
+              "const": "remove_and_replace_same_slot"
+            }
+          }
+        }
+      ]
+    },
+    "Fire": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "max_targets_per_press",
+            "press_cooldown_s",
+            "hold_repeat_for_click",
+            "damage_per_s"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "const": "automatic_contact_measurement"
+            },
+            "max_targets_per_press": {
+              "type": "integer",
+              "const": 1
+            },
+            "press_cooldown_s": {
+              "type": "number",
+              "const": 0
+            },
+            "hold_repeat_for_click": {
+              "type": "boolean",
+              "const": false
+            },
+            "damage_per_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "max_targets_per_press",
+            "press_cooldown_s",
+            "hold_repeat_for_click",
+            "damage_per_s"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "const": "hold_continuous_damage"
+            },
+            "max_targets_per_press": {
+              "type": "integer",
+              "const": 1
+            },
+            "press_cooldown_s": {
+              "type": "number",
+              "const": 0
+            },
+            "hold_repeat_for_click": {
+              "type": "boolean",
+              "const": false
+            },
+            "damage_per_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "max_targets_per_press",
+            "press_cooldown_s",
+            "hold_repeat_for_click",
+            "damage_per_s"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "const": "press_edge"
+            },
+            "max_targets_per_press": {
+              "type": "integer",
+              "const": 1
+            },
+            "press_cooldown_s": {
+              "type": "number",
+              "const": 0
+            },
+            "hold_repeat_for_click": {
+              "type": "boolean",
+              "const": false
+            },
+            "damage_per_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            }
+          }
+        }
+      ]
+    },
+    "Motion": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "chambers",
+            "apex_height_above_baseline_deg",
+            "flight_duration_s",
+            "launch_pitch_velocity_deg_s",
+            "pitch_acceleration_deg_s2",
+            "yaw_speed_deg_s",
+            "ground_rest_uniform_s",
+            "yaw_continues_during_ground_rest",
+            "initial_flight_age_uniform_s",
+            "initial_direction_prob_positive",
+            "landing_flip_probability",
+            "wall_reflection",
+            "simultaneous_wall_and_landing",
+            "finite_acceleration_limit_applies_at_impulse",
+            "no_rng_in_frame_loop",
+            "event_tape_horizon_s"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "angular_bounce"
+            },
+            "chambers": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "slot",
+                  "yaw_deg",
+                  "baseline_pitch_deg"
+                ],
+                "properties": {
+                  "slot": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 15
+                  },
+                  "yaw_deg": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "number",
+                      "minimum": -180,
+                      "maximum": 180
+                    }
+                  },
+                  "baseline_pitch_deg": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                }
+              }
+            },
+            "apex_height_above_baseline_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "flight_duration_s": {
+              "type": "number",
+              "maximum": 3600,
+              "exclusiveMinimum": 0
+            },
+            "launch_pitch_velocity_deg_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            },
+            "pitch_acceleration_deg_s2": {
+              "type": "number",
+              "minimum": -100000,
+              "maximum": 100000
+            },
+            "yaw_speed_deg_s": {
+              "type": "number",
+              "maximum": 3600,
+              "exclusiveMinimum": 0
+            },
+            "ground_rest_uniform_s": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 3600
+              }
+            },
+            "yaw_continues_during_ground_rest": {
+              "type": "boolean",
+              "const": true
+            },
+            "initial_flight_age_uniform_s": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 3600
+              }
+            },
+            "initial_direction_prob_positive": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "landing_flip_probability": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "wall_reflection": {
+              "type": "string",
+              "const": "instantaneous_inward_yaw_velocity"
+            },
+            "simultaneous_wall_and_landing": {
+              "type": "string",
+              "const": "draw_landing_flip_then_enforce_inward_wall_direction"
+            },
+            "finite_acceleration_limit_applies_at_impulse": {
+              "type": "boolean",
+              "const": false
+            },
+            "no_rng_in_frame_loop": {
+              "type": "boolean",
+              "const": true
+            },
+            "event_tape_horizon_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "yaw_amplitude_deg",
+            "pitch_amplitude_deg",
+            "formula",
+            "path_angular_speed_deg_s",
+            "initial_arc_fraction_uniform",
+            "direction_prob_positive",
+            "acceleration_validation_limit_deg_s2",
+            "arc_length_solver"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "angular_ellipse"
+            },
+            "yaw_amplitude_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "pitch_amplitude_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "formula": {
+              "type": "string",
+              "const": "yaw_deg = 16 * cos(q); pitch_deg = 10 * sin(q)"
+            },
+            "path_angular_speed_deg_s": {
+              "type": "number",
+              "maximum": 3600,
+              "exclusiveMinimum": 0
+            },
+            "initial_arc_fraction_uniform": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "direction_prob_positive": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "acceleration_validation_limit_deg_s2": {
+              "type": "number",
+              "minimum": -100000,
+              "maximum": 100000
+            },
+            "arc_length_solver": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "metric",
+                "lut_cells",
+                "cell_quadrature",
+                "inverse",
+                "absolute_arc_error_rad",
+                "max_inverse_iterations",
+                "relative_speed_error_validation_limit"
+              ],
+              "properties": {
+                "metric": {
+                  "type": "string",
+                  "const": "sqrt(cos(pitch_rad)^2 * dyaw_rad_dq^2 + dpitch_rad_dq^2)"
+                },
+                "lut_cells": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                },
+                "cell_quadrature": {
+                  "type": "string",
+                  "const": "simpson_three_points"
+                },
+                "inverse": {
+                  "type": "string",
+                  "const": "bracketed_newton"
+                },
+                "absolute_arc_error_rad": {
+                  "type": "number",
+                  "minimum": -1000000000000.0,
+                  "maximum": 1000000000000.0
+                },
+                "max_inverse_iterations": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                },
+                "relative_speed_error_validation_limit": {
+                  "type": "number",
+                  "minimum": -1000000000000.0,
+                  "maximum": 1000000000000.0
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "yaw_amplitude_deg",
+            "yaw_omega_rad_s",
+            "pitch_amplitude_deg",
+            "pitch_omega_rad_s",
+            "distance_center_m",
+            "distance_amplitude_m",
+            "distance_omega_rad_s",
+            "initial_phase_rad_uniform",
+            "phase_count",
+            "phases_independent",
+            "angular_speed_upper_bound_deg_s",
+            "radial_speed_max_m_s",
+            "radial_acceleration_max_m_s2",
+            "no_respawn_during_phase",
+            "no_screen_size_compensation"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "depth_sines"
+            },
+            "yaw_amplitude_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "yaw_omega_rad_s": {
+              "type": "number",
+              "maximum": 3600,
+              "exclusiveMinimum": 0
+            },
+            "pitch_amplitude_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "pitch_omega_rad_s": {
+              "type": "number",
+              "maximum": 3600,
+              "exclusiveMinimum": 0
+            },
+            "distance_center_m": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "distance_amplitude_m": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "distance_omega_rad_s": {
+              "type": "number",
+              "maximum": 3600,
+              "exclusiveMinimum": 0
+            },
+            "initial_phase_rad_uniform": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 6.2831853073
+              }
+            },
+            "phase_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "phases_independent": {
+              "type": "boolean",
+              "const": true
+            },
+            "angular_speed_upper_bound_deg_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            },
+            "radial_speed_max_m_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            },
+            "radial_acceleration_max_m_s2": {
+              "type": "number",
+              "minimum": -1000000000000.0,
+              "maximum": 1000000000000.0
+            },
+            "no_respawn_during_phase": {
+              "type": "boolean",
+              "const": true
+            },
+            "no_screen_size_compensation": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "yaw_bounds_deg",
+                "lanes_pitch_deg",
+                "yaw_speed_deg_s",
+                "initial_yaw_uniform_deg",
+                "initial_direction_prob_positive",
+                "reflection",
+                "vertical_motion",
+                "finite_acceleration_limit_applies"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "linear_reflect"
+                },
+                "yaw_bounds_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "lanes_pitch_deg": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "yaw_speed_deg_s": {
+                  "type": "number",
+                  "maximum": 3600,
+                  "exclusiveMinimum": 0
+                },
+                "initial_yaw_uniform_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "initial_direction_prob_positive": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "reflection": {
+                  "type": "string",
+                  "const": "instantaneous_velocity_sign_change"
+                },
+                "vertical_motion": {
+                  "type": "string",
+                  "const": "none"
+                },
+                "finite_acceleration_limit_applies": {
+                  "type": "boolean",
+                  "const": false
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "reflection",
+                "yaw_bounds_deg",
+                "lanes_pitch_deg",
+                "yaw_speed_deg_s",
+                "turn_duration_s",
+                "turn_entry_inset_deg",
+                "straight_segment_duration_s",
+                "period_s",
+                "peak_yaw_acceleration_deg_s2",
+                "initial_cycle_fraction_uniform",
+                "initial_direction_prob_positive",
+                "vertical_motion",
+                "finite_acceleration_limit_applies"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "linear_reflect"
+                },
+                "reflection": {
+                  "type": "string",
+                  "const": "symmetric_cubic_smoothstep_velocity"
+                },
+                "yaw_bounds_deg": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "lanes_pitch_deg": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  }
+                },
+                "yaw_speed_deg_s": {
+                  "type": "number",
+                  "maximum": 3600,
+                  "exclusiveMinimum": 0
+                },
+                "turn_duration_s": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 3600
+                },
+                "turn_entry_inset_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "straight_segment_duration_s": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 3600
+                },
+                "period_s": {
+                  "type": "number",
+                  "maximum": 3600,
+                  "exclusiveMinimum": 0
+                },
+                "peak_yaw_acceleration_deg_s2": {
+                  "type": "number",
+                  "minimum": -100000,
+                  "maximum": 100000
+                },
+                "initial_cycle_fraction_uniform": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "initial_direction_prob_positive": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "vertical_motion": {
+                  "type": "string",
+                  "const": "none"
+                },
+                "finite_acceleration_limit_applies": {
+                  "type": "boolean",
+                  "const": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "axis",
+            "yaw_bounds_deg",
+            "lanes_pitch_deg",
+            "yaw_speed_abs_deg_s",
+            "initial_yaw_distribution",
+            "initial_direction_prob_positive",
+            "initial_velocity",
+            "direction_flip_probability",
+            "plateau_duration_mixture",
+            "plateau_begins",
+            "velocity_transition",
+            "boundary",
+            "vertical",
+            "nominal_full_angular_speed_upper_bound_deg_s",
+            "event_tape"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "reactive_axis"
+            },
+            "axis": {
+              "type": "string",
+              "const": "yaw"
+            },
+            "yaw_bounds_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "lanes_pitch_deg": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "yaw_speed_abs_deg_s": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 3600
+              }
+            },
+            "initial_yaw_distribution": {
+              "type": "string",
+              "const": "uniform_inside_soft_turn_thresholds"
+            },
+            "initial_direction_prob_positive": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "initial_velocity": {
+              "type": "string",
+              "const": "sampled_full_signed_speed"
+            },
+            "direction_flip_probability": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "plateau_duration_mixture": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 2,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "weight",
+                  "uniform_duration_s"
+                ],
+                "properties": {
+                  "weight": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "uniform_duration_s": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 3600
+                    }
+                  }
+                }
+              }
+            },
+            "plateau_begins": {
+              "type": "string",
+              "const": "after_velocity_transition_finishes"
+            },
+            "velocity_transition": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "nominal_duration_s",
+                "duration_formula",
+                "acceleration_limit_deg_s2"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "cubic_smoothstep_velocity"
+                },
+                "nominal_duration_s": {
+                  "type": "number",
+                  "maximum": 3600,
+                  "exclusiveMinimum": 0
+                },
+                "duration_formula": {
+                  "type": "string",
+                  "const": "max(nominal_duration_s, 1.5 * abs(v1 - v0) / acceleration_limit_deg_s2)"
+                },
+                "acceleration_limit_deg_s2": {
+                  "type": "number",
+                  "maximum": 100000,
+                  "exclusiveMinimum": 0
+                }
+              }
+            },
+            "boundary": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "trigger_inset_deg",
+                "inward_speed_rule",
+                "preempted_timer",
+                "same_time_priority",
+                "preserve_position_and_velocity",
+                "rearm_condition"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "soft_turn_preempts_event"
+                },
+                "trigger_inset_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "inward_speed_rule": {
+                  "type": "string",
+                  "const": "use_most_recent_sampled_plateau_speed"
+                },
+                "preempted_timer": {
+                  "type": "string",
+                  "const": "discard_then_draw_new_plateau_after_boundary_ramp"
+                },
+                "same_time_priority": {
+                  "type": "string",
+                  "const": "boundary_before_spontaneous"
+                },
+                "preserve_position_and_velocity": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "rearm_condition": {
+                  "type": "string",
+                  "const": "return_inside_both_soft_turn_thresholds"
+                }
+              }
+            },
+            "vertical": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "amplitude_deg",
+                "period_s",
+                "phase_rad_distribution",
+                "initial_phase_independent_per_target"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "sine_about_lane_center"
+                },
+                "amplitude_deg": {
+                  "type": "number",
+                  "maximum": 180,
+                  "minimum": 0
+                },
+                "period_s": {
+                  "type": "number",
+                  "maximum": 3600,
+                  "exclusiveMinimum": 0
+                },
+                "phase_rad_distribution": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 6.2831853073
+                  }
+                },
+                "initial_phase_independent_per_target": {
+                  "type": "boolean",
+                  "const": true
+                }
+              }
+            },
+            "nominal_full_angular_speed_upper_bound_deg_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            },
+            "event_tape": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "compiled_before_first_rendered_frame",
+                "horizon_s",
+                "event_time_rounding",
+                "boundary_root_tolerance_s",
+                "minimum_distinct_event_spacing_s",
+                "no_rng_in_frame_loop"
+              ],
+              "properties": {
+                "compiled_before_first_rendered_frame": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "horizon_s": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 3600
+                },
+                "event_time_rounding": {
+                  "type": "string",
+                  "const": "nearest_integer_microsecond_half_up"
+                },
+                "boundary_root_tolerance_s": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 3600
+                },
+                "minimum_distinct_event_spacing_s": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 3600
+                },
+                "no_rng_in_frame_loop": {
+                  "type": "boolean",
+                  "const": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "axis",
+            "yaw_bounds_deg",
+            "lanes_pitch_deg",
+            "yaw_speed_abs_deg_s",
+            "initial_yaw_distribution",
+            "initial_direction_prob_positive",
+            "initial_velocity",
+            "direction_flip_probability",
+            "plateau_duration_mixture",
+            "plateau_begins",
+            "velocity_transition",
+            "boundary",
+            "vertical",
+            "nominal_full_angular_speed_upper_bound_deg_s",
+            "event_tape"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "reactive_lanes"
+            },
+            "axis": {
+              "type": "string",
+              "const": "yaw"
+            },
+            "yaw_bounds_deg": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "lanes_pitch_deg": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            },
+            "yaw_speed_abs_deg_s": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 3600
+              }
+            },
+            "initial_yaw_distribution": {
+              "type": "string",
+              "const": "uniform_inside_soft_turn_thresholds"
+            },
+            "initial_direction_prob_positive": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "initial_velocity": {
+              "type": "string",
+              "const": "sampled_full_signed_speed"
+            },
+            "direction_flip_probability": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "plateau_duration_mixture": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "weight",
+                  "uniform_duration_s"
+                ],
+                "properties": {
+                  "weight": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "uniform_duration_s": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 3600
+                    }
+                  }
+                }
+              }
+            },
+            "plateau_begins": {
+              "type": "string",
+              "const": "after_velocity_transition_finishes"
+            },
+            "velocity_transition": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "nominal_duration_s",
+                "duration_formula",
+                "acceleration_limit_deg_s2"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "cubic_smoothstep_velocity"
+                },
+                "nominal_duration_s": {
+                  "type": "number",
+                  "maximum": 3600,
+                  "exclusiveMinimum": 0
+                },
+                "duration_formula": {
+                  "type": "string",
+                  "const": "max(nominal_duration_s, 1.5 * abs(v1 - v0) / acceleration_limit_deg_s2)"
+                },
+                "acceleration_limit_deg_s2": {
+                  "type": "number",
+                  "maximum": 100000,
+                  "exclusiveMinimum": 0
+                }
+              }
+            },
+            "boundary": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "trigger_inset_deg",
+                "inward_speed_rule",
+                "preempted_timer",
+                "same_time_priority",
+                "preserve_position_and_velocity",
+                "rearm_condition"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "soft_turn_preempts_event"
+                },
+                "trigger_inset_deg": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "inward_speed_rule": {
+                  "type": "string",
+                  "const": "use_most_recent_sampled_plateau_speed"
+                },
+                "preempted_timer": {
+                  "type": "string",
+                  "const": "discard_then_draw_new_plateau_after_boundary_ramp"
+                },
+                "same_time_priority": {
+                  "type": "string",
+                  "const": "boundary_before_spontaneous"
+                },
+                "preserve_position_and_velocity": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "rearm_condition": {
+                  "type": "string",
+                  "const": "return_inside_both_soft_turn_thresholds"
+                }
+              }
+            },
+            "vertical": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "amplitude_deg",
+                "period_s",
+                "phase_rad_distribution",
+                "initial_phase_independent_per_target"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "sine_about_lane_center"
+                },
+                "amplitude_deg": {
+                  "type": "number",
+                  "maximum": 180,
+                  "exclusiveMinimum": 0
+                },
+                "period_s": {
+                  "type": "number",
+                  "maximum": 3600,
+                  "exclusiveMinimum": 0
+                },
+                "phase_rad_distribution": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 6.2831853073
+                  }
+                },
+                "initial_phase_independent_per_target": {
+                  "type": "boolean",
+                  "const": true
+                }
+              }
+            },
+            "nominal_full_angular_speed_upper_bound_deg_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            },
+            "event_tape": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "compiled_before_first_rendered_frame",
+                "horizon_s",
+                "event_time_rounding",
+                "boundary_root_tolerance_s",
+                "minimum_distinct_event_spacing_s",
+                "no_rng_in_frame_loop"
+              ],
+              "properties": {
+                "compiled_before_first_rendered_frame": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "horizon_s": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 3600
+                },
+                "event_time_rounding": {
+                  "type": "string",
+                  "const": "nearest_integer_microsecond_half_up"
+                },
+                "boundary_root_tolerance_s": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 3600
+                },
+                "minimum_distinct_event_spacing_s": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 3600
+                },
+                "no_rng_in_frame_loop": {
+                  "type": "boolean",
+                  "const": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "axis",
+            "amplitude_deg",
+            "orthogonal_coordinate_deg",
+            "omega_rad_s",
+            "period_s",
+            "peak_angular_speed_deg_s",
+            "peak_angular_acceleration_deg_s2",
+            "initial_phase_rad_uniform",
+            "formula"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "sinusoid_axis"
+            },
+            "axis": {
+              "type": "string",
+              "enum": [
+                "pitch",
+                "yaw"
+              ]
+            },
+            "amplitude_deg": {
+              "type": "number",
+              "maximum": 180,
+              "exclusiveMinimum": 0
+            },
+            "orthogonal_coordinate_deg": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "omega_rad_s": {
+              "type": "number",
+              "maximum": 3600,
+              "exclusiveMinimum": 0
+            },
+            "period_s": {
+              "type": "number",
+              "maximum": 3600,
+              "exclusiveMinimum": 0
+            },
+            "peak_angular_speed_deg_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            },
+            "peak_angular_acceleration_deg_s2": {
+              "type": "number",
+              "minimum": -100000,
+              "maximum": 100000
+            },
+            "initial_phase_rad_uniform": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 6.2831853073
+              }
+            },
+            "formula": {
+              "type": "string",
+              "const": "coordinate_deg = amplitude_deg * sin(omega_rad_s * t_s + phase_rad)"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "static"
+            }
+          }
+        }
+      ]
+    },
+    "Scoring": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "formula",
+            "unit",
+            "accuracy_exponent",
+            "scale",
+            "shot_denominator",
+            "secondary",
+            "phase_duration_s",
+            "rank_key_suffix",
+            "comparison_context_required"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "const": "click_v3"
+            },
+            "formula": {
+              "type": "string",
+              "const": "1000 * hits / phase_duration_s * hits / max(shots, 1)"
+            },
+            "unit": {
+              "type": "string",
+              "const": "points"
+            },
+            "accuracy_exponent": {
+              "type": "integer",
+              "const": 1
+            },
+            "scale": {
+              "type": "integer",
+              "const": 1000
+            },
+            "shot_denominator": {
+              "type": "string",
+              "const": "all_press_edges_in_phase_including_empty_arena"
+            },
+            "secondary": {
+              "type": "array",
+              "const": [
+                "hits",
+                "misses",
+                "shots",
+                "accuracy",
+                "hits_per_s",
+                "acquisition_p50_ms",
+                "acquisition_p90_ms"
+              ]
+            },
+            "phase_duration_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            },
+            "rank_key_suffix": {
+              "type": "array",
+              "const": [
+                "catalogue_revision",
+                "program_id",
+                "difficulty",
+                "phase_id"
+              ]
+            },
+            "comparison_context_required": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "formula",
+                "unit",
+                "scale",
+                "contact_requires_fire",
+                "exposure_denominator",
+                "exposure_never_retimed",
+                "exposure_stops_when_player_looks_away",
+                "secondary",
+                "phase_duration_s",
+                "rank_key_suffix",
+                "comparison_context_required",
+                "reacquisition"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "contact_v2"
+                },
+                "formula": {
+                  "type": "string",
+                  "const": "1000 * contact_s / exposure_s"
+                },
+                "unit": {
+                  "type": "string",
+                  "const": "points"
+                },
+                "scale": {
+                  "type": "integer",
+                  "const": 1000
+                },
+                "contact_requires_fire": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "exposure_denominator": {
+                  "type": "string",
+                  "const": "full_scheduled_phase_duration_including_initial_acquisition_and_user_look_away"
+                },
+                "exposure_never_retimed": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "exposure_stops_when_player_looks_away": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "secondary": {
+                  "type": "array",
+                  "const": [
+                    "contact_s",
+                    "exposure_s",
+                    "contact_fraction",
+                    "angular_error_mean_deg",
+                    "angular_error_p90_deg",
+                    "post_reversal_contact_fraction_250_ms",
+                    "stable_reacquisition_p50_ms",
+                    "stable_reacquisition_p90_ms"
+                  ]
+                },
+                "phase_duration_s": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 3600
+                },
+                "rank_key_suffix": {
+                  "type": "array",
+                  "const": [
+                    "catalogue_revision",
+                    "program_id",
+                    "difficulty",
+                    "phase_id"
+                  ]
+                },
+                "comparison_context_required": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "reacquisition": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "window_s",
+                    "stable_raw_contact_s",
+                    "diagnostic_gap_merge_s",
+                    "latency_timestamp",
+                    "next_reversal_policy"
+                  ],
+                  "properties": {
+                    "window_s": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 3600
+                    },
+                    "stable_raw_contact_s": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 3600
+                    },
+                    "diagnostic_gap_merge_s": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 3600
+                    },
+                    "latency_timestamp": {
+                      "type": "string",
+                      "const": "start_of_first_qualifying_raw_contact_interval"
+                    },
+                    "next_reversal_policy": {
+                      "type": "string",
+                      "const": "censor_previous_window_at_next_reversal"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "formula",
+                "unit",
+                "scale",
+                "contact_requires_fire",
+                "exposure_denominator",
+                "exposure_never_retimed",
+                "exposure_stops_when_player_looks_away",
+                "secondary",
+                "phase_duration_s",
+                "rank_key_suffix",
+                "comparison_context_required"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "contact_v2"
+                },
+                "formula": {
+                  "type": "string",
+                  "const": "1000 * contact_s / exposure_s"
+                },
+                "unit": {
+                  "type": "string",
+                  "const": "points"
+                },
+                "scale": {
+                  "type": "integer",
+                  "const": 1000
+                },
+                "contact_requires_fire": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "exposure_denominator": {
+                  "type": "string",
+                  "const": "full_scheduled_phase_duration_including_initial_acquisition_and_user_look_away"
+                },
+                "exposure_never_retimed": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "exposure_stops_when_player_looks_away": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "secondary": {
+                  "type": "array",
+                  "const": [
+                    "contact_s",
+                    "exposure_s",
+                    "contact_fraction",
+                    "angular_error_mean_deg",
+                    "angular_error_p90_deg"
+                  ]
+                },
+                "phase_duration_s": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 3600
+                },
+                "rank_key_suffix": {
+                  "type": "array",
+                  "const": [
+                    "catalogue_revision",
+                    "program_id",
+                    "difficulty",
+                    "phase_id"
+                  ]
+                },
+                "comparison_context_required": {
+                  "type": "boolean",
+                  "const": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "formula",
+            "unit",
+            "scale",
+            "shot_denominator",
+            "opportunity_denominator",
+            "secondary",
+            "phase_duration_s",
+            "rank_key_suffix",
+            "comparison_context_required"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "const": "opportunities_v2"
+            },
+            "formula": {
+              "type": "string",
+              "const": "1000 * hits / opportunities * hits / max(shots, 1)"
+            },
+            "unit": {
+              "type": "string",
+              "const": "points"
+            },
+            "scale": {
+              "type": "integer",
+              "const": 1000
+            },
+            "shot_denominator": {
+              "type": "string",
+              "const": "all_press_edges_in_phase_including_empty_arena"
+            },
+            "opportunity_denominator": {
+              "type": "string",
+              "const": "scheduled_opportunities_in_completed_phase"
+            },
+            "secondary": {
+              "type": "array",
+              "const": [
+                "hits",
+                "expired",
+                "censored",
+                "shots",
+                "accuracy",
+                "response_p50_ms",
+                "response_p90_ms"
+              ]
+            },
+            "phase_duration_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            },
+            "rank_key_suffix": {
+              "type": "array",
+              "const": [
+                "catalogue_revision",
+                "program_id",
+                "difficulty",
+                "phase_id"
+              ]
+            },
+            "comparison_context_required": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "formula",
+            "unit",
+            "scale",
+            "partial_credit",
+            "damage_overflow",
+            "secondary",
+            "phase_duration_s",
+            "rank_key_suffix",
+            "comparison_context_required",
+            "hp_max"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "const": "switch_work_v3"
+            },
+            "formula": {
+              "type": "string",
+              "const": "1000 * (kills + sum(final_living_damage / hp_max)) / phase_duration_s"
+            },
+            "unit": {
+              "type": "string",
+              "const": "points"
+            },
+            "scale": {
+              "type": "integer",
+              "const": 1000
+            },
+            "partial_credit": {
+              "type": "string",
+              "const": "sum_damage_fraction_of_all_living_targets_at_phase_close"
+            },
+            "damage_overflow": {
+              "type": "string",
+              "const": "discard_after_current_target_hp_zero"
+            },
+            "secondary": {
+              "type": "array",
+              "const": [
+                "kills",
+                "credited_work",
+                "useful_damage",
+                "contact_s",
+                "switch_latency_p50_ms",
+                "switch_latency_p90_ms"
+              ]
+            },
+            "phase_duration_s": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3600
+            },
+            "rank_key_suffix": {
+              "type": "array",
+              "const": [
+                "catalogue_revision",
+                "program_id",
+                "difficulty",
+                "phase_id"
+              ]
+            },
+            "comparison_context_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "hp_max": {
+              "type": "number",
+              "minimum": -1000000000000.0,
+              "maximum": 1000000000000.0
+            }
+          }
+        }
+      ]
+    },
+    "Visual": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "diagram",
+            "diagram_show_envelope",
+            "diagram_show_exact_angular_diameter",
+            "diagram_show_target_slot_numbers",
+            "runtime_debug_overlay",
+            "illustrative_route_is_not_extra_runtime_constraint",
+            "hp_display"
+          ],
+          "properties": {
+            "diagram": {
+              "type": "string",
+              "const": "angular_front_view"
+            },
+            "diagram_show_envelope": {
+              "type": "boolean",
+              "const": true
+            },
+            "diagram_show_exact_angular_diameter": {
+              "type": "boolean",
+              "const": true
+            },
+            "diagram_show_target_slot_numbers": {
+              "type": "boolean",
+              "const": true
+            },
+            "runtime_debug_overlay": {
+              "type": "boolean",
+              "const": false
+            },
+            "illustrative_route_is_not_extra_runtime_constraint": {
+              "type": "boolean",
+              "const": true
+            },
+            "hp_display": {
+              "type": "string",
+              "const": "outer_progress_ring_same_geometry_no_size_change"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "diagram",
+            "diagram_show_envelope",
+            "diagram_show_exact_angular_diameter",
+            "diagram_show_target_slot_numbers",
+            "runtime_debug_overlay",
+            "illustrative_route_is_not_extra_runtime_constraint"
+          ],
+          "properties": {
+            "diagram": {
+              "type": "string",
+              "enum": [
+                "angular_front_view",
+                "angular_front_view_and_slot_timeline",
+                "angular_route_and_depth_size_profile",
+                "four_angular_chambers_with_parabolic_routes"
+              ]
+            },
+            "diagram_show_envelope": {
+              "type": "boolean",
+              "const": true
+            },
+            "diagram_show_exact_angular_diameter": {
+              "type": "boolean",
+              "const": true
+            },
+            "diagram_show_target_slot_numbers": {
+              "type": "boolean",
+              "const": true
+            },
+            "runtime_debug_overlay": {
+              "type": "boolean",
+              "const": false
+            },
+            "illustrative_route_is_not_extra_runtime_constraint": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        }
+      ]
+    },
+    "Phase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "start_s",
+        "duration_s",
+        "mechanic",
+        "target_count",
+        "diameter_deg",
+        "distance_m",
+        "size",
+        "envelope",
+        "spawn",
+        "lifecycle",
+        "fire",
+        "motion",
+        "scoring",
+        "visual"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "enum": [
+            "amplitude",
+            "arcs",
+            "depth",
+            "ellipse",
+            "evasive",
+            "fixed_window",
+            "general",
+            "grid",
+            "horizontal",
+            "linear",
+            "micro",
+            "mobile",
+            "precision",
+            "reactive",
+            "shrinking_window",
+            "static",
+            "vertical"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "start_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3600
+        },
+        "duration_s": {
+          "type": "number",
+          "maximum": 3600,
+          "exclusiveMinimum": 0
+        },
+        "mechanic": {
+          "type": "string",
+          "enum": [
+            "click",
+            "opportunity",
+            "switching",
+            "tracking"
+          ]
+        },
+        "target_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "diameter_deg": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "distance_m": {
+          "type": "number",
+          "maximum": 1000,
+          "exclusiveMinimum": 0
+        },
+        "size": {
+          "$ref": "#/$defs/Size"
+        },
+        "envelope": {
+          "$ref": "#/$defs/Envelope"
+        },
+        "spawn": {
+          "$ref": "#/$defs/Spawn"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/Lifecycle"
+        },
+        "fire": {
+          "$ref": "#/$defs/Fire"
+        },
+        "motion": {
+          "$ref": "#/$defs/Motion"
+        },
+        "scoring": {
+          "$ref": "#/$defs/Scoring"
+        },
+        "visual": {
+          "$ref": "#/$defs/Visual"
+        }
+      }
+    },
+    "Program": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "program_id",
+        "difficulty",
+        "title",
+        "duration_s",
+        "public_mode_selector",
+        "difficulty_locked_for_run",
+        "arena",
+        "phase_transition",
+        "aggregate",
+        "phases"
+      ],
+      "properties": {
+        "program_id": {
+          "type": "string",
+          "enum": [
+            "EX01",
+            "EX02",
+            "EX03",
+            "EX04",
+            "EX05",
+            "EX06",
+            "EX07",
+            "EX08"
+          ]
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": [
+            "advanced",
+            "novice",
+            "standard"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "duration_s": {
+          "type": "number",
+          "maximum": 3600,
+          "exclusiveMinimum": 0
+        },
+        "public_mode_selector": {
+          "type": "boolean",
+          "const": false
+        },
+        "difficulty_locked_for_run": {
+          "type": "boolean",
+          "const": true
+        },
+        "arena": {
+          "$ref": "#/$defs/Arena"
+        },
+        "phase_transition": {
+          "$ref": "#/$defs/PhaseTransition"
+        },
+        "aggregate": {
+          "$ref": "#/$defs/Aggregate"
+        },
+        "phases": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/Phase"
+          }
+        }
+      }
+    }
+  }
+}

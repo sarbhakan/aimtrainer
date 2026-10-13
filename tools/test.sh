@@ -5,6 +5,7 @@ project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 run_suite() {
     local script_path="$1"
     local marker="$2"
+    local timeout_s="${3:-120}"
     local test_log
     local parse_log
     local completed=false
@@ -15,12 +16,12 @@ run_suite() {
         printf 'Compilation des tests refusée. Journal : %s\n' "$parse_log" >&2
         exit 1
     fi
-    timeout 120s bash "$project_root/tools/godot.sh" --headless --script "$script_path" 2>&1 | tee "$test_log"
+    timeout "${timeout_s}s" bash "$project_root/tools/godot.sh" --headless --script "$script_path" 2>&1 | tee "$test_log"
     while IFS= read -r log_line; do
         case "$log_line" in
             ERROR:*|"SCRIPT ERROR:"*|WARNING:*leaked*) printf 'Erreur dans les tests : %s\n' "$log_line" >&2; exit 1 ;;
         esac
-        if [[ "$log_line" == "$marker : "* && "$log_line" =~ [1-9][0-9]*\ assertions,\ 0\ échecs ]]; then
+        if [[ "$log_line" == "$marker : "* && "$log_line" =~ [1-9][0-9]*\ assertions,\ 0\ échecs ]] || [[ "$log_line" == "$marker: "* && "$log_line" =~ [1-9][0-9]*\ assertions,\ 0\ failures ]]; then
             completed=true
         fi
     done < "$test_log"
@@ -43,3 +44,17 @@ run_suite res://tests/lifecycle_tests.gd "LIFECYCLE"
 run_suite res://tests/tracking_rhythm_tests.gd "TRACKING RHYTHM"
 run_suite res://tests/presentation_080_tests.gd "PRESENTATION 080"
 run_suite res://tests/temporal_ui_tests.gd "TEMPORAL UI"
+run_suite res://tests/v2_foundation_tests.gd "V2 FOUNDATION"
+run_suite res://tests/v2_motion_tests.gd "V2 MOTION"
+run_suite res://tests/v2_catalog_tests.gd "V2 CATALOGUE"
+run_suite res://tests/v2_runtime_tests.gd "V2 RUNTIME"
+run_suite res://tests/v2_event_tests.gd "V2 EVENTS"
+run_suite res://tests/v2_calibration_tests.gd "V2 CALIBRATION"
+run_suite res://tests/v2_calibration_task_tests.gd "V2 CAL TASKS"
+run_suite res://tests/v2_store_tests.gd "V2 STORE"
+run_suite res://tests/v2_ui_tests.gd "V2 UI"
+run_suite res://tests/v2_app_flow_tests.gd "V2 APP FLOW"
+run_suite res://tests/v2_calibration_runner_tests.gd "V2 CALIBRATION RUNNER" 300
+run_suite res://tests/v2_progress_tests.gd "V2 PROGRESS"
+run_suite res://tests/v2_cal_flow_tests.gd "V2 CAL FLOW" 900
+python3 -m unittest discover -s "$project_root/tests" -p 'v2_atlas_import_tests.py'

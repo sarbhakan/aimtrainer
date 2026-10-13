@@ -1,0 +1,14 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 25.0.7-2+deb13u1 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 19.1.7, 256 bits)
+
+V2 APP FLOW scope: actual MainV2 scene, native UI signals, isolated V2Store, synthetic clock/callbacks; no measured player data or physical HID/scanout validation.
+V2 APP FLOW display=X11 capture_available=true
+V2 APP FLOW REPORT INTEGRITY: completed MainV2 result canonical=true semantic_sha256=5855a642d6dffb0f95f650e7ac1e297b15fae43621982a2965175b9dadb3c6b1 manifest_entries=3
+V2 APP FLOW REPORT INTEGRITY: completed V2Store result canonical=true semantic_sha256=5855a642d6dffb0f95f650e7ac1e297b15fae43621982a2965175b9dadb3c6b1 manifest_entries=3
+V2 APP FLOW REPORT INTEGRITY: settings-aborted MainV2 result canonical=true semantic_sha256=d57005160b615702d8c9ecab19ad0dc145e49f9e2fc9ca3d614239e5a3c2f5ae manifest_entries=3
+V2 APP FLOW REPORT INTEGRITY: settings-aborted V2Store result canonical=true semantic_sha256=d57005160b615702d8c9ecab19ad0dc145e49f9e2fc9ca3d614239e5a3c2f5ae manifest_entries=3
+V2 APP FLOW REPORT INTEGRITY: sensitivity-aborted MainV2 result canonical=true semantic_sha256=43c037d16208c5fa1fb37c8e6617bbfd1989b2304f28cff0118ef0c70be34c52 manifest_entries=3
+V2 APP FLOW REPORT INTEGRITY: sensitivity-aborted V2Store result canonical=true semantic_sha256=43c037d16208c5fa1fb37c8e6617bbfd1989b2304f28cff0118ef0c70be34c52 manifest_entries=3
+V2 APP FLOW: 282 assertions, 0 failures, 0 input routes unrun; isolated roots=["/tmp/aimlocal-v2-app-flow-14f7427fe2f4f24790dd9deb", "/tmp/aimlocal-v2-app-flow-f8b45ff507ec726ac1a2b647", "/tmp/aimlocal-v2-app-flow-c5f0a6263b1143b33189251c", "/tmp/aimlocal-v2-app-flow-fec1fbc51ec1487ef04dd634", "/tmp/aimlocal-v2-app-flow-747f02acb0141f74996d265d", "/tmp/aimlocal-v2-app-flow-54d310d345000db4e688d05a", "/tmp/aimlocal-v2-app-flow-2546d1123281d258a894acb3", "/tmp/aimlocal-v2-app-flow-26a623305bac75f40b3ce9e7", "/tmp/aimlocal-v2-app-flow-7acf685714210169dc37f4b8", "/tmp/aimlocal-v2-app-flow-d9ae90e90bef29310f7acd5a"]

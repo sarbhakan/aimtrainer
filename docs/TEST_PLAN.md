@@ -1,5 +1,7 @@
 # Plan de validation
 
+La recette actuelle de **1.0.0 / V2** est dans [TEST_PLAN_V2](TEST_PLAN_V2.md), avec les [journaux de validation](validation/v2/README.md). Les jalons ci-dessous sont conservés comme historique ; ils ne décrivent pas le catalogue public V2.
+
 ## Jalon 0.9.0 — 12 octobre 2026, UTC
 
 | Contrôle exécuté | Résultat |

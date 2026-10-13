@@ -1,0 +1,76 @@
+{
+  "version": "AIM-CANON-1",
+  "fixtures": [
+    {
+      "input": null,
+      "encoded_hex": "5a",
+      "semantic_sha256": "570cc5525e503e393542603c68fa90ee06600a0f7192fcbe10e94669d34a0bd0"
+    },
+    {
+      "input": true,
+      "encoded_hex": "54",
+      "semantic_sha256": "58f0c6e51a7641707d5c91e44a66f6a1ebf9c2f419e3c0a42ad059e0450a6247"
+    },
+    {
+      "input": false,
+      "encoded_hex": "46",
+      "semantic_sha256": "9c1fb9a5bcf750e0a01584f42b86bb4478468b03ed513dea821cba0777a536d9"
+    },
+    {
+      "input": 0,
+      "encoded_hex": "4e0000000000000000",
+      "semantic_sha256": "4c1e944cd23075df524847cf0bc5462e3ce72e0084dd05e93f1705a9999f8359"
+    },
+    {
+      "input": -0.0,
+      "encoded_hex": "4e0000000000000000",
+      "semantic_sha256": "4c1e944cd23075df524847cf0bc5462e3ce72e0084dd05e93f1705a9999f8359"
+    },
+    {
+      "input": 1,
+      "encoded_hex": "4e3ff0000000000000",
+      "semantic_sha256": "822d48599e1ea4c31b07ad8b1691ce99c6e23e29d2f6e509a347c9ab53655c1a"
+    },
+    {
+      "input": 1.0,
+      "encoded_hex": "4e3ff0000000000000",
+      "semantic_sha256": "822d48599e1ea4c31b07ad8b1691ce99c6e23e29d2f6e509a347c9ab53655c1a"
+    },
+    {
+      "input": 0.1,
+      "encoded_hex": "4e3fb999999999999a",
+      "semantic_sha256": "bc31e1e12c6a4e9ab8b89d371ea7f01c6463c2dd65ba79931f3ce0f90852d46c"
+    },
+    {
+      "input": "é",
+      "encoded_hex": "5300000002c3a9",
+      "semantic_sha256": "05b2b6d18319d774d56282c90a27963b279c8de00140f36ad945051791b6b2cb"
+    },
+    {
+      "input": [
+        1,
+        "1",
+        null
+      ],
+      "encoded_hex": "41000000034e3ff00000000000005300000001315a",
+      "semantic_sha256": "9df4d9d6309adfef48bcd2b206418032406017bc4370463502c1abfcc69d9f35"
+    },
+    {
+      "input": {
+        "b": 2,
+        "a": 1
+      },
+      "encoded_hex": "4f000000025300000001614e3ff00000000000005300000001624e4000000000000000",
+      "semantic_sha256": "e424e85b3a5c3fc7fe6787bfebd19845de05bd36436043059b4669b59e6d6e29"
+    },
+    {
+      "input": {
+        "gain": 0.03265714285714286,
+        "seed": "0000000000000000000000000000002a",
+        "time_us": 24000000
+      },
+      "encoded_hex": "4f0000000353000000046761696e4e3fa0b86fe11abdb453000000047365656453000000203030303030303030303030303030303030303030303030303030303030303261530000000774696d655f75734e4176e36000000000",
+      "semantic_sha256": "c224a5a9b8f94c809aedbe8d36f10b48e385c40afff4b1e2213a4885a25ba1c9"
+    }
+  ]
+}

@@ -9,8 +9,8 @@ func _initialize() -> void:
 
 
 func smoke() -> void:
-	if ProjectSettings.get_setting("application/config/version") != "0.9.0":
-		push_error("Le pack exporté doit être AIM/LOCAL 0.9.0.")
+	if ProjectSettings.get_setting("application/config/version") != "1.0.0":
+		push_error("Le pack exporté doit être AIM/LOCAL 1.0.0, avec ses ressources historiques intactes.")
 		failures += 1
 	var scene := load("res://scenes/app/Main.tscn") as PackedScene
 	if scene == null:
@@ -18,6 +18,13 @@ func smoke() -> void:
 		return
 	var app := scene.instantiate()
 	app.store = LocalStore.new("user://tests/export-" + LocalStore.new().identifier())
+	var isolated_profile: Dictionary = SensitivityService.default_profile()
+	isolated_profile.sound_enabled = false
+	if not app.store.save_profile(isolated_profile):
+		push_error("Profil isolé du smoke exporté non sauvegardé.")
+		app.free()
+		quit(1)
+		return
 	root.add_child(app)
 	await process_frame
 	if DirAccess.dir_exists_absolute("res://tests"):
@@ -142,6 +149,7 @@ func smoke() -> void:
 		push_error("Nombre de séances exportées : %d au lieu de 18. %s" % [sessions.size(), app.store.last_error])
 		failures += 1
 	app.queue_free()
+	await process_frame
 	await process_frame
 	print("EXPORT SMOKE : 18 exercices embarqués, %d échecs." % failures)
 	print("EXPORT ASSETS : 3 profils d’arme embarqués, %d échecs." % failures)

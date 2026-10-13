@@ -1,0 +1,190 @@
+{
+  "report_version": "aimlocal.atlas_validation.v2.0",
+  "generated_at_utc": "2026-10-12T21:15:06.988Z",
+  "status": "pass",
+  "environment": "Node vm with minimal simulated DOM, canvas API and animation clock; no browser",
+  "node_version": "v24.19.0",
+  "real_browser_test_performed": false,
+  "cua_used": false,
+  "dependencies_installed": false,
+  "shell_or_html_modified": false,
+  "checks": 213115,
+  "failure_count": 0,
+  "failure_code_counts": {},
+  "failures": [],
+  "numeric_tolerances": {
+    "angle_deg": 1e-8,
+    "distance_m": 1e-10,
+    "radius_m": 1e-10,
+    "fraction": 1e-10,
+    "contour_px": 0.000001,
+    "time_s": 1e-9
+  },
+  "input_sha256": {
+    "shell": "571f47cd55d7a4093690467a4487ab08d6788f8a36ac187d410fe46e2c3333a7",
+    "html": "695165e47aa9e9e81c1680f3508d6977f14f9cb6f34b2102a2abd07de81dc311",
+    "data": "95991a031770c570b6472f97cdeef082e80a845d6accfac35dd9f185dceaecd9",
+    "motion": "2f817c17a15f4c10768f54d9b274e108281205525db4b82463604457a2ff7200",
+    "geometry": "6a5e4f070303fd5e75ccdbe89d7499eaa0001a069245f92afa43e3d8d79fa697",
+    "builder": "700b7c71d3fbbc58212aa814d4b29804cd338e1f02619a62a828f79a47aba152",
+    "oracle": "734a6f81a284c649c53c44c94bd91f8ffa11ccef90978a2e303951300c7c3078"
+  },
+  "groups": [
+    {
+      "id": "source_integrity_and_python_oracle",
+      "status": "pass",
+      "checks": 6,
+      "failures": 0,
+      "elapsed_s": 0.382208345,
+      "metrics": {
+        "configurations": 24,
+        "phases": 54,
+        "sample_queries": 9552,
+        "target_queries": 852,
+        "contour_queries": 54,
+        "python_command": "python"
+      }
+    },
+    {
+      "id": "shell_load_and_initial_draw",
+      "status": "pass",
+      "checks": 4,
+      "failures": 0,
+      "elapsed_s": 0.03345545500000003,
+      "metrics": {
+        "initial_program": "EX01",
+        "initial_level": "standard"
+      }
+    },
+    {
+      "id": "shell_numeric_equivalence",
+      "status": "pass",
+      "checks": 105717,
+      "failures": 0,
+      "elapsed_s": 0.05905239299999994,
+      "metrics": {
+        "sample_queries": 9552,
+        "target_queries": 852,
+        "target_rows": 1174,
+        "contours": 54,
+        "maximum_sample_errors": {
+          "yaw_deg": 2.000106746891106e-10,
+          "pitch_deg": 1.7763568394002505e-14,
+          "distance_m": 8.881784197001252e-16
+        },
+        "maximum_target_errors": {
+          "yaw_deg": 1.7763568394002505e-14,
+          "pitch_deg": 1.7763568394002505e-14,
+          "distance_m": 8.881784197001252e-16,
+          "radius_m": 0,
+          "remaining_fraction": 0
+        },
+        "maximum_contour_coordinate_errors_px": {
+          "x": 2.2737367544323206e-13,
+          "y": 1.1368683772161603e-13
+        }
+      }
+    },
+    {
+      "id": "shell_controls_and_phase_boundaries",
+      "status": "pass",
+      "checks": 830,
+      "failures": 0,
+      "elapsed_s": 0.5786074519999999,
+      "metrics": {
+        "configurations": 24,
+        "phase_selector_and_strip_actions": 108,
+        "phase_boundary_checks": 192,
+        "canvas_calls": 262760,
+        "finite_coordinate_arguments": 515654,
+        "draw_rectangles": 2936,
+        "text_calls": 5138,
+        "animation_frames": 120,
+        "network_calls": 0,
+        "controls": 510
+      }
+    },
+    {
+      "id": "delivered_html_load_and_initial_draw",
+      "status": "pass",
+      "checks": 4,
+      "failures": 0,
+      "elapsed_s": 0.01590488499999992,
+      "metrics": {
+        "initial_program": "EX01",
+        "initial_level": "standard"
+      }
+    },
+    {
+      "id": "delivered_html_numeric_equivalence",
+      "status": "pass",
+      "checks": 105717,
+      "failures": 0,
+      "elapsed_s": 0.06268715400000019,
+      "metrics": {
+        "sample_queries": 9552,
+        "target_queries": 852,
+        "target_rows": 1174,
+        "contours": 54,
+        "maximum_sample_errors": {
+          "yaw_deg": 2.000106746891106e-10,
+          "pitch_deg": 1.7763568394002505e-14,
+          "distance_m": 8.881784197001252e-16
+        },
+        "maximum_target_errors": {
+          "yaw_deg": 1.7763568394002505e-14,
+          "pitch_deg": 1.7763568394002505e-14,
+          "distance_m": 8.881784197001252e-16,
+          "radius_m": 0,
+          "remaining_fraction": 0
+        },
+        "maximum_contour_coordinate_errors_px": {
+          "x": 2.2737367544323206e-13,
+          "y": 1.1368683772161603e-13
+        }
+      }
+    },
+    {
+      "id": "delivered_html_controls_and_phase_boundaries",
+      "status": "pass",
+      "checks": 830,
+      "failures": 0,
+      "elapsed_s": 0.5438955149999999,
+      "metrics": {
+        "configurations": 24,
+        "phase_selector_and_strip_actions": 108,
+        "phase_boundary_checks": 192,
+        "canvas_calls": 262760,
+        "finite_coordinate_arguments": 515654,
+        "draw_rectangles": 2936,
+        "text_calls": 5138,
+        "animation_frames": 120,
+        "network_calls": 0,
+        "controls": 510
+      }
+    },
+    {
+      "id": "audited_files_unchanged",
+      "status": "pass",
+      "checks": 7,
+      "failures": 0,
+      "elapsed_s": 0.004204673000000185,
+      "metrics": {
+        "shell_modified": false,
+        "delivered_html_modified": false,
+        "export_added": false
+      }
+    }
+  ],
+  "elapsed_s": 1.6900228240000001,
+  "coverage_limits": [
+    "This is a JavaScript execution and numerical equivalence test, not a browser acceptance test.",
+    "The DOM mock supports only the properties and handlers exercised by this atlas; it does not implement the complete HTML/DOM specification.",
+    "Canvas commands and finite coordinates are checked, but no pixels are rasterized and no visual screenshot comparison is performed.",
+    "CSS layout, responsiveness, text clipping, fonts, browser loading, real pointer/keyboard focus and accessibility are not validated here.",
+    "Animation time and visibility are simulated; display refresh, device scheduling, input latency and physical screen presentation are not measured.",
+    "Samples cover all delivered configurations and phases, their serialized event boundaries and selected interior times, but not all possible future seeds.",
+    "The atlas has no firing or scoring implementation; this test does not validate Godot, target replacement after human hits, contact scoring or calibration decisions.",
+    "At global time 60 seconds, the oracle applies programme closure to targets_at; the underlying Python pose helper alone does not apply this caller-owned lifecycle rule."
+  ]
+}

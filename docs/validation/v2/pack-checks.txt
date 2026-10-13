@@ -1,0 +1,30 @@
+
+LEGACY PACK CHECK 1 — isolated muted QA profile, audio assets still validated
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+EXPORT SMOKE : 18 exercices embarqués, 0 échecs.
+EXPORT ASSETS : 3 profils d’arme embarqués, 0 échecs.
+EXPORT PROFILES : 3 imports, protocole 6, 25 essais de 60 s et routine 3 phases embarqués, 0 échecs.
+EXPORT HISTORY : protocoles 4/5 préservés, archives inconnues protégées, 0 échecs.
+EXPORT CROSSHAIRS : 4 styles embarqués, 0 échecs.
+
+LEGACY PACK CHECK 2 — isolated muted QA profile, audio assets still validated
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+EXPORT SMOKE : 18 exercices embarqués, 0 échecs.
+EXPORT ASSETS : 3 profils d’arme embarqués, 0 échecs.
+EXPORT PROFILES : 3 imports, protocole 6, 25 essais de 60 s et routine 3 phases embarqués, 0 échecs.
+EXPORT HISTORY : protocoles 4/5 préservés, archives inconnues protégées, 0 échecs.
+EXPORT CROSSHAIRS : 4 styles embarqués, 0 échecs.
+
+LEGACY PACK CHECK 3 — isolated muted QA profile, audio assets still validated
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+EXPORT SMOKE : 18 exercices embarqués, 0 échecs.
+EXPORT ASSETS : 3 profils d’arme embarqués, 0 échecs.
+EXPORT PROFILES : 3 imports, protocole 6, 25 essais de 60 s et routine 3 phases embarqués, 0 échecs.
+EXPORT HISTORY : protocoles 4/5 préservés, archives inconnues protégées, 0 échecs.
+EXPORT CROSSHAIRS : 4 styles embarqués, 0 échecs.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+V2 EXPORT : 94 assertions, 0 échecs; 24 configurations, 54 phases, 4 tâches CAL.

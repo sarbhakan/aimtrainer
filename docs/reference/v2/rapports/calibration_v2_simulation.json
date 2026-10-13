@@ -1,0 +1,150 @@
+{
+  "protocol_id": "sustained_blocks_v2",
+  "data_origin": "synthetic_model_only",
+  "decision_rules_snapshot_sha256": "bbd310a5635805bf16d828b0404e34f357ef235ab06750cd9d9599eb62c7658d",
+  "hash_encoding": "AIM-CANON-1",
+  "random_generator": "Python_random_MT19937_for_simulation_only_not_stimulus_generation",
+  "seed": 246031,
+  "simulations_per_scenario": 20000,
+  "noise_model": {
+    "period_common_noise_sd_pp": 2.0,
+    "task_residual_sd_pp": 3.0,
+    "within_day_period_AR1": true,
+    "task_noise_correlated_via_period_common_component": true,
+    "success_counts_fixed": "15_of_16_CLICK_and_11_of_12_SWITCH_in_each_period",
+    "utility_clipped_to_logical_range": "0_to_1_tracking_and_0_to_success_fraction_CLICK_SWITCH",
+    "normal_noise_is_an_unvalidated_illustration": true
+  },
+  "interpretation": "algorithmic_sensitivity_analysis_not_human_validation_not_probability_of_correct_sensitivity",
+  "scenarios": [
+    {
+      "id": "null_iid_period_noise",
+      "effect_pp": 0.0,
+      "linear_pp_per_period": 0.0,
+      "curvature_pp": 0.0,
+      "carryover_pp": 0.0,
+      "rho": 0.0,
+      "simulations": 20000,
+      "counts": {
+        "undetermined": 17636,
+        "repeated_regression": 545,
+        "close_observed": 1245,
+        "repeated_improvement": 572,
+        "mixed_tradeoff": 2
+      },
+      "clipped_utility_count": 0,
+      "repeated_improvement_fraction": 0.0286,
+      "monte_carlo_standard_error": 0.0011786017138965988
+    },
+    {
+      "id": "null_linear_drift",
+      "effect_pp": 0.0,
+      "linear_pp_per_period": -1.0,
+      "curvature_pp": 0.0,
+      "carryover_pp": 0.0,
+      "rho": 0.6,
+      "simulations": 20000,
+      "counts": {
+        "undetermined": 17235,
+        "close_observed": 2087,
+        "repeated_improvement": 352,
+        "repeated_regression": 324,
+        "mixed_tradeoff": 2
+      },
+      "clipped_utility_count": 0,
+      "repeated_improvement_fraction": 0.0176,
+      "monte_carlo_standard_error": 0.0009297913744491288
+    },
+    {
+      "id": "null_day_curvature",
+      "effect_pp": 0.0,
+      "linear_pp_per_period": -1.0,
+      "curvature_pp": 2.0,
+      "carryover_pp": 0.0,
+      "rho": 0.6,
+      "simulations": 20000,
+      "counts": {
+        "undetermined": 15846,
+        "close_observed": 531,
+        "repeated_improvement": 1827,
+        "repeated_regression": 1789,
+        "mixed_tradeoff": 7
+      },
+      "clipped_utility_count": 0,
+      "repeated_improvement_fraction": 0.09135,
+      "monte_carlo_standard_error": 0.0020372184161252813
+    },
+    {
+      "id": "null_direction_specific_switch_bias",
+      "effect_pp": 0.0,
+      "linear_pp_per_period": -1.0,
+      "curvature_pp": 0.0,
+      "carryover_pp": -4.0,
+      "rho": 0.6,
+      "simulations": 20000,
+      "counts": {
+        "undetermined": 15194,
+        "repeated_regression": 4640,
+        "close_observed": 166
+      },
+      "clipped_utility_count": 0,
+      "repeated_improvement_fraction": 0.0,
+      "monte_carlo_standard_error": 0.0
+    },
+    {
+      "id": "null_direction_specific_switch_benefit",
+      "effect_pp": 0.0,
+      "linear_pp_per_period": -1.0,
+      "curvature_pp": 0.0,
+      "carryover_pp": 4.0,
+      "rho": 0.6,
+      "simulations": 20000,
+      "counts": {
+        "repeated_improvement": 6631,
+        "undetermined": 13054,
+        "close_observed": 283,
+        "mixed_tradeoff": 32
+      },
+      "clipped_utility_count": 0,
+      "repeated_improvement_fraction": 0.33155,
+      "monte_carlo_standard_error": 0.0033288481303598095
+    },
+    {
+      "id": "gain_3pp_drift_noise",
+      "effect_pp": 3.0,
+      "linear_pp_per_period": -1.0,
+      "curvature_pp": 1.0,
+      "carryover_pp": 0.0,
+      "rho": 0.6,
+      "simulations": 20000,
+      "counts": {
+        "undetermined": 12585,
+        "repeated_improvement": 6909,
+        "mixed_tradeoff": 31,
+        "repeated_regression": 20,
+        "close_observed": 455
+      },
+      "clipped_utility_count": 0,
+      "repeated_improvement_fraction": 0.34545,
+      "monte_carlo_standard_error": 0.003362397191736871
+    },
+    {
+      "id": "gain_5pp_drift_noise",
+      "effect_pp": 5.0,
+      "linear_pp_per_period": -1.0,
+      "curvature_pp": 1.0,
+      "carryover_pp": 0.0,
+      "rho": 0.6,
+      "simulations": 20000,
+      "counts": {
+        "repeated_improvement": 13170,
+        "undetermined": 6730,
+        "close_observed": 76,
+        "mixed_tradeoff": 24
+      },
+      "clipped_utility_count": 0,
+      "repeated_improvement_fraction": 0.6585,
+      "monte_carlo_standard_error": 0.0033531906447441967
+    }
+  ]
+}

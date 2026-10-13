@@ -1,0 +1,239 @@
+{
+  "schema_version": "aimlocal.calibration.plan_negative_fixtures.v2",
+  "base_plan_sha256": "429eb898dbd4981f7d1047152fd4df2eebec04f3c74c28f08d2033d4fa685c22",
+  "rehash_plan_after_each_fixture": true,
+  "rationale": "a_correct_hash_does_not_validate_internal_plan_semantics",
+  "fixtures": [
+    {
+      "id": "shift_interior_period_minus_10s",
+      "expected_error": "PERIOD_START_NOT_ON_FROZEN_TIMELINE",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/start_s",
+          "value": 272
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/end_s",
+          "value": 464
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/acclimation/start_s",
+          "value": 272
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/acclimation/end_s",
+          "value": 332
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/acclimation/task_segments/0/start_s",
+          "value": 272
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/acclimation/task_segments/0/end_s",
+          "value": 287
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/acclimation/task_segments/1/start_s",
+          "value": 287
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/acclimation/task_segments/1/end_s",
+          "value": 302
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/acclimation/task_segments/2/start_s",
+          "value": 302
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/acclimation/task_segments/2/end_s",
+          "value": 317
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/acclimation/task_segments/3/start_s",
+          "value": 317
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/acclimation/task_segments/3/end_s",
+          "value": 332
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/0/countdown_start_s",
+          "value": 332
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/0/scored_start_s",
+          "value": 335
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/0/scored_end_s",
+          "value": 359
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/0/recovery_end_s",
+          "value": 365
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/1/countdown_start_s",
+          "value": 365
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/1/scored_start_s",
+          "value": 368
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/1/scored_end_s",
+          "value": 392
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/1/recovery_end_s",
+          "value": 398
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/2/countdown_start_s",
+          "value": 398
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/2/scored_start_s",
+          "value": 401
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/2/scored_end_s",
+          "value": 425
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/2/recovery_end_s",
+          "value": 431
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/3/countdown_start_s",
+          "value": 431
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/3/scored_start_s",
+          "value": 434
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/3/scored_end_s",
+          "value": 458
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/1/scored_cells/3/recovery_end_s",
+          "value": 464
+        }
+      ]
+    },
+    {
+      "id": "B_period_applies_A_gain",
+      "expected_error": "PERIOD_APPLIED_GAIN_MISMATCH",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/sessions/1/periods/1/applied_gain",
+          "value": {
+            "decimal_roundtrip": "0.032657142857142857",
+            "ieee754_binary64_big_endian_hex": "3fa0b86fe11abdb4"
+          }
+        }
+      ]
+    },
+    {
+      "id": "undeclared_cell_candidate",
+      "expected_error": "CELL_CANDIDATE_MISMATCH",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/0/scored_cells/0/candidate_id",
+          "value": "UNDECLARED"
+        }
+      ]
+    },
+    {
+      "id": "score_cell_shortened_to_23s",
+      "expected_error": "WRONG_SCORED_CELL_DURATION",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/0/scored_cells/0/scored_end_s",
+          "value": 146
+        },
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/0/scored_cells/0/duration_s",
+          "value": 23
+        }
+      ]
+    },
+    {
+      "id": "restore_baseline_between_periods",
+      "expected_error": "REST_GAIN_CONTINUITY_BROKEN",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/sessions/0/interperiod_rests/0/restore_baseline",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "shortened_rest",
+      "expected_error": "REST_DURATION_MISMATCH",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/sessions/0/interperiod_rests/0/end_s",
+          "value": 281
+        }
+      ]
+    },
+    {
+      "id": "cell_uses_other_condition_snapshot",
+      "expected_error": "CELL_CONDITION_SNAPSHOT_MISMATCH",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/0/scored_cells/0/condition_snapshot_sha256",
+          "value": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    {
+      "id": "warmup_included_in_comparison",
+      "expected_error": "WARMUP_SCORE_OR_TASK_COUNT_MISMATCH",
+      "operations": [
+        {
+          "op": "replace",
+          "path": "/sessions/0/periods/0/acclimation/score_included",
+          "value": true
+        }
+      ]
+    }
+  ]
+}

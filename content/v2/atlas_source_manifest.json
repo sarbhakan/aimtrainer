@@ -1,0 +1,110 @@
+{
+  "agreement": {
+    "atlas_states_document": true,
+    "configurations": 24,
+    "phase_definitions": 54,
+    "theme": true
+  },
+  "artifacts": {
+    "calibration_v2_protocol.json": {
+      "sha256": "2a1dd2601f5f2ea3a4b1dd90dc9eb1e00505f7675ad8641efd23c63cf9edfa89",
+      "source_path": "donnees/calibration_v2_protocol.json"
+    },
+    "catalogue.v2.json": {
+      "sha256": "b72277ca6ac33b93aa38ac73092c529f2152c2ab88199fa0fcaea3ee93154781",
+      "source_path": "donnees/catalogue.v2.json"
+    },
+    "empreintes.fixtures.json": {
+      "sha256": "5d22a3e6d4fd67dabac8b809b5bbddbeba8771b9209cc8c47d030ad3dc526911",
+      "source_path": "donnees/empreintes.fixtures.json"
+    },
+    "interface.theme.json": {
+      "sha256": "19a647eb866e53a836dac8d2202fafddff0911f275f04018f98fef3a5accea7a",
+      "source_path": "donnees/interface.theme.json"
+    },
+    "runtime.contract.json": {
+      "sha256": "57e82bd55c35345ef75a842b9dd006f3bf67726cefc3e597af0f5877dd4f5b32",
+      "source_path": "donnees/runtime.contract.json"
+    }
+  },
+  "atlas_version": "aimlocal.atlas.v2",
+  "catalogue_revision": "2026-10-12-v2.0",
+  "catalogue_top_level_keys": [
+    "schema_version",
+    "catalogue_revision",
+    "design_status",
+    "configuration_count",
+    "public_program_count",
+    "laboratory_extensions_enabled",
+    "sensitivity_calibration_uses_separate_tasks",
+    "randomization",
+    "programs"
+  ],
+  "checksum_files_verified": 81,
+  "checksum_manifest_file": "SHA256SUMS.txt",
+  "checksum_manifest_sha256": "e76ad021da07675dbcee0621ef75c00a543e72b7f8c87e4cdabc109a8b4b4cb1",
+  "compiler_version": "motion_reference_v2.0",
+  "configuration_count": 24,
+  "difficulty_counts": {
+    "advanced": 8,
+    "novice": 8,
+    "standard": 8
+  },
+  "extraction": {
+    "definitions_serialized_sha256": "54c6fab4800f27fa5d4ccbf1c38edfa85c7cb69ac00a0a36985ea84a79361b22",
+    "hash_encoding": "UTF-8 sorted-key JSON, two-space indent, LF ending; not AIM-CANON-1",
+    "illustrative_samples_imported": false,
+    "purpose": "preliminary_atlas_derived_for_agreement_only",
+    "reconstructed_catalogue_imported": false,
+    "theme_serialized_sha256": "80fde882717d9b46489bf2c1e488a691a241d30c9a9c81280ad4f96d4fe5e11c"
+  },
+  "linear_reflection_counts": {
+    "instantaneous_velocity_sign_change": 3,
+    "symmetric_cubic_smoothstep_velocity": 3
+  },
+  "mechanic_counts": {
+    "click": 24,
+    "opportunity": 6,
+    "switching": 9,
+    "tracking": 15
+  },
+  "missing_required_reference_paths": [],
+  "motion_kind_counts": {
+    "angular_bounce": 3,
+    "angular_ellipse": 3,
+    "depth_sines": 3,
+    "linear_reflect": 6,
+    "reactive_axis": 3,
+    "reactive_lanes": 6,
+    "sinusoid_axis": 6,
+    "static": 24
+  },
+  "phase_count": 54,
+  "public_program_count": 8,
+  "purpose": "verified_original_kit_import_and_documentary_atlas_agreement",
+  "raw_data_sha256": "95991a031770c570b6472f97cdeef082e80a845d6accfac35dd9f185dceaecd9",
+  "required_reference_paths": [
+    "schemas/catalogue.schema.json",
+    "outils/valider_catalogue.py",
+    "ATLAS_EXERCICES_V2.html",
+    "donnees/atlas.etats.json",
+    "outils/geometrie_reference.py",
+    "outils/mouvements_reference.py",
+    "outils/empreintes_reference.py",
+    "outils/calibration_v2_reference.py",
+    "donnees/calibration_v2_plan_example.json",
+    "donnees/calibration_v2_comparison_examples.json",
+    "donnees/calibration_v2_plan_negative_fixtures.json"
+  ],
+  "schema_validation": {
+    "geometry_certificate_count": 54,
+    "named_definition_count": 14,
+    "schema_sha256": "211563525acb4c23dada3351386cb84f2b6f59bb6761ea7b0f8bee82186743e6",
+    "schema_source": "schemas/catalogue.schema.json",
+    "scope": "supplied frozen schema subset and semantic checks",
+    "validator_sha256": "cfa681bba6f9aec2cc163c9cd90cd2fb85ddd268bb43bf47510019865244ef38",
+    "validator_source": "outils/valider_catalogue.py"
+  },
+  "source_file": "ATLAS_EXERCICES_V2.html",
+  "source_sha256": "695165e47aa9e9e81c1680f3508d6977f14f9cb6f34b2102a2abd07de81dc311"
+}

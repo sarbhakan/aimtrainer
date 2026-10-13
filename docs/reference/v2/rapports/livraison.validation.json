@@ -1,0 +1,56 @@
+{
+  "report_version": "aimlocal.deliverable_validation.v2.0",
+  "generated_at_utc": "2026-10-12T21:25:20.847541+00:00",
+  "status": "pass_in_declared_scope",
+  "markdown": {
+    "words_approx": 34175,
+    "chapters": 17,
+    "source_references": 41,
+    "embedded_image_references": 15,
+    "missing_image_paths": 0,
+    "undefined_source_references": 0,
+    "malformed_table_rows": 0
+  },
+  "artifacts": {
+    "configurations": 24,
+    "phases": 54,
+    "svg": 23,
+    "png": 23
+  },
+  "reference_checks": {
+    "catalogue_negative_passed": 47,
+    "catalogue_positive_passed": 4,
+    "motion_checks": 2025701,
+    "atlas_checks": 213115,
+    "calibration_cases": 11,
+    "calibration_negative_plans": 8,
+    "all_audited_input_hashes_match_final_files": true
+  },
+  "visual_review": {
+    "svg_rasterized": true,
+    "reviewed": [
+      "overview_ui_contact_sheet",
+      "EX03_temporisees",
+      "EX04_clic_mobile",
+      "EX06_suivi_reactif",
+      "EX07_controle_3d",
+      "M01_cibles_et_etats"
+    ],
+    "scope": "Inspection of rendered documentary PNGs; no Godot screenshot comparison"
+  },
+  "not_performed": [
+    "Godot_runtime_execution",
+    "Windows_export_acceptance",
+    "real_mouse_input_validation",
+    "contact_or_scoring_runtime_tests",
+    "arbitrary_hit_replacement_runtime_tests",
+    "real_browser_rendering_test",
+    "human_validation"
+  ],
+  "design_constants_not_runtime_validated": [
+    "donnees/runtime.contract.json",
+    "product_progression_thresholds",
+    "Windows_performance_budgets"
+  ],
+  "calibration_interpretation": "Descriptive observed performance after short warmup. Synthetic simulation is not human validation or a guaranteed false-promotion rate."
+}
